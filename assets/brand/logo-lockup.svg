@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 200" role="img" aria-label="Érték Pont Pénzügyek">
+  <g transform="translate(0,20)">
+    <rect x="0" y="0" width="160" height="160" rx="36" fill="#C2FF72"/>
+    <g fill="none" stroke="#0A0B09" stroke-width="20.6" stroke-linecap="butt" transform="translate(0,0) scale(0.3125)">
+      <path d="M138 374 L366 146"/>
+      <path d="M172 132 C232 178 300 172 366 146"/>
+      <path d="M392 344 C348 288 356 210 366 146"/>
+    </g>
+  </g>
+  <text x="200" y="112" font-family="'Inter Tight','Inter',system-ui,sans-serif" font-size="76" font-weight="800" letter-spacing="-1" fill="currentColor">ÉRTÉK PONT</text>
+  <text x="202" y="160" font-family="'Inter Tight','Inter',system-ui,sans-serif" font-size="34" font-weight="400" letter-spacing="7.5" fill="currentColor">PÉNZÜGYEK</text>
+</svg>

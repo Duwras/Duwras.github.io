@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Érték Pont Pénzügyek jelkép">
+  <rect x="0" y="0" width="512" height="512" rx="116" fill="#C2FF72"/>
+  <g fill="none" stroke="#0A0B09" stroke-width="66" stroke-linecap="butt">
+    <path d="M138 374 L366 146"/>
+    <path d="M172 132 C232 178 300 172 366 146"/>
+    <path d="M392 344 C348 288 356 210 366 146"/>
+  </g>
+</svg>

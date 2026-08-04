@@ -1,0 +1,509 @@
+/* ==========================================================================
+   Funnel: Pénzügyi Térkép quiz, szolgáltatás-funnelek, kalkulátorok, form
+   ========================================================================== */
+
+/* --- Konténer ---------------------------------------------------------- */
+
+.funnel {
+  position: relative;
+  border-radius: var(--r-xl);
+  background: linear-gradient(180deg, rgba(194, 255, 114, 0.055), transparent 42%), var(--ink-700);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  box-shadow: var(--glow-soft);
+}
+
+.funnel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) clamp(1.25rem, 3vw, 2.25rem);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+/* Konténer-kontextus: a funnel a főoldalon ~1000px, a szolgáltatás-oldal
+   hero-jában viszont csak ~500px széles. A belső rácsok ezért a KONTÉNER
+   szélességére váltanak, nem a viewportra — különben a szűk hasábban is
+   két hasábra állna a kalkulátor, és összenyomná a számokat. */
+.funnel__body {
+  padding: clamp(1.5rem, 3.4vw, 2.75rem);
+  min-height: 420px;
+  display: grid;
+  align-content: start;
+  container-type: inline-size;
+  container-name: funnel;
+}
+
+.funnel__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) clamp(1.25rem, 3vw, 2.25rem);
+  border-top: 1px solid var(--line-soft);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* --- Progress ---------------------------------------------------------- */
+
+.progress {
+  flex: 1;
+  height: 3px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+  max-width: 260px;
+}
+.progress__fill {
+  height: 100%;
+  width: 0%;
+  background: var(--lime);
+  border-radius: inherit;
+  transition: width 460ms var(--ease-out);
+}
+.progress__text {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.12em;
+  color: var(--text-mute);
+  white-space: nowrap;
+}
+
+/* --- Lépések ----------------------------------------------------------- */
+
+.fstep { display: none; }
+.fstep.is-active { display: block; animation: fstep-in 480ms var(--ease-out) both; }
+@keyframes fstep-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+.fstep__kicker {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--lime);
+  margin-bottom: var(--space-3);
+  display: block;
+}
+.fstep__q {
+  font-family: var(--font-display);
+  /* cqi = a konténer szélességének 1%-a: a szűk hasábban is arányos marad */
+  font-size: clamp(1.35rem, 4.2cqi, 2.4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.fstep__help {
+  margin-top: var(--space-3);
+  color: var(--text-soft);
+  font-size: var(--fs-sm);
+  max-width: 58ch;
+}
+
+/* --- Válaszopciók ------------------------------------------------------ */
+
+.opts {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+}
+.opts--single { grid-template-columns: 1fr; }
+
+.opt {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--r-md);
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
+  text-align: left;
+  transition:
+    border-color var(--t-fast),
+    background var(--t-fast),
+    transform var(--t-fast) var(--ease-out);
+}
+.opt:hover { border-color: var(--lime); transform: translateY(-2px); }
+.opt.is-picked {
+  border-color: var(--lime);
+  background: rgba(194, 255, 114, 0.1);
+  box-shadow: inset 0 0 0 1px var(--lime);
+}
+.opt__key {
+  flex: 0 0 auto;
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  background: var(--surface-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-mute);
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.opt.is-picked .opt__key { background: var(--lime); color: var(--lime-ink); }
+.opt__label { font-weight: 600; letter-spacing: -0.015em; }
+.opt__note { display: block; font-size: var(--fs-xs); color: var(--text-mute); font-weight: 400; margin-top: 2px; }
+
+/* --- Kalkulátor rács --------------------------------------------------- */
+/* Korábban a generikus .split vitte (1.05fr / 0.95fr), ami 900px körül
+   két szűk hasábot adott, és a nagy eredményszám kifolyt belőle. Itt a
+   kimenet kap több helyet, és a váltás 1040px-nél történik, ahol tényleg
+   van hely két hasábra. */
+.calc {
+  display: grid;
+  gap: clamp(1.25rem, 3cqi, 2.25rem);
+  margin-top: var(--space-6);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+/* Két hasáb csak akkor, ha a KONTÉNERBEN van rá hely (nem a képernyőn) */
+@container funnel (min-width: 680px) {
+  .calc { grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr); }
+}
+.calc__in,
+.calc__out { min-width: 0; }
+/* Nincs saját kerete: a lime eredmény-panel a fókusz, a keret csak zajt adna */
+.calc__out {
+  padding: clamp(0.9rem, 1.8vw, 1.3rem);
+  border-radius: var(--r-lg);
+  background: rgba(0, 0, 0, 0.2);
+}
+.calc__note { margin-top: var(--space-4); }
+
+/* Egy hasábban az eredmény kerül FELÜLRE: így a csúszka húzása közben
+   (ahol a hüvelykujj van) a nagy szám látszik, nem kell utána görgetni. */
+@container funnel (max-width: 679px) {
+  .calc__out { order: -1; }
+}
+
+/* --- Csúszkák / számbevitel ------------------------------------------- */
+
+.field + .field { margin-top: var(--space-5); }
+.field__label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+  margin-bottom: var(--space-3);
+}
+.field__label > span:first-child { min-width: 0; }
+.field__value {
+  font-family: var(--font-display);
+  /* rövid oszlopban is elfér: hosszú Ft-érték nem tolja szét a sort */
+  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  font-weight: 800;
+  color: var(--lime);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  text-align: right;
+}
+.field__note {
+  margin-top: 0.45rem;
+  font-size: var(--fs-micro);
+  line-height: 1.5;
+  color: var(--text-mute);
+}
+
+/* --- Legördülő (évjárat, bónusz fokozat, hónap) ---------------------- */
+
+.select-wrap { position: relative; }
+.select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--lime);
+  border-bottom: 1.5px solid var(--lime);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  padding: 0.85rem 2.6rem 0.85rem 1rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.select:hover { border-color: var(--lime); }
+.select:focus-visible { border-color: var(--lime); outline: none; }
+.select option { background: var(--ink-700); color: var(--text); }
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 34px;
+  background: transparent;
+  cursor: grab;
+}
+.slider:active { cursor: grabbing; }
+.slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(
+    90deg,
+    var(--lime) 0%,
+    var(--lime) var(--fill, 40%),
+    rgba(255, 255, 255, 0.1) var(--fill, 40%),
+    rgba(255, 255, 255, 0.1) 100%
+  );
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px;
+  margin-top: -9px;
+  border-radius: 50%;
+  background: var(--lime);
+  border: 4px solid var(--ink-700);
+  box-shadow: 0 0 0 1px var(--lime), 0 0 22px rgba(194, 255, 114, 0.6);
+  transition: transform var(--t-fast);
+}
+.slider::-webkit-slider-thumb:hover { transform: scale(1.12); }
+.slider::-moz-range-track { height: 4px; border-radius: var(--r-pill); background: rgba(255, 255, 255, 0.1); }
+.slider::-moz-range-progress { height: 4px; border-radius: var(--r-pill); background: var(--lime); }
+.slider::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--lime);
+  border: 4px solid var(--ink-700);
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.chip {
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-soft);
+  font-size: var(--fs-xs);
+  color: var(--text-soft);
+  transition: all var(--t-fast);
+}
+.chip:hover, .chip.is-picked { border-color: var(--lime); color: var(--lime); background: rgba(194, 255, 114, 0.08); }
+
+/* --- Eredmény panel --------------------------------------------------- */
+
+.result {
+  display: grid;
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+}
+
+.result__hero {
+  padding: clamp(1.4rem, 3vw, 2.2rem);
+  border-radius: var(--r-lg);
+  background: linear-gradient(135deg, rgba(194, 255, 114, 0.16), rgba(194, 255, 114, 0.03));
+  border: 1px solid var(--lime);
+}
+.result__big {
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 8.5cqi, 4.4rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  color: var(--lime);
+  font-variant-numeric: tabular-nums;
+  /* hosszú Ft-értékek: inkább kisebb legyen, mint hogy szótagoljon */
+  overflow-wrap: normal;
+  hyphens: manual;
+}
+.result__big small { font-size: 0.32em; letter-spacing: -0.01em; color: var(--text-soft); font-weight: 600; }
+/* A kalkulátor hasábjában szűkebb a hely, mint a végeredmény-panelen */
+.result__hero--calc .result__big { font-size: clamp(1.7rem, 5.2cqi, 2.9rem); }
+/* Szöveges eredmény (pl. határidő dátuma) nem szám: kisebb és tördelhető */
+.result__big--sm {
+  font-size: clamp(1.4rem, 4cqi, 2.15rem) !important;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+.result__cap { margin-top: var(--space-3); font-size: var(--fs-sm); color: var(--text-soft); max-width: 46ch; }
+
+.breakdown { display: grid; gap: 0; margin-top: var(--space-4); }
+.breakdown__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: 0.7rem 0;
+  border-bottom: 1px dashed var(--line-soft);
+  font-size: var(--fs-sm);
+}
+.breakdown__row span:first-child { color: var(--text-soft); }
+.breakdown__row b { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.breakdown__row--total { border-bottom: 0; padding-top: var(--space-4); }
+.breakdown__row--total b { color: var(--lime); font-size: 1.15em; }
+
+.reco { display: grid; gap: var(--space-3); }
+.reco__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--r-md);
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
+  transition: border-color var(--t-fast), transform var(--t-fast);
+}
+.reco__item:hover { border-color: var(--lime); transform: translateX(4px); }
+.reco__rank {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--lime);
+  flex: 0 0 auto;
+}
+.reco__body { flex: 1; }
+.reco__body strong { display: block; letter-spacing: -0.015em; }
+.reco__body span { font-size: var(--fs-xs); color: var(--text-mute); }
+
+/* --- Lead form -------------------------------------------------------- */
+
+.lead-form { display: grid; gap: var(--space-4); margin-top: var(--space-5); }
+.lead-form__row { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); }
+
+.input-wrap { position: relative; }
+.input {
+  width: 100%;
+  padding: 1.05rem 1.1rem 0.5rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.input:focus { border-color: var(--lime); background: var(--surface-2); outline: none; }
+.input::placeholder { color: transparent; }
+.input-wrap label {
+  position: absolute;
+  left: 1.1rem; top: 0.95rem;
+  font-size: var(--fs-sm);
+  color: var(--text-mute);
+  pointer-events: none;
+  transition: transform var(--t-fast) var(--ease-out), font-size var(--t-fast), color var(--t-fast);
+  transform-origin: left top;
+}
+.input:focus + label,
+.input:not(:placeholder-shown) + label {
+  transform: translateY(-9px) scale(0.76);
+  color: var(--lime);
+}
+textarea.input { min-height: 108px; resize: vertical; padding-top: 1.4rem; }
+
+.input.is-bad { border-color: var(--danger); }
+.field-error { font-size: var(--fs-xs); color: var(--danger); margin-top: 4px; display: none; }
+.input.is-bad ~ .field-error { display: block; }
+
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--fs-xs);
+  color: var(--text-mute);
+  line-height: 1.55;
+}
+.consent input {
+  appearance: none;
+  flex: 0 0 auto;
+  width: 20px; height: 20px;
+  margin-top: 1px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast);
+}
+.consent input::after {
+  content: "";
+  width: 10px; height: 6px;
+  border-left: 2px solid var(--lime-ink);
+  border-bottom: 2px solid var(--lime-ink);
+  transform: rotate(-45deg) scale(0);
+  transition: transform var(--t-fast) var(--ease-spring);
+}
+.consent input:checked { background: var(--lime); border-color: var(--lime); }
+.consent input:checked::after { transform: rotate(-45deg) scale(1); }
+.consent a { color: var(--lime); text-decoration: underline; text-underline-offset: 2px; }
+
+.honeypot { position: absolute; left: -9999px; opacity: 0; pointer-events: none; }
+
+/* Küldés állapotok */
+.btn.is-loading { pointer-events: none; opacity: 0.75; }
+.btn.is-loading .btn__label::after {
+  content: "";
+  display: inline-block;
+  width: 12px; height: 12px;
+  margin-left: 8px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+  vertical-align: -1px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.thanks { text-align: center; padding-block: var(--space-6); }
+.thanks__check {
+  width: 76px; height: 76px;
+  margin: 0 auto var(--space-5);
+  border-radius: 50%;
+  background: var(--lime);
+  color: var(--lime-ink);
+  display: grid; place-items: center;
+  animation: pop 520ms var(--ease-spring) both;
+}
+@keyframes pop { from { transform: scale(0.4); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* --- Overlay funnel (modal) ------------------------------------------ */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: grid;
+  place-items: center;
+  padding: var(--gutter);
+  background: rgba(3, 4, 3, 0.78);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--t-med), visibility var(--t-med);
+  overflow-y: auto;
+}
+.overlay.is-open { opacity: 1; visibility: visible; }
+.overlay__panel {
+  width: min(880px, 100%);
+  transform: translateY(24px) scale(0.98);
+  transition: transform 420ms var(--ease-out);
+  margin-block: auto;
+}
+.overlay.is-open .overlay__panel { transform: none; }
+.overlay__close {
+  position: absolute;
+  top: var(--space-4); right: var(--space-4);
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  display: grid; place-items: center;
+  color: var(--text);
+}
+.overlay__close:hover { border-color: var(--lime); color: var(--lime); }

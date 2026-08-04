@@ -1,0 +1,129 @@
+/* ==========================================================================
+   MOZGÁS — kurzor-glow, magnetikus gombok, parallax, 3D szekció, tilt
+   ========================================================================== */
+
+/* --- Kurzort követő derengés ------------------------------------------- */
+/* Se filter:blur, se mix-blend-mode — mindkettő minden képkockán teljes
+   képernyős újrafestést kényszerít. A lágy átmenet elég a hatáshoz, és
+   így a folt a saját kompozit rétegén, GPU-n mozog. */
+.cursor-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(
+    circle closest-side,
+    rgba(194, 255, 114, 0.13),
+    rgba(194, 255, 114, 0.06) 45%,
+    transparent 72%
+  );
+  will-change: transform;
+  contain: strict;
+}
+@media (prefers-reduced-motion: reduce), (hover: none) {
+  .cursor-glow { display: none; }
+}
+
+/* --- Magnetikus gomb (a hover-transzformmal együtt él) ---------------- */
+.btn {
+  translate: var(--mag-x, 0) var(--mag-y, 0);
+  transition:
+    transform var(--t-med) var(--ease-spring),
+    translate 220ms var(--ease-out),
+    box-shadow var(--t-med),
+    color var(--t-med);
+}
+
+/* --- Parallax rétegek -------------------------------------------------- */
+[data-parallax] {
+  translate: 0 var(--py, 0);
+  will-change: translate;
+}
+
+/* --- Kártya-tilt ------------------------------------------------------- */
+.card--spot {
+  transform-style: preserve-3d;
+  transition: transform 420ms var(--ease-out), border-color var(--t-med), background var(--t-med);
+}
+
+/* --- 3D háttérszekció -------------------------------------------------- */
+.scene3d {
+  position: absolute;
+  /* Felül szándékosan lejjebb kezdődik: a szekció fejléce („Pénzügyi Térkép”
+     + bevezető) így soha nem kap 3D elemet maga alá. */
+  inset: 26% 0 -8%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1200ms var(--ease-out);
+  /* fordított maszk: a KÖZÉP (ahol a funnel-kártya van) kifakul,
+     a széleken viszont látszanak a lebegő ikonok */
+  mask-image: radial-gradient(ellipse 62% 52% at 50% 60%, transparent 40%, #000 78%);
+  -webkit-mask-image: radial-gradient(ellipse 62% 52% at 50% 60%, transparent 40%, #000 78%);
+}
+.scene3d.is-on { opacity: 0.9; }
+.scene3d canvas { width: 100%; height: 100%; display: block; }
+
+.has-scene { position: relative; isolation: isolate; overflow: hidden; }
+.has-scene > .wrap { position: relative; z-index: var(--z-content); }
+
+/* A központi funnel szűkebb, hogy a 3D gyűrű a széleken látsszon */
+.funnel-narrow { max-width: 1020px; margin-inline: auto; }
+
+/* --- Funnel opciók léptetett belépése --------------------------------- */
+.fstep.is-active .opt {
+  animation: opt-in 460ms var(--ease-out) both;
+  animation-delay: calc(var(--opt-i, 0) * 55ms);
+}
+@keyframes opt-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fstep.is-active .opt { animation: none; }
+}
+
+/* --- Lime szövegkiemelés csillanása ---------------------------------- */
+.hero__title em {
+  background: linear-gradient(100deg, var(--lime) 0%, var(--lime-bright) 42%, var(--lime) 78%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 7s var(--ease-in-out) infinite;
+}
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 0; }
+  50% { background-position: 100% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero__title em { animation: none; color: var(--lime); -webkit-text-fill-color: var(--lime); }
+}
+
+/* --- 3D ikon a szolgáltatás-kártyán ---------------------------------- */
+.svc__icon {
+  width: 54px;
+  height: 54px;
+  padding: 5px;
+  background: radial-gradient(circle at 35% 30%, rgba(194, 255, 114, 0.16), rgba(194, 255, 114, 0.05));
+  transition: transform 420ms var(--ease-spring);
+}
+.svc__icon img { width: 100%; height: 100%; object-fit: contain; }
+
+.card:hover .svc__icon { transform: translateY(-2px) rotate(-6deg) scale(1.06); }
+
+.icon-lg {
+  width: 88px;
+  height: 88px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 35% 30%, rgba(194, 255, 114, 0.18), rgba(194, 255, 114, 0.04));
+  border: 1px solid var(--line);
+  padding: 10px;
+}
+.icon-lg img { width: 100%; height: 100%; object-fit: contain; }

@@ -1,0 +1,4 @@
+# Ideiglenes cím (https://duwras.github.io) — szándékosan nincs indexelve.
+# A saját domain élesítésekor: js/config.js → noindex: false, majd node build/generate.mjs
+User-agent: *
+Disallow: /

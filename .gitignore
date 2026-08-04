@@ -1,0 +1,21 @@
+# Nyers, nagy méretű eredetik (6+ MB). Nem kellenek az oldal működéséhez, és
+# a GitHub Pages mindent kiszolgál, ami a repóban van — a 6 MB-os eredeti
+# portré publikusan letölthető lenne. FIGYELEM: emiatt a _source NEM kerül
+# fel a GitHubra, vagyis erről nincs online biztonsági mentés.
+_source/
+
+# Claude Code helyi beállításai
+.claude/
+
+# Operációs rendszer / szerkesztő
+Thumbs.db
+desktop.ini
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
+
+# Node (ha később lesz csomagkezelés)
+node_modules/
+npm-debug.log*
