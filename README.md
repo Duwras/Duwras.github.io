@@ -7,6 +7,9 @@ legrelevánsabb témákhoz vezeti.
 **Nincs build-kényszer, nincs szerver, nincs adatbázis.** A kimenet tiszta HTML/CSS/JS —
 feltölthető bármilyen hostingra (Netlify, Cloudflare Pages, GitHub Pages, cPanel, FTP).
 
+Jelenlegi hosting: **GitHub Pages**, ideiglenes címen, saját domain nélkül, ingyen.
+→ [`docs/github-pages.md`](docs/github-pages.md)
+
 ---
 
 ## Mit kell még kitöltened
@@ -23,8 +26,11 @@ készen van, 4 kattintás a telepítése, az `/exec` URL nem változik:
 > Addig sem veszik el lead: **az e-mail értesítésben a telefonszám mindig helyes**, mert az a
 > nyers adatból készül. Csak a táblázat Telefon oszlopa nem megbízható.
 
+**Plusz a hostinghoz egy dolog:** a GitHub-repó létrehozása (1 perc, csak te tudod, mert
+bejelentkezési kulcs kell hozzá) → [`docs/github-pages.md`](docs/github-pages.md) 1. lépés.
+
 Opcionális: `contact.calendar` (Calendly link — üresen a gomb eltűnik), `testimonials`
-(valós ügyfél-vélemények), `domain` (ha nem ertekpontpenzugyek.hu lesz).
+(valós ügyfél-vélemények), `domain` (amikor megjön a saját domain).
 
 > **Jogi megjegyzés:** az oldal az OVB Vermögensberatung Kft.-t **többes ügynökként** nevezi meg,
 > és nem használja a „független” / „alkusz” szót, mert az MNB-nyilvántartásban más kategória.
@@ -39,7 +45,10 @@ index.html                  ← generált főoldal
 szolgaltatas/*.html         ← generált 13 szolgáltatás-oldal
 impresszum.html             ← generált
 adatkezeles.html            ← generált (GDPR)
+404.html                    ← generált hibaoldal (a hosting szolgálja ki)
 sitemap.xml, robots.txt     ← generált
+.nojekyll                   ← generált (a GitHub Pages ne Jekyll-ezzen)
+.gitignore                  ← mi NEM kerül fel a GitHubra (_source/, .claude/)
 
 js/config.js                ← ITT állítod be a saját adataidat
 js/data/services.js         ← A TARTALOM: 13 szolgáltatás szövege, számai, funnelje, kalkulátora
@@ -69,6 +78,7 @@ assets/img/arrow-hero.png   ← statikus hero-fallback + OG kép (Blender render
 assets/img/icons/*.png      ← 13 kirenderelt téma-ikon a kártyákhoz (256px, átlátszó)
 
 build/generate.mjs          ← oldalgenerátor
+docs/github-pages.md        ← ingyenes hosting: feltöltés, frissítés, saját domain
 docs/google-sheets-setup.md ← lead-fogadás: mi kész, mi van hátra (4 perc)
 docs/apps-script.gs         ← a Google Sheets webhook kódja (bemásolásra kész)
 docs/forrasok.md            ← a 2026-os számok forrásai + évi frissítési lista
@@ -126,13 +136,27 @@ menet közbeni átírása (ettől ugrik az animáció).
 
 ## Élesítés
 
-1. Frissítsd az Apps Scriptet a telefon-javítással (`docs/google-sheets-setup.md`, 4 kattintás).
-2. Írd át a `domain` értéket a `js/config.js`-ben, majd futtasd újra a generátort
-   (ez a canonical URL-eket, az OG-képet és a sitemap-et állítja be).
-3. Töltsd fel a mappát a hostingra. A `build/`, `docs/`, `_source/` és `.claude/`
-   mappát **ne** töltsd fel — nem kellenek az éles működéshez (a `_source` 6 MB).
-4. Ellenőrizd: küldj be egy próba-jelentkezést, és nézd meg, megjelenik-e a táblázatban.
-5. Töröld a teszt sorokat a táblázatból (`TESZT…` kezdetűek).
+**Most (ingyenes, ideiglenes cím):** → [`docs/github-pages.md`](docs/github-pages.md)
+
+1. Hozd létre a GitHub-repót (1 perc, `docs/github-pages.md` 1. lépés).
+2. Feltöltés: `git push` — a commit már készen van.
+3. Kapcsold be a Pages-t: Settings → Pages → branch `main`, mappa `/ (root)`.
+4. Frissítsd az Apps Scriptet a telefon-javítással (`docs/google-sheets-setup.md`, 4 kattintás).
+5. Ellenőrizd: küldj be egy próba-jelentkezést, és nézd meg, megjelenik-e a táblázatban.
+6. Töröld a teszt sorokat a táblázatból (`TESZT…` kezdetűek).
+
+**Amikor megjön a saját domain:** DNS-beállítás, majd a `js/config.js`-ben
+`domain` / `basePath` / `noindex: false`, végül `node build/generate.mjs` és push.
+A pontos lépések: `docs/github-pages.md` → „Amikor megjön a saját domain".
+
+**Módosítás feltöltése bármikor:**
+
+```bash
+node build/generate.mjs
+git add -A
+git commit -m "mit változtattál"
+git push
+```
 
 ---
 
