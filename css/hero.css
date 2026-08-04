@@ -81,6 +81,21 @@
   align-items: center;
 }
 
+/* Telefonon a CTA-k egymás alatt, teljes szélességben. Egymás mellett a
+   hosszú magyar feliratok („Pénzügyi Térkép indítása") nem fértek ki, és a
+   gomb `overflow: hidden`-je levágta őket. Így nagyobb a kattintható
+   felület is, ami hüvelykujjal jobb. */
+@media (max-width: 430px) {
+  .hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero__actions > .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 .hero__meta {
   margin-top: var(--space-6);
   display: flex;
@@ -234,8 +249,15 @@
 .svc-hero__grid {
   display: grid;
   gap: clamp(2rem, 4vw, 3.5rem);
+  /* minmax(0, …) kell, nem 1fr: a grid-elem alap min-width-je `auto`, vagyis
+     min-content. Egy hosszú összetett cím (pl. „Nyugdíj-megtakarítás" 40px-en
+     376px) ezzel kifeszítette az oszlopot a 375px-es kijelzőn túl, és a
+     body overflow-x:hidden miatt a szó jobb vége egyszerűen eltűnt. */
+  grid-template-columns: minmax(0, 1fr);
 }
-@media (min-width: 980px) { .svc-hero__grid { grid-template-columns: 1.05fr 0.95fr; } }
+@media (min-width: 980px) {
+  .svc-hero__grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); }
+}
 
 .crumb {
   display: flex;

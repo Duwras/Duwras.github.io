@@ -45,6 +45,24 @@
   background: rgba(0, 0, 0, 0.2);
 }
 
+/* A léptető gombok NEM zsugorodhatnak. Telefonon a köztük lévő súgószöveg
+   („Válassz egy lehetőséget") elvitte a helyet, a flex összenyomta a
+   gombokat, és a `Vissza` / `Tovább` feliratból 21, illetve 39 pixel
+   levágódott. */
+.funnel__foot > .btn { flex: none; }
+.funnel__foot [data-hint] { min-width: 0; }
+
+/* Kis kijelzőn a súgó a gombok ALÁ kerül külön sorba: így a két gomb
+   teljes szélességben elfér, és a súgó sem tűnik el. */
+@media (max-width: 560px) {
+  .funnel__foot { flex-wrap: wrap; }
+  .funnel__foot [data-hint] {
+    order: 3;
+    flex-basis: 100%;
+    text-align: center;
+  }
+}
+
 /* --- Progress ---------------------------------------------------------- */
 
 .progress {

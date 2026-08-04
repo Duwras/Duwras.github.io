@@ -60,6 +60,10 @@ a { color: inherit; text-decoration: none; }
   font-family: var(--font-display);
   letter-spacing: var(--tracking-display);
   text-wrap: balance;
+  /* Biztonsági háló: a magyar összetett szavak (adókedvezmény-igénylés,
+     nyugdíj-megtakarítás) kis kijelzőn hosszabbak lehetnek a sávnál. Ez
+     csak akkor tör, ha máshogy kifolyna — normál esetben nem látszik. */
+  overflow-wrap: break-word;
 }
 
 .display {

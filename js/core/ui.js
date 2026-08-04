@@ -101,6 +101,26 @@
     let stuck = false;
     let ctaOn = false;
 
+    /* A lebegő alsó CTA-sáv telefonon pontosan a funnel léptető gombjaira
+       (Vissza / Tovább / Kérek visszahívást) esett, és elfogta a koppintást.
+       Amikor a funnel a képernyőn van, nincs is szükség rá: a funnel maga a
+       cselekvésre hívás. IntersectionObserverrel figyeljük, hogy ne kelljen
+       görgetésenként újabb layoutot olvasni. */
+    let funnelSeen = false;
+    const funnelEl = $("[data-funnel]");
+    if (sticky && funnelEl && "IntersectionObserver" in window) {
+      new IntersectionObserver(
+        (entries) => {
+          funnelSeen = entries.some((e) => e.isIntersecting);
+          if (funnelSeen && ctaOn) {
+            ctaOn = false;
+            sticky.classList.remove("is-in");
+          }
+        },
+        { threshold: 0 }
+      ).observe(funnelEl);
+    }
+
     rt.onScroll(({ y, dy, maxY }) => {
       if (dy !== 0) {
         const down = dy > 0;
@@ -132,7 +152,7 @@
       if (sticky) {
         /* külön be- és kikapcsolási pont, hogy a határon ne pumpáljon */
         const vh = window.innerHeight;
-        if (!ctaOn && y > vh * 0.85) {
+        if (!ctaOn && !funnelSeen && y > vh * 0.85) {
           ctaOn = true;
           sticky.classList.add("is-in");
         } else if (ctaOn && y < vh * 0.65) {

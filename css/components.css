@@ -173,6 +173,31 @@
 .btn--block { width: 100%; justify-content: center; }
 .btn--icon { padding: 0.85rem; }
 
+/* A felirat és a nyíl NEM zsugorodhat. Alapból minden flex-elem
+   shrinkelhető: ha a gomb nem fér el, a böngésző összenyomta a feliratot,
+   az `white-space: nowrap` miatt a szöveg kifolyt a saját boxából, és a
+   `.btn { overflow: hidden }` levágta — a felirat így elcsúszva látszott,
+   nem a gomb közepén. */
+.btn__label,
+.btn__arrow { flex: none; }
+
+/* A gomb inkább legyen keskenyebb, mint hogy kilógjon a szülőjéből. */
+.btn { max-width: 100%; }
+
+/* Kis kijelzőn a hosszú feliratok inkább TÖRJENEK két sorba, mint hogy
+   levágódjanak. A nyíl a `flex: none` miatt marad a felirat mellett. */
+@media (max-width: 430px) {
+  .btn { white-space: normal; }
+  /* Itt SZÁNDÉKOSAN visszavonjuk a `flex: none`-t: telefonon azt akarjuk,
+     hogy a felirat inkább szűküljön és két sorba törjön, mint hogy kifusson
+     a gombból. A `min-width: 0` kell hozzá, különben a flex-elem alap
+     min-content szélessége megint nem engedné a tördelést. */
+  .btn__label { flex: 1 1 auto; min-width: 0; text-align: center; }
+  /* A nagy gomb belső margója telefonon 67px-et vitt el a 267px-es
+     szalagból — a „Pénzügyi Térkép indítása" felirat így nem fért ki. */
+  .btn--lg { padding: 1.05rem 1.5rem; }
+}
+
 .btn__arrow { transition: transform var(--t-med) var(--ease-out); }
 .btn:hover .btn__arrow { transform: translate(3px, -3px); }
 
@@ -447,7 +472,9 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--r-xl);
-  padding: clamp(2.2rem, 5vw, 4.5rem);
+  /* Az alsó határ 1,5rem, nem 2,2rem: 360px-es telefonon a korábbi 35px-es
+     belső margó két oldalon 70px-et vitt el, és a CTA-gomb nem fért ki. */
+  padding: clamp(1.5rem, 5vw, 4.5rem);
   background: linear-gradient(135deg, var(--lime) 0%, var(--lime-deep) 100%);
   color: var(--lime-ink);
 }
