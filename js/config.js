@@ -45,9 +45,9 @@ window.EP.CONFIG = {
     hours: "Hétfő–péntek 9:00–19:00, szombaton egyeztetés szerint",
     facebook: "https://www.facebook.com/profile.php?id=61587459482095",
     instagram: "",
-    /* LinkedIn: a saját profil URL-je (pl. https://www.linkedin.com/in/…).
-       Üresen a link NEM jelenik meg sehol — a generátor kihagyja. */
-    linkedin: "",
+    /* LinkedIn: a saját profil URL-je. Üresen a link NEM jelenik meg
+       sehol — a generátor kihagyja. */
+    linkedin: "https://www.linkedin.com/in/richard-timar/",
     messenger: "https://m.me/61587459482095",
     /* Időpontfoglaló (Calendly stb.) szándékosan NINCS az oldalon: a
        visszahívás a telefonszámon és az online űrlapon megy, harmadik
