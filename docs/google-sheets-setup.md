@@ -10,7 +10,12 @@ róluk. Nincs szükség szerverre, adatbázisra vagy előfizetésre.
 **A bekötés él és működik** — a végpont be van írva a `js/config.js`-be, teszteltem, a sorok
 megérkeznek és az e-mail is megy.
 
-**De a táblázatban a telefonszám elromlik.** A Google Sheets a `+` kezdetű értéket
+Az [`apps-script.gs`](apps-script.gs) **két dolgot** javít, ezért kell egyszer frissíteni:
+**(1)** a telefonszám elromlását, **(2)** a spam-szűrést (lásd a „Spam-szűrés" szakaszt lent).
+
+### 1. A telefonszám elromlása
+
+**A táblázatban a telefonszám elromlik.** A Google Sheets a `+` kezdetű értéket
 formulának, a `06…` kezdetűt számnak veszi:
 
 | Beküldött telefon | Ami a táblázatba került |
@@ -23,6 +28,35 @@ Az [`apps-script.gs`](apps-script.gs) már javítva van (a `phone_()` és `safe_
 függvényekkel). **Az e-mail értesítésben a telefonszám mindig helyes volt és marad** — az
 nyers adatból készül, nem a táblázatból. Vagyis lead nem veszett el, csak a táblázat oszlopa
 nem megbízható, amíg nem frissítesz.
+
+### 2. Spam-szűrés
+
+Az oldal címe nyilvános, ezért a lead-végpontra bárki tud közvetlenül adatot küldeni,
+a weboldal és a JavaScript kihagyásával. A weboldalon van ugyan két csapda (rejtett
+mező + időzár), de a **valódi védelem csak a szerveroldalon lehet** — vagyis ebben a
+scriptben.
+
+Hogyan működik: a beküldés gyanús jelekre pontot kap (hamis telefonszám, több link,
+nem latin írás mellett külföldi szám, tipikus spam kifejezések, honeypot, 90 másodpercen
+belüli ismétlés, óránként 30-nál több beküldés).
+
+| Pontszám | Mi történik |
+|---|---|
+| 0 | Rendes sor + e-mail, ahogy eddig |
+| 1–2 | **Rendes sor + e-mail**, de a tárgy elé `[?]` kerül és a levél végén ott van, mi volt gyanús |
+| 3 vagy több | A sor egy új **„Spam"** lapra kerül, e-mail nem megy róla |
+
+**Semmi nem veszik el** — minden beküldés eltárolódik valahol. Érdemes néha átfutni a
+„Spam" lapot, hogy nem esett-e be valódi ügyfél. Ha igen, szólj, és lazítok a szűrőn.
+
+> Szándékosan óvatosan van beállítva. Egy magyar telefonszám **levon** a pontból, ezért
+> egy valódi ügyfél akkor is átjut, ha véletlenül belinkel valamit. Egy Magyarországon
+> élő, nem latin nevű ügyfél is átjut — csak `[?]` jelölést kap.
+>
+> A szerkesztőben futtatható a **`spamTeszt`** függvény: nem ír a táblázatba, csak
+> kilistázza a naplóba, melyik esetet hogyan pontozza.
+
+---
 
 ### A frissítés (az URL NEM változik, a config.js-hez nem kell hozzányúlni)
 
@@ -37,7 +71,10 @@ nem megbízható, amíg nem frissítesz.
 
 5. Ellenőrzés: a szerkesztőben futtasd a **`telefonTeszt`** függvényt. Három sor kerül be,
    mindháromban pontosan úgy kell látszódnia a számnak, ahogy be van írva.
-6. Végül **töröld a teszt sorokat** a táblázatból (az én próbáim: `TESZT…` kezdetű sorok).
+6. Futtasd a **`spamTeszt`** függvényt is. Ez nem ír a táblázatba, csak a naplóba
+   (a szerkesztő alján, „Végrehajtási napló"). Elvárás: a valódi ügyfeleknél `átmegy`,
+   a szemétnél `SPAM`.
+7. Végül **töröld a teszt sorokat** a táblázatból (az én próbáim: `TESZT…` kezdetű sorok).
 
 ---
 

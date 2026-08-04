@@ -459,6 +459,9 @@
         </div>`;
 
       const form = $("form", this.body);
+      /* Időbélyeg a bot-szűréshez: ember nem tölt ki egy négymezős űrlapot
+         két másodperc alatt, egy script viszont milliszekundum alatt kitölti. */
+      this.formShownAt = Date.now();
       on(form, "submit", (e) => {
         e.preventDefault();
         this.submit(form);
@@ -500,6 +503,18 @@
       const email = (data.get("email") || "").toString().trim();
       const consent = form.querySelector('[name="consent"]').checked;
 
+      /* --- bot-szűrés: még a validáció ELŐTT, és csendben ---------------
+         Aki idáig eljut, az script. Nem adunk neki visszajelzést arról,
+         hogy min bukott el, mert abból tanulni lehet. A form csak nem
+         csinál semmit. Ez a kliensoldali szűrő; a valódi védelem a
+         szerveroldalon van (docs/apps-script.gs), mert a végpontra a
+         böngésző kihagyásával is lehet POST-olni.                       */
+      if ((data.get("_hp") || "").toString().length) return; // honeypot
+      /* 1,5 s: a botok 100 ms alatt küldenek, egy ember viszont még
+         automatikus kitöltéssel is legalább ennyit tölt a hozzájárulás
+         bepipálásával és a gombra kattintással. */
+      if (Date.now() - (this.formShownAt || 0) < 1500) return;
+
       let bad = false;
       const mark = (sel, cond) => {
         const el = form.querySelector(sel);
@@ -507,8 +522,11 @@
         el.classList.toggle("is-bad", cond);
         if (cond) bad = true;
       };
-      mark("#f-name", name.length < 2);
-      mark("#f-phone", phone.replace(/\D/g, "").length < 8);
+      const digits = phone.replace(/\D/g, "");
+      mark("#f-name", name.length < 2 || name.length > 80);
+      /* 8 számjegy alatt nincs hívható szám, 15 fölött nincs érvényes
+         nemzetközi szám sem (E.164 maximum). */
+      mark("#f-phone", digits.length < 8 || digits.length > 15);
       mark("#f-email", email !== "" && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email));
       const ce = form.querySelector("[data-consent-error]");
       if (ce) ce.style.display = consent ? "none" : "block";
@@ -517,7 +535,6 @@
         window.EP.toast("Nézd át a kiemelt mezőket");
         return;
       }
-      if ((data.get("_hp") || "").toString().length) return; // bot
 
       const btn = form.querySelector('button[type="submit"]');
       btn.classList.add("is-loading");

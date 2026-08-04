@@ -14,15 +14,14 @@ window.EP.CONFIG = {
      a robots.txt-t állítja — az oldal belső linkjei relatívak, ezért
      bármelyik útvonalon működik. Módosítás után: node build/generate.mjs
 
-     Ha megjön a saját domain:
-       domain:   "ertekpontpenzugyek.hu"
-       basePath: ""
-       noindex:  false                                                  */
-  domain: "duwras.github.io",
-  basePath: "", // pl. "/ertekpont-penzugyek", ha NEM duwras.github.io a repo neve
-  /* Ideiglenes hostingon true: a github.io cím ne kerüljön be a Google-be,
-     különben később a saját domainnel versenyezne ugyanazért a tartalomért. */
-  noindex: true,
+     A tárhely a GitHub Pages (Duwras/Duwras.github.io repó), a domain a
+     Rackhostnál van bejegyezve. A kettőt a DNS köti össze — a github.io cím
+     is működik, de átirányít ide.                                       */
+  domain: "ertekpontpenzugyek.hu",
+  basePath: "", // pl. "/ertekpont-penzugyek", ha alkönyvtárba kerül az oldal
+  /* true esetén: robots.txt Disallow + noindex minden oldalon. Ideiglenes
+     címnél kellett, hogy ne versenyezzen a saját domainnel. Most éles. */
+  noindex: false,
 
   /* --- Tanácsadó ------------------------------------------------------ */
   advisor: {
@@ -46,8 +45,13 @@ window.EP.CONFIG = {
     hours: "Hétfő–péntek 9:00–19:00, szombaton egyeztetés szerint",
     facebook: "https://www.facebook.com/profile.php?id=61587459482095",
     instagram: "",
+    /* LinkedIn: a saját profil URL-je (pl. https://www.linkedin.com/in/…).
+       Üresen a link NEM jelenik meg sehol — a generátor kihagyja. */
+    linkedin: "",
     messenger: "https://m.me/61587459482095",
-    calendar: "", // opcionális Calendly / Google naptár link
+    /* Időpontfoglaló (Calendly stb.) szándékosan NINCS az oldalon: a
+       visszahívás a telefonszámon és az online űrlapon megy, harmadik
+       fél nélkül. */
   },
 
   /* --- Jogi adatok (impresszumhoz kötelező) ---------------------------

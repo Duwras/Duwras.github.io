@@ -183,6 +183,12 @@ function footer(depth = 0) {
           <li><a data-cfg-href="contact.phoneHref|tel:" href="#"><span data-cfg="contact.phone">+36 — — —</span></a></li>
           <li><a data-cfg-href="contact.email|mailto:" href="#"><span data-cfg="contact.email">e-mail</span></a></li>
           <li><a data-cfg-href="contact.facebook|" href="#" target="_blank" rel="noopener">Facebook</a></li>
+          ${
+            /* Csak akkor kerül ki, ha ki van töltve — üres linket nem mutatunk. */
+            CFG.contact.linkedin
+              ? `<li><a href="${esc(CFG.contact.linkedin)}" target="_blank" rel="noopener">LinkedIn</a></li>`
+              : ""
+          }
         </ul>
       </div>
       ${Object.values(CATEGORIES).map(catBlock).join("")}
@@ -309,7 +315,7 @@ function homePage() {
     description:
       "Pénzügyi tanácsadás: nyugdíj- és gyerekmegtakarítás, 20% adókedvezmények, biztosítások, támogatott és piaci hitelek, díjmentes bankszámlák.",
     knowsAbout: SERVICES.map((s) => s.title),
-    sameAs: [CFG.contact.facebook].filter(Boolean),
+    sameAs: [CFG.contact.facebook, CFG.contact.linkedin].filter(Boolean),
   })}</script>
 <script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
@@ -500,13 +506,19 @@ ${nav(0)}
         <div class="hero__actions">
           <a class="btn" data-cfg-href="contact.phoneHref|tel:" href="#"><span class="btn__label">Telefonhívás</span></a>
           <a class="btn btn--ghost" data-cfg-href="contact.messenger|" href="#" target="_blank" rel="noopener"><span class="btn__label">Messenger</span></a>
-          <a class="btn btn--ghost" data-calendar href="#"><span class="btn__label">Időpont foglalás</span></a>
         </div>
+        <!-- Időpontfoglaló gomb szándékosan nincs: a visszahívást a
+             telefonszám és az online űrlap viszi, harmadik fél nélkül. -->
       </div>
     </div>
   </section>
 
-  <!-- ============ REFERENCIÁK ============ -->
+  ${
+    /* Referencia-szekció CSAK akkor, ha van valódi, engedélyezett vélemény.
+       Üres configgal a JS is eltávolítaná, de akkor a fejléc egy pillanatra
+       felvillanna — build-időben kihagyva ez sem történik meg. */
+    (CFG.testimonials || []).length
+      ? `<!-- ============ REFERENCIÁK ============ -->
   <section class="section-sm">
     <div class="wrap">
       <div class="sec-head">
@@ -517,7 +529,9 @@ ${nav(0)}
       </div>
       <div class="grid grid-3" data-render="testimonials"></div>
     </div>
-  </section>
+  </section>`
+      : ""
+  }
 
   <!-- ============ GYIK ============ -->
   <section class="section" id="gyik">

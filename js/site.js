@@ -127,21 +127,12 @@
     window.EP.initReveal(host);
   }
 
-  /* --- 5. Naptár-CTA csak akkor, ha van link -------------------------- */
-  function initCalendar() {
-    const v = get("contact.calendar");
-    $$("[data-calendar]").forEach((el) => {
-      if (isTodo(v)) el.remove();
-      else el.href = v;
-    });
-  }
 
   function boot() {
     bindConfig();
     renderStats();
     initFilter();
     renderTestimonials();
-    initCalendar();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

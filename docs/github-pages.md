@@ -2,10 +2,10 @@
 
 ## ✅ AZ OLDAL ÉL
 
-**<https://duwras.github.io/>**
-
-Ez ideiglenes cím. Ha megjön a saját domain, ugyanez a repó szolgálja ki azt is —
-nem kell újra feltölteni semmit, csak egy beállítást átírni (lásd lent).
+Jelenlegi cím: **<https://duwras.github.io/>**
+Végleges cím: **ertekpontpenzugyek.hu** — a kód már erre van állítva, a DNS van hátra
+(→ „A saját domain bekötése" szakasz lent). Ugyanez a repó szolgálja ki majd, nem kell
+újra feltölteni semmit.
 
 Repó: <https://github.com/Duwras/Duwras.github.io> (publikus)
 
@@ -18,7 +18,7 @@ Repó: <https://github.com/Duwras/Duwras.github.io> (publikus)
 | ✅ | `.gitignore`: a 6,4 MB-os `_source/` és a `.claude/` kimarad |
 | ✅ | `.nojekyll`: a GitHub ne akarja Jekyll-lel feldolgozni az oldalt |
 | ✅ | `404.html`: márkás hibaoldal, bármilyen mély rossz URL-en is jól jelenik meg |
-| ✅ | `js/config.js`: cím `duwras.github.io`, `noindex: true` |
+| ✅ | `js/config.js`: cím `ertekpontpenzugyek.hu`, `noindex: false` (indexelhető) |
 | ✅ | A táblázat linkje kivéve a nyilvános `config.js`-ből |
 
 ### Amit leellenőriztem élesben
@@ -126,46 +126,77 @@ tehető egy egyszerű szűrő.
 
 ---
 
-## Miért `noindex` most, és mikor kapcsold ki
+## A `noindex` kapcsoló
 
-A `js/config.js`-ben `noindex: true` van. Ez két dolgot csinál: a `robots.txt`-be
-`Disallow: /` kerül, és minden oldal fejébe `noindex,nofollow`.
+`js/config.js → noindex`. `true` esetén a `robots.txt`-be `Disallow: /` kerül, és
+minden oldal fejébe `noindex,nofollow` — vagyis a cím nem kerül be a Google-be.
 
-Így a `duwras.github.io` cím **nem kerül be a Google-be**. Ez most jó, mert amikor
-megjön a saját domain, ugyanaz a tartalom két címen lenne elérhető — és a Google
-ilyenkor összemossa őket, néha a rosszabb címet tartja meg. Egy hetes ideiglenes
-címmel nincs mit veszíteni, egy összekavart indexeléssel viszont van.
+**Most `false`**, mert megvan a saját domain, és a canonical URL is arra mutat.
+Amíg csak a `duwras.github.io` cím élt, `true` volt: két címen ugyanaz a tartalom
+összekavarja a keresőt, és néha a rosszabb címet tartja meg.
 
-Megosztani, mutogatni, Facebookra kitenni **lehet** — a `noindex` csak a keresőt
-tiltja, a linket bárki megnyithatja.
+Ha valaha újra ideiglenes vagy próbacímen futna az oldal, állítsd vissza `true`-ra
+és generálj újra.
 
 ---
 
-## Amikor megjön a saját domain
+## A saját domain bekötése — `ertekpontpenzugyek.hu` (Rackhost)
 
-1. A domain szolgáltatójánál (pl. Rackhost, Cheap.hu) állítsd be a DNS-t:
+**A `js/config.js` és a generált fájlok már erre a domainre vannak állítva**
+(`noindex: false`, canonical és sitemap az `ertekpontpenzugyek.hu`-ra mutat).
+Ami hátra van: a DNS a Rackhostnál, utána a GitHub oldali beállítás.
 
-   | Típus | Név | Érték |
-   |---|---|---|
-   | A | `@` | `185.199.108.153` |
-   | A | `@` | `185.199.109.153` |
-   | A | `@` | `185.199.110.153` |
-   | A | `@` | `185.199.111.153` |
-   | CNAME | `www` | `duwras.github.io` |
+### 1. lépés — DNS a Rackhostnál (te)
 
-2. GitHub → repó → **Settings → Pages → Custom domain**: írd be a domaint, **Save**.
-   Utána pipáld be az **Enforce HTTPS**-t (pár perc múlva lesz aktív a tanúsítvány).
-3. A `js/config.js`-ben:
-   ```js
-   domain: "ertekpontpenzugyek.hu",
-   basePath: "",
-   noindex: false,
-   ```
-4. `node build/generate.mjs`, majd `git add -A && git commit -m "saját domain" && git push`
-5. Küldd be a `sitemap.xml`-t a [Google Search Console](https://search.google.com/search-console)-ba.
+Rackhost ügyfélfiók → **DNS zónák** → válaszd ki az `ertekpontpenzugyek.hu`-t →
+**Rekordok szerkesztése**.
+
+**Négy `A` rekord kell.** Mindegyiknél a **Hosztnév mező marad ÜRESEN** (ez jelenti
+magát a domaint), típus `A`, és az IP:
+
+| Típus | Hosztnév | IP-cím |
+|---|---|---|
+| A | *(üres)* | `185.199.108.153` |
+| A | *(üres)* | `185.199.109.153` |
+| A | *(üres)* | `185.199.110.153` |
+| A | *(üres)* | `185.199.111.153` |
+
+**Plusz egy `CNAME` a www-hez:**
+
+| Típus | Hosztnév | Érték |
+|---|---|---|
+| CNAME | `www` | `duwras.github.io` |
+
+> Ez a GitHub által hivatalosan megadott négy IP-cím. Mind a négy kell — ezek több
+> adatközpontot jelentenek, egy is elég lenne a működéshez, de négyel akkor is él az
+> oldal, ha valamelyik kiesik.
+
+> Ha van már `A` rekord üres hosztnévvel (a Rackhost parkoló oldalára mutat), azt
+> **írd át** az elsőre a ceruza ikonnal, a maradék hármat pedig **Új rekord**dal add
+> hozzá. Ha látsz `AAAA` rekordot, azt töröld — különben IPv6-on a régi helyre menne.
+
+### 2. lépés — GitHub Custom domain (ezt én is meg tudom tenni)
+
+**Csak akkor, ha a DNS már él**, különben az oldal átmenetileg elérhetetlenné válik
+(a `duwras.github.io` ugyanis átirányít a saját domainre).
+
+GitHub → repó → **Settings → Pages → Custom domain** → `ertekpontpenzugyek.hu` →
+**Save**. Utána pipa az **Enforce HTTPS**-re (a tanúsítvány pár perc–1 óra alatt áll fel).
+
+**Szólj, ha beállítottad a DNS-t, és a többit elvégzem:** ellenőrzöm a DNS-terjedést,
+beállítom a Custom domaint, bekapcsolom a HTTPS-t, és végigmérem az éles oldalt.
+
+### 3. lépés — utána
+
+- A `sitemap.xml` beküldése a [Google Search Console](https://search.google.com/search-console)-ba
+- A Facebook-oldalon és a LinkedIn-profilban a link átírása az új címre
 
 > A GitHub a Custom domain mentésekor létrehoz egy `CNAME` fájlt a repóban. Ha
 > parancssorból dolgozol, előtte `git pull`, különben ütközik a következő push.
+
+> **A DNS terjedése** néhány perctől néhány óráig tart (a `.hu` zónánál jellemzően
+> 15–60 perc). Addig előfordul, hogy neked már működik, másnak még nem — ez normális,
+> nem hiba.
 
 ---
 
