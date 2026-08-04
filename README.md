@@ -7,8 +7,8 @@ legrelevánsabb témákhoz vezeti.
 **Nincs build-kényszer, nincs szerver, nincs adatbázis.** A kimenet tiszta HTML/CSS/JS —
 feltölthető bármilyen hostingra (Netlify, Cloudflare Pages, GitHub Pages, cPanel, FTP).
 
-Jelenlegi hosting: **GitHub Pages**, ideiglenes címen, saját domain nélkül, ingyen.
-→ [`docs/github-pages.md`](docs/github-pages.md)
+**Az oldal él:** <https://duwras.github.io/> — GitHub Pages, ingyen, ideiglenes címen.
+Részletek, frissítés, saját domain: → [`docs/github-pages.md`](docs/github-pages.md)
 
 ---
 
@@ -25,9 +25,6 @@ készen van, 4 kattintás a telepítése, az `/exec` URL nem változik:
 
 > Addig sem veszik el lead: **az e-mail értesítésben a telefonszám mindig helyes**, mert az a
 > nyers adatból készül. Csak a táblázat Telefon oszlopa nem megbízható.
-
-**Plusz a hostinghoz egy dolog:** a GitHub-repó létrehozása (1 perc, csak te tudod, mert
-bejelentkezési kulcs kell hozzá) → [`docs/github-pages.md`](docs/github-pages.md) 1. lépés.
 
 Opcionális: `contact.calendar` (Calendly link — üresen a gomb eltűnik), `testimonials`
 (valós ügyfél-vélemények), `domain` (amikor megjön a saját domain).
@@ -136,14 +133,14 @@ menet közbeni átírása (ettől ugrik az animáció).
 
 ## Élesítés
 
-**Most (ingyenes, ideiglenes cím):** → [`docs/github-pages.md`](docs/github-pages.md)
+**Kész: az oldal él** a <https://duwras.github.io/> címen (GitHub Pages, `main` / root).
 
-1. Hozd létre a GitHub-repót (1 perc, `docs/github-pages.md` 1. lépés).
-2. Feltöltés: `git push` — a commit már készen van.
-3. Kapcsold be a Pages-t: Settings → Pages → branch `main`, mappa `/ (root)`.
-4. Frissítsd az Apps Scriptet a telefon-javítással (`docs/google-sheets-setup.md`, 4 kattintás).
-5. Ellenőrizd: küldj be egy próba-jelentkezést, és nézd meg, megjelenik-e a táblázatban.
-6. Töröld a teszt sorokat a táblázatból (`TESZT…` kezdetűek).
+Ami hátra van:
+
+1. Frissítsd az Apps Scriptet a telefon-javítással (`docs/google-sheets-setup.md`, 4 kattintás).
+2. Ellenőrizd: küldj be egy próba-jelentkezést az **éles** oldalról, és nézd meg,
+   megjelenik-e a táblázatban helyes telefonszámmal.
+3. Töröld a teszt sorokat a táblázatból (`TESZT…` kezdetűek).
 
 **Amikor megjön a saját domain:** DNS-beállítás, majd a `js/config.js`-ben
 `domain` / `basePath` / `noindex: false`, végül `node build/generate.mjs` és push.

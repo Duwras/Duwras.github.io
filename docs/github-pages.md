@@ -1,40 +1,46 @@
-# Ingyenes hosting GitHub Pages-en — lépésről lépésre
+# Ingyenes hosting GitHub Pages-en
 
-Az oldal ingyen, saját domain nélkül is elérhető lesz ezen a címen:
+## ✅ AZ OLDAL ÉL
 
 **<https://duwras.github.io/>**
 
-Ez ideiglenes. Ha később megjön a saját domain, ugyanez a repó szolgálja ki azt is —
-nem kell újra feltölteni semmit, csak egy beállítást átírni (lásd a legalsó szakaszt).
+Ez ideiglenes cím. Ha megjön a saját domain, ugyanez a repó szolgálja ki azt is —
+nem kell újra feltölteni semmit, csak egy beállítást átírni (lásd lent).
 
----
+Repó: <https://github.com/Duwras/Duwras.github.io> (publikus)
 
-## Mit végeztem el már, és mi vár rád
+### Ami készen van
 
 | | |
 |---|---|
-| ✅ | A projekt git-repóvá alakítva, minden fájl egy commitba elmentve |
+| ✅ | Git-repó, 2 commit, feltöltve a GitHubra |
+| ✅ | Pages bekapcsolva: `main` branch, `/ (root)` mappa |
 | ✅ | `.gitignore`: a 6,4 MB-os `_source/` és a `.claude/` kimarad |
 | ✅ | `.nojekyll`: a GitHub ne akarja Jekyll-lel feldolgozni az oldalt |
-| ✅ | `404.html`: márkás hibaoldal a rossz linkekre |
-| ✅ | `js/config.js`: a cím `duwras.github.io`-ra állítva, `noindex: true` |
+| ✅ | `404.html`: márkás hibaoldal, bármilyen mély rossz URL-en is jól jelenik meg |
+| ✅ | `js/config.js`: cím `duwras.github.io`, `noindex: true` |
 | ✅ | A táblázat linkje kivéve a nyilvános `config.js`-ből |
-| ⬜ | **1. lépés: a repó létrehozása a github.com-on** — ezt csak te tudod |
-| ⬜ | 2. lépés: feltöltés (ezt utána én megteszem, vagy lásd lent) |
-| ⬜ | 3. lépés: a Pages bekapcsolása |
 
-### Miért nem tudtam magamtól létrehozni a repót
+### Amit leellenőriztem élesben
 
-A gépeden be van jelentkezve a `Duwras` GitHub-fiók, és a hozzá tartozó jelszó-jellegű
-kulcs a Windows jelszókezelőjében van. Én **nem nyúlok bejelentkezési kulcsokhoz** —
-ez nálam kőbe vésett szabály, nem tudásbeli korlát. A repó létrehozása ilyen kulcsot
-igényel. A **feltöltés** viszont nem: azt a git maga végzi, a jelszókezelőből, anélkül
-hogy én látnám a kulcsot. Ezért a repót neked kell megnyitnod — utána szólj, és
-felküldöm.
+| Ellenőrzés | Eredmény |
+|---|---|
+| Főoldal, 13 aloldal, impresszum, adatkezelés | mind HTTP 200 |
+| 3D nyíl, dust részecskék, hero-cím animáció | rendereltek, nulla konzolhiba |
+| GLB modellek MIME-típusa | `model/gltf-binary` (helyes) |
+| Rossz URL (`/szolgaltatas/nincs-ilyen.html`) | a saját 404-oldal, igazi 404-es státusszal |
+| `_source/` elérhető-e | nem — 404, ahogy kell |
+| `robots.txt` | `Disallow: /` (ideiglenes cím, lásd lent) |
+
+**Ami még nincs letesztelve élesben:** egy valódi jelentkezés beküldése. Ezt érdemes
+az Apps Script telefon-javítása UTÁN megtenni (`docs/google-sheets-setup.md`),
+különben most is elromlott telefonszámmal kerülne be a sor.
 
 ---
 
-## 1. lépés — a repó létrehozása (kb. 1 perc)
+## Ha egyszer újra kell csinálni (más gépen, más fiókkal)
+
+### 1. lépés — a repó létrehozása
 
 1. Nyisd meg: <https://github.com/new>
 2. **Repository name:** írd be pontosan, kis-nagybetűre figyelve:
@@ -52,34 +58,25 @@ felküldöm.
    Minden fájl már készen van itt a gépen, és az üres repó a legegyszerűbb.
 6. **Create repository**
 
-Ennyi. A megjelenő oldalon lesznek git-parancsok — azokat hagyd, én küldöm fel.
+Ennyi. A megjelenő oldalon lesznek git-parancsok — azokat hagyd, a következő pont jó.
 
-## 2. lépés — feltöltés
+> A Pages ilyenkor **nem** kapcsol be magától, még `<fióknév>.github.io` névnél sem.
+> A 3. lépés muszáj.
 
-**Szólj, hogy megvan a repó, és felküldöm.** A commit már készen áll.
-
-Ha inkább magad tennéd, két út van:
-
-**A) Parancssorból** (a projekt mappájában):
+### 2. lépés — feltöltés
 
 ```bash
 git remote add origin https://github.com/Duwras/Duwras.github.io.git
 git push -u origin main
 ```
 
-**B) GitHub Desktop-tal** (ha kattintósan szeretnéd)
-`File → Add local repository →` válaszd ki ezt a mappát `→ Publish repository`.
-
-## 3. lépés — a Pages bekapcsolása
+### 3. lépés — a Pages bekapcsolása
 
 1. A repóban fent: **Settings** (fogaskerék)
 2. Bal oldali menü: **Pages**
 3. *Build and deployment* → **Source:** `Deploy from a branch`
 4. *Branch:* **main**, mappa: **/ (root)** → **Save**
-5. Várj 1–3 percet. Frissítsd az oldalt: megjelenik a zöld pipa és a cím.
-
-Ellenőrzés: <https://duwras.github.io/> — töltsön be a főoldal, forogjon a 3D nyíl,
-és a Pénzügyi Térkép végén küldj be egy próba-jelentkezést.
+5. Várj 30–60 másodpercet. A cím ilyenkor még 404-et ad, aztán megjelenik az oldal.
 
 ---
 
