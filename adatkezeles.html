@@ -38,7 +38,7 @@
 
 <!-- EGY stíluslap: a hét forrásfájlból a generátor fűzi össze (css/site.css).
      Hét blokkoló kérés helyett egy. Szerkeszteni továbbra is a css/*.css-t kell. -->
-<link rel="stylesheet" href="css/site.css?v=msg5oj0x">
+<link rel="stylesheet" href="css/site.css?v=msg9hebl">
 
 
 </head>
@@ -115,18 +115,26 @@
     </p>
 
     <h2 class="h3">1. Az adatkezelő</h2>
+    <p>
+      Az „Érték Pont Pénzügyek” márkanév alatt működő weboldal adatkezelője az alábbi
+      <strong>egyéni vállalkozó</strong> — nem a márkanév, és nem az alább említett
+      közvetítő társaság (részletek az <a href="impresszum.html" style="color:var(--lime)">impresszumban</a>).
+    </p>
     <dl>
-      <dt>Adatkezelő</dt><dd data-cfg="advisor.name">—</dd>
-      <dt>Minőség</dt><dd data-cfg="legal.role">—</dd>
-      <dt>E-mail</dt><dd data-cfg="contact.email">—</dd>
-      <dt>Telefon</dt><dd data-cfg="contact.phone">—</dd>
+      <dt>Adatkezelő</dt><dd data-cfg="business.legalName">Tímár Richárd egyéni vállalkozó</dd>
+      <dt>Székhely</dt><dd data-cfg="business.address">9151 Abda, Bécsi utca 128.</dd>
+      <dt>Nyilvántartási szám</dt><dd data-cfg="business.regNumber">60338916</dd>
+      <dt>Adószám</dt><dd data-cfg="business.taxNumber">90977435-1-28</dd>
+      <dt>Minőség</dt><dd data-cfg="legal.role">biztosításközvetítő és pénzügyi szolgáltatás közvetítője, az OVB Vermögensberatung Kft. (többes ügynök) nevében</dd>
+      <dt>E-mail</dt><dd data-cfg="contact.email">timar.richard2@ovb.hu</dd>
+      <dt>Telefon</dt><dd data-cfg="contact.phone">+36 20 369 5312</dd>
     </dl>
     <p>
-      A weboldalon beküldött megkeresések adatait a fenti tanácsadó kezeli, a kapcsolatfelvétel
+      A weboldalon beküldött megkeresések adatait a fenti adatkezelő kezeli, a kapcsolatfelvétel
       céljából. Ha a megkeresésből konkrét szerződéskötési folyamat indul, az abban részt vevő
-      közvetítő társaság (<span data-cfg="legal.companyName">—</span>), illetve az érintett
-      biztosító, bank vagy pénztár a saját adatkezelési tájékoztatója szerint, önálló
-      adatkezelőként jár el — erről a folyamat elején külön tájékoztatást kapsz.
+      közvetítő társaság (<span data-cfg="legal.companyName">OVB Vermögensberatung Általános Biztosítási és Pénzügyi Szolgáltató Kft.</span>),
+      illetve az érintett biztosító, bank vagy pénztár a saját adatkezelési tájékoztatója szerint,
+      <strong>önálló adatkezelőként</strong> jár el — erről a folyamat elején külön tájékoztatást kapsz.
     </p>
 
     <h2 class="h3">2. Milyen adatokat kezelünk?</h2>
@@ -165,8 +173,8 @@
     <ul>
       <li><strong>Adatfeldolgozó — Google Ireland Ltd.:</strong> a beküldött űrlapadatok
       Google Sheets táblázatban tárolódnak (Google Workspace / Apps Script szolgáltatás).</li>
-      <li><strong>Weboldal-szolgáltató:</strong> a hosting szolgáltatója technikai jelleggel
-      hozzáférhet a kiszolgálói naplókhoz.</li>
+      <li><strong>Tárhelyszolgáltató — GitHub, Inc. (GitHub Pages):</strong> az oldal kiszolgálója,
+      technikai jelleggel hozzáférhet a kiszolgálói naplókhoz (pl. IP-cím, lekért oldal).</li>
       <li>Az adatokat harmadik félnek marketing célból nem adjuk át, nem adjuk el.</li>
       <li>Ha a te kérésedre ajánlatot kérünk biztosítótól, banktól vagy pénztártól, az ehhez
       szükséges adatokat kizárólag a te előzetes tudtával és külön megbízásod alapján adjuk át.</li>
@@ -180,10 +188,11 @@
       A böngésződben tárolt adatok a böngésző beállításaiból bármikor törölhetők.
     </p>
     <p>
-      Az oldal betűtípusokat a Google Fonts szolgáltatásból, a 3D megjelenítéshez szükséges
-      programkönyvtárat pedig egy nyilvános tartalomszolgáltató hálózatból tölti be; ezek a
-      kérések a technikai működéshez szükségesek, és az adott szolgáltató naplózhatja az
-      IP-címet.
+      Az oldal <strong>nem tölt be tartalmat harmadik fél kiszolgálójáról</strong>: a betűtípusok
+      és a 3D megjelenítés kódja is erről a domainről érkezik, így böngészés közben az IP-címed
+      nem jut el idegen szolgáltatóhoz. Egyetlen kimenő kérés van, és az is csak akkor, ha te
+      küldesz be űrlapot: ilyenkor az adatok a Google Apps Script végpontjára mennek (lásd az
+      5. pontot).
     </p>
 
     <h2 class="h3">7. Milyen jogaid vannak?</h2>
@@ -208,8 +217,8 @@
 
     <p class="tiny mute" style="margin-top:3rem">
       Hatályos: <span data-year>2026</span>. A tájékoztató változásait ezen az oldalon közzétesszük.
-      Ez a dokumentum minta jellegű kiindulás — élesítés előtt érdemes a saját cégadatokkal és
-      szükség szerint jogi szakértővel véglegesíteni.
+      Az adatkezelő adatai az impresszummal egyeznek — a dokumentum végleges jóváhagyását
+      érdemes jogi szakértővel is megerősíteni.
     </p>
   </div>
 </main>
@@ -274,6 +283,12 @@
     </div>
 
     <div class="disclaimer">
+      <strong>Ki áll a márkanév mögött.</strong> Az „Érték Pont Pénzügyek” Tímár Richárd egyéni vállalkozó
+      (székhely: 9151 Abda, Bécsi utca 128., nyilvántartási szám: 60338916,
+      adószám: 90977435-1-28) márkaneve — nem cég, és nem az OVB szervezeti egysége.
+      A pénzügyi közvetítést az OVB Vermögensberatung Általános Biztosítási és Pénzügyi Szolgáltató Kft. (többes ügynök) nevében és javára
+      végzem; ezt az oldalt nem az OVB üzemelteti.
+      <br><br>
       <strong>Fontos tájékoztatás.</strong> Ez az oldal általános tájékoztatást ad, nem minősül
       személyre szóló befektetési, adó- vagy jogi tanácsadásnak, és nem ajánlat. A számítások
       tájékoztató jellegűek, a tényleges díjakat, kamatokat és feltételeket a biztosítók, bankok és
@@ -292,7 +307,7 @@
     </div>
 
     <div class="footer__bottom">
-      <span>© <span data-year>2026</span> Érték Pont Pénzügyek. Minden jog fenntartva. <span class="powered">powered by OVB</span></span>
+      <span>© <span data-year>2026</span> Érték Pont Pénzügyek — Tímár Richárd e.v. Minden jog fenntartva. <span class="powered">közvetítés az OVB nevében</span></span>
       <span class="row" style="gap:1.25rem">
         <a href="impresszum.html">Impresszum</a>
         <a href="adatkezeles.html">Adatkezelési tájékoztató</a>
@@ -311,7 +326,7 @@
   </div>
 </div>
 
-<script src="js/app.js?v=msg5oj0x" defer></script>
+<script src="js/app.js?v=msg9hebl" defer></script>
 
 </body>
 </html>

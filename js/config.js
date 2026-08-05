@@ -56,10 +56,42 @@ window.EP.CONFIG = {
        fél nélkül. */
   },
 
-  /* --- Jogi adatok (impresszumhoz kötelező) ---------------------------
+  /* --- Az oldal üzemeltetője: a márkanév mögötti egyéni vállalkozás ----
+     HÁROM KÜLÖN SZINT VAN, és az oldalnak mindhármat külön kell mutatnia:
+
+       1. „Érték Pont Pénzügyek”  → MÁRKANÉV (fantázianév). Nem cég, nem
+          jogi személy, nincs cégjegyzékszáma. Ez alatt hirdetek.
+       2. Tímár Richárd e.v.      → az üzemeltető, aki a márkanevet
+          használja, és akivel a weboldalon keresztül kapcsolatba lépsz.
+          Ő az adatkezelő is (lásd adatkezeles.html).
+       3. OVB Vermögensberatung Kft. → a KÖZVETÍTŐ TÁRSASÁG (többes ügynök),
+          amellyel az egyéni vállalkozó szerződéses jogviszonyban áll, és
+          amelynek nevében és javára a közvetítés történik (lásd `legal`).
+
+     Az adatok forrása a NAV egyéni vállalkozók nyilvántartása (EVNY).
+     Egyéni vállalkozónak NINCS cégjegyzékszáma — a `regNumber` az
+     EV-nyilvántartási szám, sehol ne nevezzük cégjegyzékszámnak.        */
+  business: {
+    legalName: "Tímár Richárd egyéni vállalkozó",
+    shortName: "Tímár Richárd e.v.",
+    address: "9151 Abda, Bécsi utca 128.",
+    regNumber: "60338916",
+    taxNumber: "90977435-1-28",
+    mainActivity: "662201 — Biztosítási ügynöki, brókeri tevékenység",
+    otherActivities:
+      "661901 — egyéb pénzügyi kiegészítő tevékenység · " +
+      "731101 — reklámtervezés, -készítés, -elhelyezés · " +
+      "621004 — weblap tervezése (webdizájn)",
+    since: "2025. április 7.",
+    registerUrl: "https://www.nyilvantarto.hu/evny-lekerdezo/",
+  },
+
+  /* --- A közvetítő társaság (impresszumhoz kötelező) ------------------
      Fontos: a szerződések nem velem, hanem az OVB-vel, illetve a
      biztosítóval / bankkal / pénztárral jönnek létre. Az OVB az MNB
-     nyilvántartásában TÖBBES ÜGYNÖK (nem alkusz) — a szövegek ezt tükrözik. */
+     nyilvántartásában TÖBBES ÜGYNÖK (nem alkusz) — a szövegek ezt tükrözik.
+     Az itteni cégadatok az OVB-é, NEM az egyéni vállalkozásé (lásd
+     `business`) — a kettőt sehol nem szabad összemosni.                  */
   legal: {
     companyName:
       "OVB Vermögensberatung Általános Biztosítási és Pénzügyi Szolgáltató Kft.",

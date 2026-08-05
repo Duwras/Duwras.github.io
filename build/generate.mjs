@@ -25,6 +25,17 @@ const CFG = win.EP.CONFIG;
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+/* Config-érték pont-elválasztott útvonalon (ugyanaz, amit a js/site.js
+   `data-cfg` kötése futásidőben csinál). */
+const cfg = (p) => p.split(".").reduce((o, k) => (o == null ? undefined : o[k]), CFG);
+
+/* Jogi adatsor: a `data-cfg` kötés futásidőben frissíti, de az érték már a
+   generált HTML-ben is benne van. Így az impresszum és az adatkezelési
+   tájékoztató JS nélkül, illetve kereső- és archívum-szemmel is teljes —
+   a kötelező adatok nem függhetnek egy scripttől. */
+const legalRow = (label, path) =>
+  `<dt>${label}</dt><dd data-cfg="${path}">${esc(cfg(path) ?? "—")}</dd>`;
+
 /* A basePath akkor kell, ha az oldal nem a domain gyökerében van
    (GitHub Pages projekt-repo esetén pl. /ertekpont-penzugyek).
    Csak az absztolút URL-eket érinti: canonical, og:url, og:image, sitemap. */
@@ -259,6 +270,12 @@ function footer(depth = 0) {
     </div>
 
     <div class="disclaimer">
+      <strong>Ki áll a márkanév mögött.</strong> Az „${esc(BRAND)}” ${esc(cfg("business.legalName"))}
+      (székhely: ${esc(cfg("business.address"))}, nyilvántartási szám: ${esc(cfg("business.regNumber"))},
+      adószám: ${esc(cfg("business.taxNumber"))}) márkaneve — nem cég, és nem az OVB szervezeti egysége.
+      A pénzügyi közvetítést az ${esc(cfg("legal.companyName"))} (többes ügynök) nevében és javára
+      végzem; ezt az oldalt nem az OVB üzemelteti.
+      <br><br>
       <strong>Fontos tájékoztatás.</strong> Ez az oldal általános tájékoztatást ad, nem minősül
       személyre szóló befektetési, adó- vagy jogi tanácsadásnak, és nem ajánlat. A számítások
       tájékoztató jellegűek, a tényleges díjakat, kamatokat és feltételeket a biztosítók, bankok és
@@ -277,7 +294,7 @@ function footer(depth = 0) {
     </div>
 
     <div class="footer__bottom">
-      <span>© <span data-year>2026</span> ${esc(BRAND)}. Minden jog fenntartva. <span class="powered">powered by OVB</span></span>
+      <span>© <span data-year>2026</span> ${esc(BRAND)} — ${esc(cfg("business.shortName"))} Minden jog fenntartva. <span class="powered">közvetítés az OVB nevében</span></span>
       <span class="row" style="gap:1.25rem">
         <a href="${up}impresszum.html">Impresszum</a>
         <a href="${up}adatkezeles.html">Adatkezelési tájékoztató</a>
@@ -366,6 +383,15 @@ const HOME_FAQ = [
     a: "Semmibe. A közvetítői jutalékot a biztosítók, bankok és pénztárak fizetik a megkötött szerződések után — neked nincs tanácsadási díjad. Ezért is fontos, hogy több partner ajánlatát lásd egymás mellett, ne csak egyet.",
   },
   {
+    q: "Az Érték Pont Pénzügyek egy cég? Kivel kötök szerződést?",
+    a:
+      `Az „${BRAND}” a márkanevem, nem cég: ${cfg("business.legalName")}ként dolgozom ` +
+      `(nyilvántartási szám: ${cfg("business.regNumber")}, adószám: ${cfg("business.taxNumber")}). ` +
+      `A pénzügyi közvetítést az ${cfg("legal.companyName")} — az MNB nyilvántartásában többes ügynök — ` +
+      `nevében és javára végzem, ezért a szerződésed nem a márkanévvel, hanem a közvetítő társasággal, ` +
+      `illetve az adott biztosítóval, bankkal vagy pénztárral jön létre. Minden adat ott van az impresszumban.`,
+  },
+  {
     q: "Konkrét terméket fogsz rám tolni?",
     a: "Nem. Először a helyzetet nézzük meg: mennyi adót fizetsz, mekkora a tartalékod, milyen hiteled és biztosításod van. Ebből jön ki, mi indokolt — és mi az, amire nincs szükséged. Van, amikor a válasz az, hogy most ne kössünk semmit.",
   },
@@ -393,12 +419,23 @@ const HOME_FAQ = [
    tartoznak, nem három különálló szigethez. */
 const ORG_ID = `${SITE}/#szervezet`;
 const PERSON_ID = `${SITE}/#tanacsado`;
+/* A közvetítő társaság KÜLÖN entitás a gráfban. Így a keresők számára sem
+   mosódik össze a márkanév (Érték Pont Pénzügyek), az üzemeltető egyéni
+   vállalkozás és az OVB — a `legalName` + `affiliation` mondja meg, melyik
+   melyik. */
+const PARTNER_ID = `${SITE}/#kozvetito-tarsasag`;
 
 function businessSchema() {
   return {
     "@type": "FinancialService",
     "@id": ORG_ID,
     name: BRAND,
+    /* A márkanév mögötti valódi jogalany. */
+    legalName: CFG.business.legalName,
+    taxID: CFG.business.taxNumber,
+    disambiguatingDescription:
+      `Az „${BRAND}” ${CFG.business.legalName} márkaneve, nem önálló cég. ` +
+      `A pénzügyi közvetítés az ${CFG.legal.companyName} (többes ügynök) nevében és javára történik.`,
     url: SITE + "/",
     image: `${SITE}/assets/img/arrow-hero.png`,
     description:
@@ -440,6 +477,25 @@ function businessSchema() {
   };
 }
 
+/* Az OVB — a társaság, amelynek nevében a közvetítés történik. Nem az oldal
+   üzemeltetője, ezért NEM a publisher és nem a parentOrganization. */
+function partnerSchema() {
+  return {
+    "@type": "Organization",
+    "@id": PARTNER_ID,
+    name: CFG.legal.companyName,
+    url: "https://www.ovb.hu/",
+    taxID: CFG.legal.taxNumber,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Váci út 140.",
+      postalCode: "1138",
+      addressLocality: "Budapest",
+      addressCountry: "HU",
+    },
+  };
+}
+
 function personSchema() {
   return {
     "@type": "Person",
@@ -451,6 +507,9 @@ function personSchema() {
     telephone: CFG.contact.phone,
     email: CFG.contact.email,
     worksFor: { "@id": ORG_ID },
+    /* A közvetítői jogviszony: az OVB nevében jár el, de nem az OVB
+       alkalmazottja — ezt az affiliation fejezi ki, nem a worksFor. */
+    affiliation: { "@id": PARTNER_ID },
     areaServed: { "@type": "Country", name: "Magyarország" },
     knowsLanguage: "hu",
     sameAs: [CFG.contact.facebook, CFG.contact.linkedin].filter(Boolean),
@@ -463,6 +522,7 @@ function homePage() {
     "@graph": [
       businessSchema(),
       personSchema(),
+      partnerSchema(),
       {
         "@type": "WebSite",
         "@id": `${SITE}/#weboldal`,
@@ -667,6 +727,13 @@ ${nav(0)}
         <span class="label">04 — Rólam</span>
         <h2 class="h2" style="margin-top:.75rem"><span data-cfg="advisor.name">Érték Pont Pénzügyek</span></h2>
         <p class="soft" style="margin-top:.5rem"><span data-cfg="advisor.role">pénzügyi tanácsadó</span> · <span data-cfg="contact.area">Budapest és online</span></p>
+        <!-- Egy mondatban, már a bemutatkozásnál: a márkanév az enyém, a
+             közvetítés az OVB nevében megy. A részletes bontás az impresszumban. -->
+        <p class="tiny mute" style="margin-top:.6rem">
+          Az <strong>${esc(BRAND)}</strong> a saját márkanevem: ${esc(cfg("business.legalName"))}ként
+          dolgozom, a közvetítést az ${esc(cfg("legal.companyName"))} nevében és javára végzem.
+          <a href="impresszum.html" style="color:var(--lime)">Cégadatok az impresszumban</a>
+        </p>
         <div class="prose" style="margin-top:1.5rem">
           <p data-cfg="advisor.bio">Ide kerül a bemutatkozás.</p>
           <p>Amit fontosnak tartok: érthető magyarázat apróbetű helyett, több szolgáltató ajánlata
@@ -1051,7 +1118,9 @@ function imprintPage() {
   const url = SITE + "/impresszum.html";
   return `${head({
     title: `Impresszum — ${BRAND}`,
-    desc: "Az Érték Pont Pénzügyek üzemeltetői adatai, MNB nyilvántartási szám, elérhetőségek.",
+    desc:
+      "Az Érték Pont Pénzügyek Tímár Richárd e.v. márkaneve. Üzemeltetői adatok, " +
+      "a közvetítő társaság (OVB) cégadatai, MNB nyilvántartási szám, elérhetőségek.",
     url,
     depth: 0,
   })}
@@ -1061,40 +1130,93 @@ ${nav(0)}
     <span class="label">Jogi információk</span>
     <h1 class="h1" style="margin-top:.75rem">Impresszum</h1>
 
-    <h2 class="h3">Az oldal szerzője, a tanácsadó</h2>
+    <p class="lead" style="margin-top:1.25rem">
+      Röviden: az <strong>„Érték Pont Pénzügyek” egy márkanév</strong> — ez alatt hirdetek.
+      Mögötte <strong>${esc(cfg("business.legalName"))}</strong> áll, aki a pénzügyi közvetítést
+      az <strong>${esc(cfg("legal.companyName"))}</strong> nevében és javára végzi.
+      Alább mindhárom szint adatai külön szerepelnek.
+    </p>
+
+    <h2 class="h3">1. A márkanév</h2>
     <dl>
-      <dt>Név</dt><dd data-cfg="advisor.name">—</dd>
-      <dt>Tevékenység</dt><dd data-cfg="legal.role">—</dd>
-      <dt>Iroda</dt><dd data-cfg="legal.office">—</dd>
-      <dt>Telefon</dt><dd data-cfg="contact.phone">—</dd>
-      <dt>E-mail</dt><dd data-cfg="contact.email">—</dd>
-      <dt>Működési terület</dt><dd data-cfg="contact.area">—</dd>
+      <dt>Márkanév</dt><dd>${esc(BRAND)}</dd>
+      <dt>Jogi státusz</dt>
+      <dd>Fantázianév (megjelölés), amelyet ${esc(cfg("business.shortName"))} használ a
+      tevékenysége hirdetésére. Nem cég, nem önálló jogi személy, nem az OVB szervezeti
+      egysége és nem az OVB márkaneve — cégjegyzékszáma ezért nincs.</dd>
+      <dt>Weboldal</dt><dd>${esc(SITE)}/ — üzemeltetője a 2. pontban megnevezett egyéni vállalkozó</dd>
     </dl>
 
-    <h2 class="h3">A közvetítő társaság</h2>
+    <h2 class="h3">2. Az oldal üzemeltetője — az egyéni vállalkozás</h2>
     <p>
-      A közvetítői tevékenységet az alábbi társaság nevében és javára végzem. Szerződés nem velem,
-      hanem a társasággal, illetve az érintett biztosítóval, bankkal vagy pénztárral jön létre.
+      A weboldalt üzemeltetem, a megkereséseidet fogadom, és a tanácsadást személyesen én végzem.
+      Egyéni vállalkozóként a NAV egyéni vállalkozók nyilvántartásában (EVNY) szerepelek.
     </p>
     <dl>
-      <dt>Cégnév</dt><dd data-cfg="legal.companyName">—</dd>
-      <dt>Székhely</dt><dd data-cfg="legal.address">—</dd>
-      <dt>Cégjegyzékszám</dt><dd data-cfg="legal.regNumber">—</dd>
-      <dt>Adószám</dt><dd data-cfg="legal.taxNumber">—</dd>
+      ${legalRow("Név", "business.legalName")}
+      ${legalRow("Székhely", "business.address")}
+      ${legalRow("Nyilvántartási szám", "business.regNumber")}
+      ${legalRow("Adószám", "business.taxNumber")}
+      ${legalRow("Főtevékenység", "business.mainActivity")}
+      ${legalRow("További tevékenységek", "business.otherActivities")}
+      ${legalRow("A tevékenység kezdete", "business.since")}
+      ${legalRow("Telefon", "contact.phone")}
+      ${legalRow("E-mail", "contact.email")}
+      ${legalRow("Működési terület", "contact.area")}
+    </dl>
+    <p class="tiny mute">
+      Az adatok a közhiteles egyéni vállalkozói nyilvántartásban ellenőrizhetők:
+      <a href="${esc(cfg("business.registerUrl"))}" target="_blank" rel="noopener" style="color:var(--lime)">nyilvantarto.hu</a>.
+    </p>
+
+    <h2 class="h3">3. A közvetítő társaság</h2>
+    <p>
+      A pénzügyi és biztosítási közvetítést nem önállóan, hanem az alábbi társasággal fennálló
+      szerződéses jogviszony alapján, <strong>a társaság nevében és javára</strong> végzem.
+      A társaság az MNB nyilvántartásában <strong>többes ügynök</strong>, ezért a szerződés
+      nem velem, hanem a társasággal, illetve az érintett biztosítóval, bankkal vagy
+      pénztárral jön létre.
+    </p>
+    <dl>
+      ${legalRow("Cégnév", "legal.companyName")}
+      ${legalRow("Székhely", "legal.address")}
+      ${legalRow("Cégjegyzékszám", "legal.regNumber")}
+      ${legalRow("Adószám", "legal.taxNumber")}
+      ${legalRow("Iroda", "legal.office")}
       <dt>Minősítés</dt><dd>többes ügynök (nem alkusz) — több biztosító termékeit közvetíti</dd>
+      <dt>Kapcsolatom a társasággal</dt>
+      <dd>szerződéses jogviszonyban álló közvetítő; nem vagyok a társaság munkavállalója,
+      a társaság pedig nem üzemelteti ezt a weboldalt és nem felel a márkanév alatt közzétett
+      tartalomért</dd>
     </dl>
 
-    <h2 class="h3">Nyilvántartás, felügyelet</h2>
+    <h2 class="h3">4. Nyilvántartás, felügyelet</h2>
+    <p>
+      Az alábbi nyilvántartási számok a 3. pontban megnevezett <strong>közvetítő társaságé</strong>
+      — nem a márkanévé és nem az egyéni vállalkozásé.
+    </p>
     <dl>
-      <dt>Biztosításközvetítői nyilvántartási szám</dt><dd data-cfg="legal.mnbNumber">—</dd>
-      <dt>Hitelközvetítői nyilvántartási szám</dt><dd data-cfg="legal.mnbCreditNumber">—</dd>
+      ${legalRow("A társaság biztosításközvetítői nyilvántartási száma", "legal.mnbNumber")}
+      ${legalRow("A társaság hitelközvetítői nyilvántartási száma", "legal.mnbCreditNumber")}
       <dt>Felügyeleti szerv</dt><dd>Magyar Nemzeti Bank — Pénzügyi Fogyasztóvédelmi Központ (1013 Budapest, Krisztina krt. 55.)</dd>
     </dl>
     <p>
-      A nyilvántartásba vétel az MNB közhiteles nyilvántartásában ellenőrizhető:
+      A társaság és a nevében eljáró természetes személy közvetítők nyilvántartásba vétele
+      egyaránt ellenőrizhető az MNB közhiteles nyilvántartásában — a kereső névre is ad találatot:
       <a href="https://intezmenykereso.mnb.hu/" target="_blank" rel="noopener" style="color:var(--lime)">intezmenykereso.mnb.hu</a>,
       illetve <a href="https://apps.mnb.hu/regiszter/" target="_blank" rel="noopener" style="color:var(--lime)">apps.mnb.hu/regiszter</a>.
     </p>
+
+    <h2 class="h3">Ki mivel áll szemben — egy bekezdésben</h2>
+    <ul>
+      <li><strong>Az oldal és a márkanév</strong> ${esc(cfg("business.shortName"))} tulajdona.</li>
+      <li><strong>A közvetítés</strong> az ${esc(cfg("legal.companyName"))} nevében és javára történik.</li>
+      <li><strong>A szerződésed</strong> a biztosítóval, bankkal vagy pénztárral (illetve a
+      közvetítő társasággal) jön létre — sosem a márkanévvel.</li>
+      <li><strong>A díjakat, kamatokat és feltételeket</strong> ezek az intézmények határozzák meg.</li>
+      <li><strong>Neked a tanácsadás díjmentes</strong>: a jutalékot a szolgáltatók fizetik a
+      megkötött szerződések után.</li>
+    </ul>
 
     <h2 class="h3">A tájékoztatás jellege</h2>
     <p>
@@ -1112,7 +1234,7 @@ ${nav(0)}
     <h2 class="h3">Panaszkezelés</h2>
     <p>
       Panaszt szóban (telefonon vagy személyesen) és írásban (e-mailben, postai úton) is
-      előadhatsz a fenti elérhetőségeken, illetve közvetlenül a közvetítő társaság
+      előadhatsz a 2. pontban megadott elérhetőségeimen, illetve közvetlenül a közvetítő társaság
       panaszkezelési csatornáin:
       <a href="https://www.ovb.hu/szerviz/panaszkezeles.html" target="_blank" rel="noopener" style="color:var(--lime)">ovb.hu/szerviz/panaszkezeles</a>.
       A panaszt a jogszabályban meghatározott határidőn belül
@@ -1123,8 +1245,9 @@ ${nav(0)}
 
     <h2 class="h3">Szerzői jog</h2>
     <p>
-      Az oldalon található szövegek, ábrák és arculati elemek szerzői jogi védelem alatt állnak.
-      Felhasználásuk csak az üzemeltető előzetes írásos engedélyével lehetséges.
+      Az oldalon található szövegek, ábrák és arculati elemek — az „${esc(BRAND)}” megjelöléssel
+      együtt — szerzői jogi védelem alatt állnak, és ${esc(cfg("business.shortName"))} tulajdonát
+      képezik. Felhasználásuk csak előzetes írásos engedélyével lehetséges.
     </p>
 
     <p class="tiny mute" style="margin-top:3rem">
@@ -1155,18 +1278,26 @@ ${nav(0)}
     </p>
 
     <h2 class="h3">1. Az adatkezelő</h2>
+    <p>
+      Az „${esc(BRAND)}” márkanév alatt működő weboldal adatkezelője az alábbi
+      <strong>egyéni vállalkozó</strong> — nem a márkanév, és nem az alább említett
+      közvetítő társaság (részletek az <a href="impresszum.html" style="color:var(--lime)">impresszumban</a>).
+    </p>
     <dl>
-      <dt>Adatkezelő</dt><dd data-cfg="advisor.name">—</dd>
-      <dt>Minőség</dt><dd data-cfg="legal.role">—</dd>
-      <dt>E-mail</dt><dd data-cfg="contact.email">—</dd>
-      <dt>Telefon</dt><dd data-cfg="contact.phone">—</dd>
+      ${legalRow("Adatkezelő", "business.legalName")}
+      ${legalRow("Székhely", "business.address")}
+      ${legalRow("Nyilvántartási szám", "business.regNumber")}
+      ${legalRow("Adószám", "business.taxNumber")}
+      ${legalRow("Minőség", "legal.role")}
+      ${legalRow("E-mail", "contact.email")}
+      ${legalRow("Telefon", "contact.phone")}
     </dl>
     <p>
-      A weboldalon beküldött megkeresések adatait a fenti tanácsadó kezeli, a kapcsolatfelvétel
+      A weboldalon beküldött megkeresések adatait a fenti adatkezelő kezeli, a kapcsolatfelvétel
       céljából. Ha a megkeresésből konkrét szerződéskötési folyamat indul, az abban részt vevő
-      közvetítő társaság (<span data-cfg="legal.companyName">—</span>), illetve az érintett
-      biztosító, bank vagy pénztár a saját adatkezelési tájékoztatója szerint, önálló
-      adatkezelőként jár el — erről a folyamat elején külön tájékoztatást kapsz.
+      közvetítő társaság (<span data-cfg="legal.companyName">${esc(cfg("legal.companyName"))}</span>),
+      illetve az érintett biztosító, bank vagy pénztár a saját adatkezelési tájékoztatója szerint,
+      <strong>önálló adatkezelőként</strong> jár el — erről a folyamat elején külön tájékoztatást kapsz.
     </p>
 
     <h2 class="h3">2. Milyen adatokat kezelünk?</h2>
@@ -1205,8 +1336,8 @@ ${nav(0)}
     <ul>
       <li><strong>Adatfeldolgozó — Google Ireland Ltd.:</strong> a beküldött űrlapadatok
       Google Sheets táblázatban tárolódnak (Google Workspace / Apps Script szolgáltatás).</li>
-      <li><strong>Weboldal-szolgáltató:</strong> a hosting szolgáltatója technikai jelleggel
-      hozzáférhet a kiszolgálói naplókhoz.</li>
+      <li><strong>Tárhelyszolgáltató — GitHub, Inc. (GitHub Pages):</strong> az oldal kiszolgálója,
+      technikai jelleggel hozzáférhet a kiszolgálói naplókhoz (pl. IP-cím, lekért oldal).</li>
       <li>Az adatokat harmadik félnek marketing célból nem adjuk át, nem adjuk el.</li>
       <li>Ha a te kérésedre ajánlatot kérünk biztosítótól, banktól vagy pénztártól, az ehhez
       szükséges adatokat kizárólag a te előzetes tudtával és külön megbízásod alapján adjuk át.</li>
@@ -1220,10 +1351,11 @@ ${nav(0)}
       A böngésződben tárolt adatok a böngésző beállításaiból bármikor törölhetők.
     </p>
     <p>
-      Az oldal betűtípusokat a Google Fonts szolgáltatásból, a 3D megjelenítéshez szükséges
-      programkönyvtárat pedig egy nyilvános tartalomszolgáltató hálózatból tölti be; ezek a
-      kérések a technikai működéshez szükségesek, és az adott szolgáltató naplózhatja az
-      IP-címet.
+      Az oldal <strong>nem tölt be tartalmat harmadik fél kiszolgálójáról</strong>: a betűtípusok
+      és a 3D megjelenítés kódja is erről a domainről érkezik, így böngészés közben az IP-címed
+      nem jut el idegen szolgáltatóhoz. Egyetlen kimenő kérés van, és az is csak akkor, ha te
+      küldesz be űrlapot: ilyenkor az adatok a Google Apps Script végpontjára mennek (lásd az
+      5. pontot).
     </p>
 
     <h2 class="h3">7. Milyen jogaid vannak?</h2>
@@ -1248,8 +1380,8 @@ ${nav(0)}
 
     <p class="tiny mute" style="margin-top:3rem">
       Hatályos: <span data-year>2026</span>. A tájékoztató változásait ezen az oldalon közzétesszük.
-      Ez a dokumentum minta jellegű kiindulás — élesítés előtt érdemes a saját cégadatokkal és
-      szükség szerint jogi szakértővel véglegesíteni.
+      Az adatkezelő adatai az impresszummal egyeznek — a dokumentum végleges jóváhagyását
+      érdemes jogi szakértővel is megerősíteni.
     </p>
   </div>
 </main>

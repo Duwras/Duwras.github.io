@@ -29,9 +29,18 @@ készen van, 4 kattintás a telepítése, az `/exec` URL nem változik:
 Opcionális: `contact.calendar` (Calendly link — üresen a gomb eltűnik), `testimonials`
 (valós ügyfél-vélemények), `domain` (amikor megjön a saját domain).
 
-> **Jogi megjegyzés:** az oldal az OVB Vermögensberatung Kft.-t **többes ügynökként** nevezi meg,
-> és nem használja a „független” / „alkusz” szót, mert az MNB-nyilvántartásban más kategória.
-> Igazodási pont: `config.js → legal.role`, valamint a `docs/forrasok.md` végén lévő megjegyzés.
+> **Jogi megjegyzés — a három szint.** Az oldal végig szétválasztja, hogy
+>
+> 1. **„Érték Pont Pénzügyek”** = *márkanév* (fantázianév), nem cég, nincs cégjegyzékszáma;
+> 2. **Tímár Richárd e.v.** = az üzemeltető és az adatkezelő (`config.js → business`);
+> 3. **OVB Vermögensberatung Kft.** = a *közvetítő társaság*, akinek a nevében és javára a
+>    közvetítés folyik, és akivel az e.v. szerződéses jogviszonyban áll (`config.js → legal`).
+>
+> Ezt mondja ki az impresszum (1–4. pont), az adatkezelési tájékoztató 1. pontja, a lábjegyzet
+> minden oldal alján, a főoldali „Rólam” blokk és egy GYIK-kérdés, valamint a JSON-LD
+> (`legalName` + külön `Organization` node az OVB-nek, `affiliation`-nel kötve).
+> Az oldal nem használja a „független” / „alkusz” szót, mert az MNB-nyilvántartásban más
+> kategória — az OVB **többes ügynök**. További igazodási pont: `docs/forrasok.md` vége.
 
 ---
 

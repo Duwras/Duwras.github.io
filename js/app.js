@@ -29,6 +29,20 @@ instagram: "",
 linkedin: "https://www.linkedin.com/in/richard-timar/",
 messenger: "https://m.me/61587459482095",
 },
+business: {
+legalName: "Tímár Richárd egyéni vállalkozó",
+shortName: "Tímár Richárd e.v.",
+address: "9151 Abda, Bécsi utca 128.",
+regNumber: "60338916",
+taxNumber: "90977435-1-28",
+mainActivity: "662201 — Biztosítási ügynöki, brókeri tevékenység",
+otherActivities:
+"661901 — egyéb pénzügyi kiegészítő tevékenység · " +
+"731101 — reklámtervezés, -készítés, -elhelyezés · " +
+"621004 — weblap tervezése (webdizájn)",
+since: "2025. április 7.",
+registerUrl: "https://www.nyilvantarto.hu/evny-lekerdezo/",
+},
 legal: {
 companyName:
 "OVB Vermögensberatung Általános Biztosítási és Pénzügyi Szolgáltató Kft.",
