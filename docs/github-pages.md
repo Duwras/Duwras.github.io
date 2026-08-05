@@ -1,13 +1,16 @@
 # Ingyenes hosting GitHub Pages-en
 
-## ✅ AZ OLDAL ÉL
+## ✅ AZ OLDAL ÉL A SAJÁT DOMAINEN
 
-Jelenlegi cím: **<https://duwras.github.io/>**
-Végleges cím: **ertekpontpenzugyek.hu** — a kód már erre van állítva, a DNS van hátra
-(→ „A saját domain bekötése" szakasz lent). Ugyanez a repó szolgálja ki majd, nem kell
-újra feltölteni semmit.
+# <https://ertekpontpenzugyek.hu/>
+
+HTTPS-sel, kikényszerítve. Minden más cím ide irányít át (301):
+`http://ertekpontpenzugyek.hu`, `www.ertekpontpenzugyek.hu` (http és https),
+és a régi `duwras.github.io` is.
 
 Repó: <https://github.com/Duwras/Duwras.github.io> (publikus)
+Tárhely: GitHub Pages, `main` branch, `/ (root)` — ingyenes
+Domain: Rackhost, lejárat **2027-08-04**
 
 ### Ami készen van
 
@@ -19,6 +22,9 @@ Repó: <https://github.com/Duwras/Duwras.github.io> (publikus)
 | ✅ | `.nojekyll`: a GitHub ne akarja Jekyll-lel feldolgozni az oldalt |
 | ✅ | `404.html`: márkás hibaoldal, bármilyen mély rossz URL-en is jól jelenik meg |
 | ✅ | `js/config.js`: cím `ertekpontpenzugyek.hu`, `noindex: false` (indexelhető) |
+| ✅ | DNS a Rackhostnál: 4 db `A` rekord + `www` CNAME |
+| ✅ | GitHub Custom domain + **Enforce HTTPS** |
+| ✅ | `CNAME` fájl a repóban (ezt a GitHub hozta létre, ne töröld) |
 | ✅ | A táblázat linkje kivéve a nyilvános `config.js`-ből |
 
 ### Amit leellenőriztem élesben
@@ -30,7 +36,12 @@ Repó: <https://github.com/Duwras/Duwras.github.io> (publikus)
 | GLB modellek MIME-típusa | `model/gltf-binary` (helyes) |
 | Rossz URL (`/szolgaltatas/nincs-ilyen.html`) | a saját 404-oldal, igazi 404-es státusszal |
 | `_source/` elérhető-e | nem — 404, ahogy kell |
-| `robots.txt` | `Disallow: /` (ideiglenes cím, lásd lent) |
+| `robots.txt` | `Allow: /` + sitemap az `ertekpontpenzugyek.hu`-ra |
+| canonical URL minden oldalon | `https://ertekpontpenzugyek.hu/…` |
+| `noindex` fejek | nincsenek — `index,follow` |
+| LinkedIn-link | mind a 16 oldalon |
+| HTTP → HTTPS, www → apex, github.io → apex | mind **301** a végleges címre |
+| Mobil (320/360/375/414/768/1280 px × 17 oldal) | nulla levágott gomb, nulla kilógó cím |
 
 **Ami még nincs letesztelve élesben:** egy valódi jelentkezés beküldése. Ezt érdemes
 az Apps Script telefon-javítása UTÁN megtenni (`docs/google-sheets-setup.md`),

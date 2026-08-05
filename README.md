@@ -7,8 +7,8 @@ legrelevánsabb témákhoz vezeti.
 **Nincs build-kényszer, nincs szerver, nincs adatbázis.** A kimenet tiszta HTML/CSS/JS —
 feltölthető bármilyen hostingra (Netlify, Cloudflare Pages, GitHub Pages, cPanel, FTP).
 
-**Az oldal él:** <https://duwras.github.io/> — GitHub Pages, ingyen, ideiglenes címen.
-Részletek, frissítés, saját domain: → [`docs/github-pages.md`](docs/github-pages.md)
+**Az oldal él:** <https://ertekpontpenzugyek.hu/> — saját domain (Rackhost), a tárhely
+ingyenes GitHub Pages. Részletek és frissítés: → [`docs/github-pages.md`](docs/github-pages.md)
 
 ---
 
@@ -133,18 +133,20 @@ menet közbeni átírása (ettől ugrik az animáció).
 
 ## Élesítés
 
-**Kész: az oldal él** a <https://duwras.github.io/> címen (GitHub Pages, `main` / root).
+**Kész: az oldal él** a <https://ertekpontpenzugyek.hu/> címen, HTTPS-sel.
 
 Ami hátra van:
 
-1. Frissítsd az Apps Scriptet a telefon-javítással (`docs/google-sheets-setup.md`, 4 kattintás).
+1. Frissítsd az Apps Scriptet a telefon-javítással és a spam-szűrővel
+   (`docs/google-sheets-setup.md`, 4 kattintás).
 2. Ellenőrizd: küldj be egy próba-jelentkezést az **éles** oldalról, és nézd meg,
    megjelenik-e a táblázatban helyes telefonszámmal.
 3. Töröld a teszt sorokat a táblázatból (`TESZT…` kezdetűek).
+4. Küldd be a `sitemap.xml`-t a [Google Search Console](https://search.google.com/search-console)-ba.
+5. Írd át a linket a Facebook-oldalon és a LinkedIn-profilban az új címre.
 
-**Amikor megjön a saját domain:** DNS-beállítás, majd a `js/config.js`-ben
-`domain` / `basePath` / `noindex: false`, végül `node build/generate.mjs` és push.
-A pontos lépések: `docs/github-pages.md` → „Amikor megjön a saját domain".
+> A repóban van egy `CNAME` fájl, amit a GitHub hozott létre a domain mentésekor.
+> **Ne töröld** — ez tartja a saját domaint. A generátor nem írja felül.
 
 **Módosítás feltöltése bármikor:**
 
