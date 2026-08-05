@@ -24,46 +24,29 @@
   .hero__inner { grid-template-columns: 1.15fr 0.85fr; }
 }
 
-.hero__kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.4rem 0.9rem 0.4rem 0.5rem;
-  border-radius: var(--r-pill);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  font-family: var(--font-mono);
-  font-size: var(--fs-micro);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-soft);
-}
-.hero__kicker .dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--lime);
-  box-shadow: 0 0 0 4px rgba(194, 255, 114, 0.18);
-  animation: pulse 2.4s var(--ease-in-out) infinite;
-}
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(194, 255, 114, 0.18); }
-  50% { box-shadow: 0 0 0 9px rgba(194, 255, 114, 0.03); }
-}
-
 .hero__title {
-  margin-top: var(--space-5);
   font-family: var(--font-display);
-  font-size: clamp(2.15rem, 4.6vw, 4.3rem);
+  font-size: clamp(2.1rem, 4.6vw, 4.3rem);
   font-weight: 800;
-  line-height: 1.03;
+  line-height: 1.05;
   letter-spacing: -0.038em;
   text-transform: uppercase;
-  max-width: 18ch;
+  /* A ch-korlát a NAGY kijelzőnek szól, hogy ne nyúljon szét a sor.
+     Telefonon a 18ch keskenyebb volt a rendelkezésre álló sávnál, ezért
+     a cím feleslegesen tört, és a sorvégek csúnyán lógtak. */
+  max-width: 20ch;
+  text-wrap: balance;
 }
+@media (max-width: 640px) {
+  .hero__title { max-width: none; text-wrap: pretty; }
+}
+/* A lime kiemelés SIMA szövegszín. Korábban gradiens + background-clip:text
+   volt rajta: a JS szavankénti bontása után minden szó saját inline-block
+   dobozt kapott, és a mobil böngészők a klipelt hátteret nem terítették rá
+   — a `color: transparent` maradt, vagyis a zöld szavak eltűntek. */
 .hero__title em {
   font-style: normal;
-  color: var(--lime);
-  position: relative;
+  color: var(--lime-text);
 }
 
 .hero__lead {
@@ -122,10 +105,13 @@
   height: 100%;
   transition: opacity 900ms var(--ease-out);
 }
+/* A drop-shadow(60px blur) kikerült: telefonon ez a kép a hero legnagyobb
+   festett felülete, és a lebegő animáció minden képkockán újraszámoltatta
+   volna az árnyékot. */
 .hero__fallback {
   object-fit: contain;
-  filter: drop-shadow(0 30px 60px rgba(194, 255, 114, 0.22));
   animation: float 9s var(--ease-in-out) infinite;
+  will-change: transform;
 }
 .hero__stage.is-3d .hero__fallback { opacity: 0 !important; }
 @keyframes float {
@@ -134,14 +120,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .hero__fallback { animation: none; }
-}
-
-.hero__glow {
-  position: absolute;
-  top: 12%; right: -6%;
-  width: min(60vw, 620px);
-  aspect-ratio: 1;
-  z-index: 0;
 }
 
 .hero__scroll {
@@ -200,8 +178,8 @@
   color: var(--text-soft);
   transition: all var(--t-fast);
 }
-.filter button:hover { border-color: var(--lime); color: var(--lime); }
-.filter button.is-picked { background: var(--lime); color: var(--lime-ink); border-color: var(--lime); font-weight: 620; }
+.filter button:hover { border-color: var(--lime-text); color: var(--lime-text); }
+.filter button.is-picked { background: var(--lime); color: var(--lime-ink); border-color: var(--lime-text); font-weight: 620; }
 
 /* --- Rólam blokk ------------------------------------------------------ */
 
@@ -270,7 +248,7 @@
   color: var(--text-mute);
   margin-bottom: var(--space-5);
 }
-.crumb a:hover { color: var(--lime); }
+.crumb a:hover { color: var(--lime-text); }
 
 .fact-row {
   display: grid;
@@ -285,7 +263,7 @@
   font-size: clamp(1.6rem, 3vw, 2.3rem);
   font-weight: 800;
   letter-spacing: -0.04em;
-  color: var(--lime);
+  color: var(--lime-text);
 }
 .fact__l { font-size: var(--fs-xs); color: var(--text-soft); margin-top: 0.3rem; }
 
@@ -305,6 +283,12 @@
   background: rgba(255, 184, 77, 0.06);
 }
 .warn-box .label { color: var(--warn); }
+/* Világos sávban a borostyán túl világos: sötétebb változat kell hozzá. */
+.on-paper .warn-box {
+  border-color: rgba(138, 85, 0, 0.35);
+  background: rgba(138, 85, 0, 0.06);
+}
+.on-paper .warn-box .label { color: #8a5500; }
 
 .check-list li {
   position: relative;
@@ -317,8 +301,8 @@
   position: absolute;
   left: 0; top: 0.55em;
   width: 12px; height: 7px;
-  border-left: 2px solid var(--lime);
-  border-bottom: 2px solid var(--lime);
+  border-left: 2px solid var(--lime-text);
+  border-bottom: 2px solid var(--lime-text);
   transform: rotate(-45deg);
 }
 
@@ -340,7 +324,7 @@
   left: 0; top: 0.7em;
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: var(--lime);
+  background: var(--lime-text);
 }
 .doc dl { margin-block: var(--space-4); }
 .doc dt { font-weight: 620; color: var(--text); margin-top: var(--space-4); }

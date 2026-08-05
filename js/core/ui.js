@@ -33,13 +33,6 @@
             if (!e.isIntersecting) return;
             e.target.classList.add("is-in");
             revealIO.unobserve(e.target);
-            /* a will-change felszabadítása: különben minden felfedett elem
-               tartósan külön kompozit réteget foglal */
-            e.target.addEventListener(
-              "transitionend",
-              () => (e.target.style.willChange = "auto"),
-              { once: true }
-            );
           });
         },
         { rootMargin: "0px 0px -12% 0px", threshold: 0.08 }

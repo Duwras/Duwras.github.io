@@ -94,7 +94,7 @@ a { color: inherit; text-decoration: none; }
   font-size: var(--fs-micro);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--lime);
+  color: var(--lime-text);
 }
 
 .num {
@@ -104,14 +104,14 @@ a { color: inherit; text-decoration: none; }
   font-weight: 800;
 }
 
-.lime { color: var(--lime); }
+.lime { color: var(--lime-text); }
 .soft { color: var(--text-soft); }
 .mute { color: var(--text-mute); }
 .tiny { font-size: var(--fs-xs); line-height: 1.5; }
 
 /* Lime kiemelés a folyószövegben */
 .mark {
-  color: var(--lime);
+  color: var(--lime-text);
   font-weight: 620;
 }
 
@@ -173,15 +173,9 @@ a { color: inherit; text-decoration: none; }
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-.glow-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.5;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(circle, rgba(194, 255, 114, 0.42), transparent 70%);
-}
+/* A lime derengés-foltok (.glow-blob) kikerültek: a `filter: blur(90px)`
+   minden görgetéskor újrafestette a hero teljes felületét, telefonon ez
+   volt a legdrágább effekt az oldalon. */
 
 .hairline {
   height: 1px;
@@ -192,6 +186,9 @@ a { color: inherit; text-decoration: none; }
 
 /* --- Reveal / scroll animációk ----------------------------------------- */
 
+/* Szándékosan NINCS `will-change`: a főoldalon 30+ reveal-elem van, és a
+   will-change mindegyiknek külön kompozit réteget foglalt már betöltéskor.
+   A rövid opacity/transform átmenethez a böngésző magától is réteget nyit. */
 [data-reveal] {
   opacity: 0;
   transform: translateY(26px);
@@ -199,7 +196,6 @@ a { color: inherit; text-decoration: none; }
     opacity var(--t-slow) var(--ease-out),
     transform var(--t-slow) var(--ease-out);
   transition-delay: var(--reveal-delay, 0ms);
-  will-change: opacity, transform;
 }
 
 [data-reveal].is-in {

@@ -163,7 +163,7 @@
       this.body.innerHTML = `
         <div class="fstep is-active">
           <span class="fstep__kicker">${esc(q.kicker || "")}</span>
-          <h3 class="fstep__q">${esc(q.q)}</h3>
+          <h2 class="fstep__q">${esc(q.q)}</h2>
           ${q.help ? `<p class="fstep__help">${esc(q.help)}</p>` : ""}
           <div class="opts ${q.opts.length <= 3 && !multi ? "" : ""}">
             ${q.opts
@@ -226,7 +226,7 @@
       this.body.innerHTML = `
         <div class="fstep is-active">
           <span class="fstep__kicker">${esc(calc.kicker || "Kalkulátor")}</span>
-          <h3 class="fstep__q">${esc(calc.title)}</h3>
+          <h2 class="fstep__q">${esc(calc.title)}</h2>
           ${calc.help ? `<p class="fstep__help">${esc(calc.help)}</p>` : ""}
           <div class="calc">
             <div class="calc__in" data-controls></div>
@@ -420,7 +420,7 @@
       this.body.innerHTML = `
         <div class="fstep is-active">
           <span class="fstep__kicker">Eredmény</span>
-          <h3 class="fstep__q">${esc(headline)}</h3>
+          <h2 class="fstep__q">${esc(headline)}</h2>
           <p class="fstep__help">${esc(sub)}</p>
           <div class="result">${recoHtml}</div>
           <form class="lead-form" novalidate>
@@ -474,7 +474,7 @@
           <div class="thanks__check">
             <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
           </div>
-          <h3 class="fstep__q">Megérkezett. Köszönöm!</h3>
+          <h2 class="fstep__q">Megérkezett. Köszönöm!</h2>
           <p class="fstep__help center" style="margin-inline:auto">
             24 órán belül keresni fogom a megadott számon. Addig sem kell tétlenül várni:
             nézz körül a többi témában, hátha van még pár tízezer forint az asztalon.

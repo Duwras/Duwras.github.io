@@ -27,7 +27,9 @@ window.EP.CONFIG = {
   advisor: {
     name: "Tímár Richárd",
     role: "pénzügyi tanácsadó",
-    photo: "assets/brand/portre.jpg",
+    /* WebP: ugyanaz a kép 100 kB helyett 43 kB-ban. A .jpg megmarad a
+       mappában tartaléknak, de a lapok a webp-et töltik. */
+    photo: "assets/brand/portre.webp",
     bio:
       "Fiatal vállalkozóként és egyetemi hallgatóként elkötelezett vagyok a folyamatos " +
       "szakmai fejlődés és a pénzügyi tudatosság iránt. Célom, hogy minden helyzetben " +

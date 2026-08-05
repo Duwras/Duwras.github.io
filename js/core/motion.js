@@ -99,46 +99,16 @@
     });
   }
 
-  /* --- 4. Kurzort követő lime derengés --------------------------------- */
-  /* Se filter:blur, se mix-blend-mode: mindkettő teljes képernyős újrafestést
-     kényszerít minden képkockán. Elég egy lágy gradiens + transform. */
-  function initCursorGlow() {
-    if (!fine || reduced) return;
-    const dot = document.createElement("div");
-    dot.className = "cursor-glow";
-    dot.setAttribute("aria-hidden", "true");
-    document.body.appendChild(dot);
-
-    let tx = innerWidth / 2, ty = innerHeight / 2, cx = tx, cy = ty;
-    let idle = 0;
-    const handle = rt.onFrame((t, dt) => {
-      cx += (tx - cx) * Math.min(1, dt * 6);
-      cy += (ty - cy) * Math.min(1, dt * 6);
-      dot.style.transform = `translate3d(${(cx - 150).toFixed(1)}px, ${(cy - 150).toFixed(1)}px, 0)`;
-      /* ha megállt a kurzor és beért a folt, kilépünk a hurokból */
-      idle += dt;
-      if (idle > 0.4 && Math.abs(tx - cx) < 0.5 && Math.abs(ty - cy) < 0.5) handle.active = false;
-    }, false);
-
-    on(
-      window,
-      "pointermove",
-      (e) => {
-        tx = e.clientX;
-        ty = e.clientY;
-        idle = 0;
-        handle.active = true;
-      },
-      { passive: true }
-    );
-  }
-
-  /* --- 5. Futószalag ---------------------------------------------------- */
+  /* --- 4. Futószalag ---------------------------------------------------- */
   /* Korábban a scroll-tempó a CSS animation-duration átírásával gyorsított.
      Az animáció haladása a hosszúság ARÁNYA, ezért duration-váltásnál a sáv
      látványosan előre-hátra ugrott, a klónozott sáv pedig elcsúszott az
      eredetitől. Most a pozíciót magunk integráljuk: nincs ugrás, nincs rés. */
   function initMarquee() {
+    /* Telefonon marad a CSS-animáció: az a kompozitor szálon fut, míg ez a
+       változat képkockánként a fő szálon számol és ír. A scroll-tempóhoz
+       kötött gyorsítás úgyis csak egérrel érdekes. */
+    if (!fine || reduced) return;
     const list = $$(".marquee");
     if (!list.length) return;
 
@@ -186,7 +156,7 @@
     });
   }
 
-  /* --- 6. Funnel opciók léptetett belépése ---------------------------- */
+  /* --- 5. Funnel opciók léptetett belépése ---------------------------- */
   function initOptStagger() {
     const io = new MutationObserver((muts) => {
       muts.forEach((mu) => {
@@ -203,7 +173,6 @@
     initCards();
     initMagnetic();
     initParallax();
-    initCursorGlow();
     initMarquee();
     initOptStagger();
   }

@@ -17,11 +17,20 @@
   border-bottom: 1px solid transparent;
 }
 
+/* A blur-os üveghatás csak ott van bekapcsolva, ahol egérrel/nagy kijelzőn
+   nézik. Telefonon a fix fejléc backdrop-filterje minden görgetett
+   képkockán újramosta a mögötte lévő sávot — ez volt a scroll-akadás
+   legnagyobb tétele. Ott átlátszatlan háttér van helyette. */
 .nav.is-stuck {
-  background: color-mix(in srgb, var(--ink-900) 82%, transparent);
-  backdrop-filter: blur(18px) saturate(140%);
+  background: var(--ink-900);
   border-bottom-color: var(--line-soft);
   padding-block: var(--space-3);
+}
+@media (min-width: 1024px) {
+  .nav.is-stuck {
+    background: color-mix(in srgb, var(--ink-900) 82%, transparent);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
 }
 
 .nav.is-hidden { transform: translateY(-102%); }
@@ -122,7 +131,7 @@
   font-weight: 700;
   letter-spacing: -0.02em;
 }
-.menu__item small { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--lime); }
+.menu__item small { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--lime-text); }
 
 /* --- Gombok ------------------------------------------------------------ */
 
@@ -164,7 +173,7 @@
   border: 1px solid var(--line);
 }
 .btn--ghost::before { background: var(--surface-2); }
-.btn--ghost:hover { box-shadow: none; border-color: var(--lime); }
+.btn--ghost:hover { box-shadow: none; border-color: var(--lime-text); }
 
 .btn--dark { --btn-bg: var(--ink-700); --btn-fg: var(--text); }
 .btn--dark::before { background: var(--ink-500); }
@@ -208,7 +217,7 @@
   gap: 0.5rem;
   font-weight: 620;
   font-size: var(--fs-sm);
-  color: var(--lime);
+  color: var(--lime-text);
 }
 .link-arrow svg { transition: transform var(--t-med) var(--ease-out); }
 .link-arrow:hover svg { transform: translate(4px, -4px); }
@@ -277,7 +286,7 @@
   display: grid; place-items: center;
   border-radius: 12px;
   background: rgba(194, 255, 114, 0.1);
-  color: var(--lime);
+  color: var(--lime-text);
   flex: 0 0 auto;
 }
 .svc__badge {
@@ -318,7 +327,7 @@
 }
 .svc__metric {
   font-size: var(--fs-xs);
-  color: var(--lime);
+  color: var(--lime-text);
   font-weight: 620;
   letter-spacing: -0.005em;
 }
@@ -341,7 +350,7 @@
   line-height: 1.02;
   letter-spacing: -0.045em;
   font-variant-numeric: tabular-nums;
-  color: var(--lime);
+  color: var(--lime-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: clip;
@@ -390,6 +399,27 @@
 .marquee__item .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); }
 @keyframes marquee { to { transform: translateX(calc(-100% - var(--space-6))); } }
 
+/* --- Beszédes belső linkek (a legkeresettebb témák) ------------------- */
+
+.seo-links {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+}
+.seo-links a {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.85rem 1rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.seo-links a:hover { border-color: var(--lime-text); background: var(--surface-2); }
+.seo-links__t { font-weight: 640; font-size: var(--fs-sm); }
+.seo-links__n { font-size: var(--fs-xs); color: var(--text-mute); }
+
 /* --- Lépések / folyamat ----------------------------------------------- */
 
 .steps { counter-reset: step; display: grid; gap: var(--space-5); }
@@ -404,7 +434,7 @@
   left: 0; top: 0;
   font-family: var(--font-mono);
   font-size: var(--fs-sm);
-  color: var(--lime);
+  color: var(--lime-text);
   width: 3rem;
   padding-top: 4px;
   border-top: 1px solid var(--line);
@@ -428,7 +458,7 @@
   letter-spacing: -0.02em;
   transition: color var(--t-fast);
 }
-.acc__btn:hover { color: var(--lime); }
+.acc__btn:hover { color: var(--lime-text); }
 .acc__sign {
   flex: 0 0 auto;
   width: 30px; height: 30px;
@@ -515,7 +545,7 @@
   display: inline-block;
   padding-block: 7px; /* min. 32px tap-target mobilon */
 }
-.footer__list a:hover { color: var(--lime); }
+.footer__list a:hover { color: var(--lime-text); }
 .footer__bottom {
   margin-top: var(--space-7);
   padding-top: var(--space-5);
@@ -532,8 +562,9 @@
   font-size: var(--fs-micro);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-mute);
-  opacity: 0.55;
+  /* Nem halványítjuk: a --text-mute 55%-os áttetszőséggel 2,4:1 kontrasztra
+     esett a footer feketéjén, ami a WCAG AA alatt van. */
+  color: var(--text-soft);
   margin-left: 0.5rem;
 }
 
@@ -556,8 +587,7 @@
   max-width: 460px;
   padding: var(--space-5);
   border-radius: var(--r-lg);
-  background: var(--glass);
-  backdrop-filter: blur(20px);
+  background: var(--ink-700);
   border: 1px solid var(--line);
   box-shadow: var(--glow-soft);
   transform: translateY(140%);
@@ -595,8 +625,9 @@
   gap: var(--space-2);
   padding: var(--space-2);
   border-radius: var(--r-pill);
-  background: var(--glass);
-  backdrop-filter: blur(18px);
+  /* Átlátszatlan, nem blurös: ez a sáv KIZÁRÓLAG telefonon látszik, ahol a
+     backdrop-filter görgetés közben folyamatos újrafestést kényszerít. */
+  background: var(--ink-700);
   border: 1px solid var(--line);
   transform: translateY(160%);
   transition: transform 420ms var(--ease-out);

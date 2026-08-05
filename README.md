@@ -47,6 +47,10 @@ sitemap.xml, robots.txt     ← generált
 .nojekyll                   ← generált (a GitHub Pages ne Jekyll-ezzen)
 .gitignore                  ← mi NEM kerül fel a GitHubra (_source/, .claude/)
 
+css/site.css                ← GENERÁLT: a hat css/*.css egy fájlban (ezt tölti a böngésző)
+js/app.js                   ← GENERÁLT: a kilenc alap-script egy fájlban
+js/3d.js                    ← GENERÁLT: a három 3D script egy fájlban (csak a főoldalon)
+
 js/config.js                ← ITT állítod be a saját adataidat
 js/data/services.js         ← A TARTALOM: 13 szolgáltatás szövege, számai, funnelje, kalkulátora
 js/data/quiz.js             ← a Pénzügyi Térkép kérdései és pontozása
@@ -55,24 +59,25 @@ js/core/ui.js               ← reveal, nav, akkordeon, számlálók, süti bann
 js/funnel.js                ← funnel motor (kérdés → kalkulátor → eredmény → lead)
 js/lead.js                  ← lead küldés Google Sheets-be
 js/site.js                  ← config-kötések, stat blokk, kategória-szűrő
-js/core/motion.js           ← kártya-tilt, magnetikus gombok, parallax, kurzor-glow, futószalag
+js/core/motion.js           ← kártya-tilt, magnetikus gombok, parallax, futószalag
 js/gl/mini3d.js             ← saját mini WebGL réteg + GLB olvasó (~8 kB, three.js helyett)
 js/hero3d.js                ← hero: a 3D logó nyíl
 js/scene3d.js               ← scroll-vezérelt 3D szekció a Pénzügyi Térkép mögött
 
 css/tokens.css              ← színek, tipográfia, térkezelés (itt állítsd a márkaszíneket)
+                              + `.on-paper`: a világos (fehér) szekciók tokenjei
 css/base.css                ← reset, tipó, layout, animációk
 css/components.css          ← nav, gombok, kártyák, footer, banner
 css/hero.css                ← hero és oldalspecifikus blokkok
 css/funnel.css              ← funnel, kalkulátor, űrlap
 css/motion.css              ← animációk, 3D szekció, 3D ikonok
 
-assets/brand/               ← logók, portré (portre.jpg — 1400px, 98 kB)
+assets/brand/               ← logók, portré (portre.webp 43 kB — a .jpg tartaléknak marad)
 _source/                    ← nyers eredetik (NEM kell feltölteni): portre-original.jpg
 assets/3d/ep-arrow.glb      ← a logó nyíl 3D modellje (Blender, 119 kB)
 assets/3d/ep-icons.glb      ← 13 lowpoly téma-ikon egy fájlban (Blender, 110 kB, 915 poly)
-assets/img/arrow-hero.png   ← statikus hero-fallback + OG kép (Blender render)
-assets/img/icons/*.png      ← 13 kirenderelt téma-ikon a kártyákhoz (256px, átlátszó)
+assets/img/arrow-hero.webp  ← statikus hero-fallback (16 kB); a .png marad OG/megosztó képnek
+assets/img/icons/*.webp     ← 13 kirenderelt téma-ikon (256px, átlátszó, 2–4 kB); .png megvan
 
 build/generate.mjs          ← oldalgenerátor
 docs/github-pages.md        ← ingyenes hosting: feltöltés, frissítés, saját domain
@@ -114,20 +119,69 @@ Aztán: <http://localhost:5173>
 
 ## Teljesítmény — mire figyelj, ha hozzányúlsz
 
-Az oldalon két szabály tartja alacsonyan a terhelést:
+Néhány szabály tartja alacsonyan a terhelést:
 
 1. **Egy rAF hurok van, `js/core/rt.js`-ben.** Ha új scroll-reakciót írsz, ne tegyél
    `window.addEventListener("scroll", …)`-t: használd az `EP.rt.onScroll(fn)`-t, mert az
    képkockánként EGYSZER olvas layoutot. Animációhoz `EP.rt.onFrame(fn, false)`, és a
    visszaadott handle `.active` flagjével kapcsold be/ki — a hurok leáll, ha semmi nem aktív.
-2. **A 3D saját, helyi WebGL réteg** (`js/gl/mini3d.js`, ~8 kB). Korábban a three.js volt,
+2. **Layout-olvasás csak képkocka elején.** Az `EP.rt.remeasure()` NEM olvas azonnal, csak
+   megjelöli, hogy mérni kell; a tényleges `scrollHeight` / `offsetHeight` olvasás a következő
+   képkocka elején fut le, egyszer. (A ResizeObserver a reveal-animációk alatt sokszor elsül —
+   a szinkron olvasás korábban ~380 ms kényszerített layoutot okozott betöltéskor.)
+3. **Egy CSS és egy JS kérés.** A `build/generate.mjs` a `css/*.css`-ből `css/site.css`-t, a
+   `js/**`-ból `js/app.js`-t (és a 3D-ből `js/3d.js`-t) fűz össze. Szerkeszteni a FORRÁSOKAT
+   kell, a csomagot a generátor írja újra. A scriptek `defer`-rel töltődnek.
+4. **A 3D saját, helyi WebGL réteg** (`js/gl/mini3d.js`, ~8 kB). Korábban a three.js volt,
    ami **1,3 MB-ot töltött le az unpkg CDN-ről minden oldalbetöltéskor**. Ha 3D-t bővítesz,
    maradj ebben a rétegben, vagy számolj a méret- és GDPR-következménnyel (a CDN-hívás
    kiszivárogtatja a látogató IP-jét egy harmadik félhez).
+5. **Képek WebP-ben.** Új képet is konvertálj (a repóban lévők forrása megmaradt PNG/JPG-ben):
+   `ffmpeg -i kep.png -c:v libwebp -quality 82 kep.webp`. A megosztó (OG) kép marad PNG, mert
+   azt nem minden közösségi platform olvassa WebP-ben.
 
 Amit szándékosan **nem** használunk, mert görgetés közben újrafestést kényszerít:
-`filter: blur()` és `mix-blend-mode` mozgó elemen, továbbá CSS `animation-duration`
-menet közbeni átírása (ettől ugrik az animáció).
+`filter: blur()` és `mix-blend-mode` mozgó elemen, `backdrop-filter` telefonon (asztali
+gépen bekapcsolva marad), `will-change` sok elemen egyszerre, továbbá CSS
+`animation-duration` menet közbeni átírása (ettől ugrik az animáció).
+
+Mért állapot (Lighthouse, mobil profil, 4× lassított CPU + Fast 4G): **LCP ~1,1 s, CLS 0,00,
+Akadálymentesség / Ajánlott gyakorlat / SEO 100**.
+
+### Világos szekciók
+
+Egy szekció fehérre váltásához elég a `class="section on-paper"` — a `.on-paper` csak
+tokeneket ír felül (`--text`, `--line`, `--surface`, és a szöveg-lime helyett sötétzöld
+`--lime-text`), a komponensek maguktól követik. Szövegszínhez ezért mindig
+`var(--lime-text)`-et használj, felülethez (gomb, badge) `var(--lime)`-et.
+
+---
+
+## SEO — mire van optimalizálva
+
+Országos, természetes keresésre. A rangsor nem vásárolható és nem garantálható, de ami
+technikailag elvégezhető, az készen van:
+
+- **Címek és leírások** a keresett kifejezéssel az elején, nem a márkanévvel.
+  A főoldal fő kifejezései: *pénzügyi tanácsadó*, *nyugdíj*, *lakáshitel*, *biztosítás*.
+- **H1 = a keresett kifejezés** az aloldalakon (`js/data/services.js → h1`, ha eltér a
+  kártyán látható rövid névtől). Például: „Otthon Start és támogatott lakáshitelek”.
+- **Strukturált adat (JSON-LD)** összekötött gráfként: `FinancialService` + `Person` +
+  `WebSite` + oldalanként `Service`, `FAQPage`, `BreadcrumbList`. Az `areaServed`
+  mindenhol Magyarország — ez mondja meg a keresőnek, hogy nem csak budapesti a szolgáltatás.
+- **Belső linkelés beszédes szöveggel**: a főoldali „Hol érsz el” blokk (`#orszagos`) a
+  legnagyobb keresési volumenű aloldalakra mutat, a link szövege maga a kifejezés.
+- **Sitemap prioritás** a kereslet szerint (`build/generate.mjs → TOP_SLUGS`): Otthon
+  Start / lakáshitel, nyugdíj, KGFB, gyerek-megtakarítás, személyi kölcsön, bankszámla.
+
+Amit **neked** kell megtenni, mert fiókhoz kötött (és ez hozza a legtöbbet):
+
+1. [Google Search Console](https://search.google.com/search-console): domain hitelesítés,
+   `sitemap.xml` beküldése, majd havonta a „Teljesítmény” fül — arra a kifejezésre írj több
+   tartalmat, amire már most megjelensz a 8–20. helyen.
+2. **Google Cégprofil** (Google Business Profile): a helyi találatokhoz ez a legerősebb
+   egyetlen tényező. Kategória: pénzügyi tanácsadó, szolgáltatási terület: egész ország.
+3. Az oldal linkje a Facebook- és LinkedIn-profilba (ez adja az első hivatkozásokat).
 
 ---
 

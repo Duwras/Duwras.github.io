@@ -50,7 +50,15 @@ const ARROW = icon('<path d="M7 17 17 7M9 7h8v8"/>', 16, 2.2);
 /*  Közös részek                                                          */
 /* ====================================================================== */
 
-function head({ title, desc, url, depth = 0, schema = "" }) {
+/* A Google Fonts stíluslapja HARMADIK ORIGÓRÓL jön, és alapból blokkolja a
+   megjelenítést: amíg meg nem érkezik, a böngésző egy pixelt sem fest. A
+   `media="print"` trükkel nem blokkol, az onload után viszont azonnal
+   érvénybe lép. A súlyok a ténylegesen használtakra vannak szűkítve
+   (korábban 9 vágat töltődött, ebből 3-at semmi nem használt). */
+const FONT_URL =
+  "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Inter+Tight:wght@700;800&family=JetBrains+Mono:wght@400&display=swap";
+
+function head({ title, desc, url, depth = 0, schema = "", preloadLcp = "" }) {
   const up = upOf(depth);
   return `<!doctype html>
 <html lang="hu">
@@ -61,7 +69,10 @@ function head({ title, desc, url, depth = 0, schema = "" }) {
 <meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${url}">
 <meta name="theme-color" content="#0a0b09">
-<meta name="robots" content="${NOINDEX ? "noindex,nofollow" : "index,follow"}">
+<meta name="robots" content="${NOINDEX ? "noindex,nofollow" : "index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1"}">
+<meta name="author" content="${esc(CFG.advisor.name)}">
+<meta name="geo.region" content="HU">
+<meta name="geo.placename" content="Budapest">
 
 <meta property="og:type" content="website">
 <meta property="og:locale" content="hu_HU">
@@ -70,22 +81,27 @@ function head({ title, desc, url, depth = 0, schema = "" }) {
 <meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${url}">
 <meta property="og:image" content="${SITE}/assets/img/arrow-hero.png">
+<meta property="og:image:width" content="900">
+<meta property="og:image:height" content="900">
+<meta property="og:image:alt" content="${esc(BRAND)} — pénzügyi tanácsadás">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(title)}">
+<meta name="twitter:description" content="${esc(desc)}">
+<meta name="twitter:image" content="${SITE}/assets/img/arrow-hero.png">
 
 <link rel="icon" href="${up}assets/brand/logo-mark.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="${up}assets/img/arrow-hero.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="preload" as="style" href="${FONT_URL}">
+<link rel="stylesheet" href="${FONT_URL}" media="print" onload="this.media='all';this.onload=null">
+<noscript><link rel="stylesheet" href="${FONT_URL}"></noscript>
 
-<link rel="stylesheet" href="${up}css/tokens.css?v=${V}">
-<link rel="stylesheet" href="${up}css/base.css?v=${V}">
-<link rel="stylesheet" href="${up}css/components.css?v=${V}">
-<link rel="stylesheet" href="${up}css/hero.css?v=${V}">
-<link rel="stylesheet" href="${up}css/funnel.css?v=${V}">
-<link rel="stylesheet" href="${up}css/motion.css?v=${V}">
-
+<!-- EGY stíluslap: a hat forrásfájlból a generátor fűzi össze (css/site.css).
+     Hat blokkoló kérés helyett egy. Szerkeszteni továbbra is a css/*.css-t kell. -->
+<link rel="stylesheet" href="${up}css/site.css?v=${V}">
+${preloadLcp ? `<link rel="preload" as="image" href="${up}${preloadLcp}" fetchpriority="high">\n` : ""}
 ${schema}
 </head>
 <body class="grain">
@@ -233,21 +249,15 @@ function footer(depth = 0) {
 </div>`;
 }
 
+/* Kilenc külön script helyett egy csomag (a generátor fűzi össze, a sorrend
+   ugyanaz). `defer`: a letöltés a HTML feldolgozásával párhuzamosan megy, a
+   futtatás a DOM felépítése után — így semmi nem blokkolja a megjelenítést.
+   A 3D külön csomag, szintén defer, és csak a főoldalon. */
 function scripts(depth = 0, hero3d = false) {
   const up = upOf(depth);
   return `
-<script src="${up}js/config.js?v=${V}"></script>
-<script src="${up}js/data/services.js?v=${V}"></script>
-<script src="${up}js/data/quiz.js?v=${V}"></script>
-<script src="${up}js/core/rt.js?v=${V}"></script>
-<script src="${up}js/core/ui.js?v=${V}"></script>
-<script src="${up}js/core/motion.js?v=${V}"></script>
-<script src="${up}js/lead.js?v=${V}"></script>
-<script src="${up}js/funnel.js?v=${V}"></script>
-<script src="${up}js/site.js?v=${V}"></script>
-${hero3d ? `<script src="${up}js/gl/mini3d.js?v=${V}" defer></script>
-<script src="${up}js/hero3d.js?v=${V}" defer></script>
-<script src="${up}js/scene3d.js?v=${V}" defer></script>` : ""}
+<script src="${up}js/app.js?v=${V}" defer></script>
+${hero3d ? `<script src="${up}js/3d.js?v=${V}" defer></script>` : ""}
 </body>
 </html>`;
 }
@@ -260,7 +270,7 @@ function svcCard(s, i, depth = 0) {
   <a class="card card--spot svc bento__cell${wide}" href="${up}szolgaltatas/${s.slug}.html"
      data-cat="${s.cat}" data-reveal style="--reveal-delay:${(i % 4) * 60}ms">
     <div class="svc__top">
-      <span class="svc__icon"><img src="${up}assets/img/icons/${s.slug}.png" alt="" width="54" height="54" loading="lazy" decoding="async"></span>
+      <span class="svc__icon"><img src="${up}assets/img/icons/${s.slug}.webp" alt="" width="54" height="54" loading="lazy" decoding="async"></span>
       <span class="svc__badge">${esc(s.badge)}</span>
     </div>
     <div>
@@ -305,39 +315,119 @@ const HOME_FAQ = [
   },
 ];
 
+/* A Google a @id-kkal összekötött gráfot érti a legjobban: egy üzletet
+   (FinancialService), a mögötte álló embert (Person) és a weboldalt
+   (WebSite) — így a márkanév, a tanácsadó neve és a témák egy entitáshoz
+   tartoznak, nem három különálló szigethez. */
+const ORG_ID = `${SITE}/#szervezet`;
+const PERSON_ID = `${SITE}/#tanacsado`;
+
+function businessSchema() {
+  return {
+    "@type": "FinancialService",
+    "@id": ORG_ID,
+    name: BRAND,
+    url: SITE + "/",
+    image: `${SITE}/assets/img/arrow-hero.png`,
+    description:
+      "Pénzügyi tanácsadás egy helyen: nyugdíj- és gyerekmegtakarítás, 20% adókedvezmények, " +
+      "élet-, egészség- és vagyonbiztosítás, KGFB, Otthon Start és piaci lakáshitel, " +
+      "személyi kölcsön, díjmentes bankszámla.",
+    telephone: CFG.contact.phone,
+    email: CFG.contact.email,
+    priceRange: "0 Ft",
+    currenciesAccepted: "HUF",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Budapest",
+      addressCountry: "HU",
+    },
+    areaServed: { "@type": "Country", name: "Magyarország" },
+    /* A tanácsadás díjmentes és távolról is megy — ezt a keresők a
+       serviceArea + availableChannel párosból olvassák ki. */
+    availableChannel: {
+      "@type": "ServiceChannel",
+      serviceUrl: SITE + "/#terkep",
+      availableLanguage: { "@type": "Language", name: "Hungarian", alternateName: "hu" },
+    },
+    knowsAbout: SERVICES.map((s) => s.title),
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Pénzügyi szolgáltatások",
+      itemListElement: SERVICES.map((s) => ({
+        "@type": "Offer",
+        itemOffered: {
+          "@type": "Service",
+          name: s.title,
+          url: `${SITE}/szolgaltatas/${s.slug}.html`,
+        },
+      })),
+    },
+    founder: { "@id": PERSON_ID },
+    sameAs: [CFG.contact.facebook, CFG.contact.linkedin].filter(Boolean),
+  };
+}
+
+function personSchema() {
+  return {
+    "@type": "Person",
+    "@id": PERSON_ID,
+    name: CFG.advisor.name,
+    jobTitle: CFG.advisor.role,
+    description: CFG.advisor.bio,
+    image: `${SITE}/assets/brand/portre.webp`,
+    telephone: CFG.contact.phone,
+    email: CFG.contact.email,
+    worksFor: { "@id": ORG_ID },
+    areaServed: { "@type": "Country", name: "Magyarország" },
+    knowsLanguage: "hu",
+    sameAs: [CFG.contact.facebook, CFG.contact.linkedin].filter(Boolean),
+  };
+}
+
 function homePage() {
   const schema = `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
-    "@type": "FinancialService",
-    name: BRAND,
-    url: SITE,
-    areaServed: "HU",
-    description:
-      "Pénzügyi tanácsadás: nyugdíj- és gyerekmegtakarítás, 20% adókedvezmények, biztosítások, támogatott és piaci hitelek, díjmentes bankszámlák.",
-    knowsAbout: SERVICES.map((s) => s.title),
-    sameAs: [CFG.contact.facebook, CFG.contact.linkedin].filter(Boolean),
-  })}</script>
-<script type="application/ld+json">${JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: HOME_FAQ.map((f) => ({
-      "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
-    })),
+    "@graph": [
+      businessSchema(),
+      personSchema(),
+      {
+        "@type": "WebSite",
+        "@id": `${SITE}/#weboldal`,
+        url: SITE + "/",
+        name: BRAND,
+        inLanguage: "hu-HU",
+        publisher: { "@id": ORG_ID },
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: HOME_FAQ.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      },
+    ],
   })}</script>`;
 
   const marqueeItems = SERVICES.map(
     (s) => `<span class="marquee__item"><span class="dot"></span>${esc(s.navTitle)}</span>`
   ).join("\n        ");
 
+  /* A cím elején a KERESETT kifejezés áll, nem a márkanév: „pénzügyi
+     tanácsadó” + a három legnagyobb keresési téma. A márka a végére kerül,
+     mert arra amúgy is rangsorolunk. Hossza ~60 karakter, hogy a találati
+     listában ne vágja el a Google. */
   return `${head({
-    title: `${BRAND} — 13 pénzügyi terület, egy helyen, egy emberrel`,
+    title: "Pénzügyi tanácsadó — nyugdíj, lakáshitel, biztosítás | Érték Pont",
     desc:
-      "Nyugdíj, gyerekmegtakarítás, 20% adókedvezmények, KGFB/casco, élet- és egészségbiztosítás, támogatott és piaci hitelek, díjmentes bankszámla. Töltsd ki a Pénzügyi Térképet, és megmutatom, hol hagysz pénzt az asztalon.",
+      "Díjmentes pénzügyi tanácsadás az egész országban, online is. Nyugdíj-megtakarítás 280 000 Ft " +
+      "adójóváírásig, Otthon Start és piaci lakáshitel, KGFB, élet- és egészségbiztosítás, " +
+      "gyerek-megtakarítás, díjmentes bankszámla. Töltsd ki a Pénzügyi Térképet — 1 perc.",
     url: SITE + "/",
     depth: 0,
     schema,
+    preloadLcp: "assets/img/arrow-hero.webp",
   })}
 ${nav(0)}
 
@@ -345,10 +435,8 @@ ${nav(0)}
 
   <!-- ============ HERO ============ -->
   <section class="hero">
-    <div class="glow-blob hero__glow" aria-hidden="true"></div>
     <div class="wrap hero__inner">
       <div>
-        <span class="hero__kicker"><span class="dot"></span>Tímár Richárd · pénzügyi tanácsadó · Budapest</span>
         <h1 class="hero__title" data-lines>
           Az állam évente <em>több százezer forintot</em> ad vissza
         </h1>
@@ -375,7 +463,7 @@ ${nav(0)}
 
       <div class="hero__stage" data-hero3d="assets/3d/ep-arrow.glb">
         <canvas aria-hidden="true"></canvas>
-        <img class="hero__fallback" src="assets/img/arrow-hero.png" alt="" width="900" height="900" loading="eager" fetchpriority="high">
+        <img class="hero__fallback" src="assets/img/arrow-hero.webp" alt="" width="900" height="900" loading="eager" fetchpriority="high" decoding="async">
       </div>
     </div>
 
@@ -407,8 +495,8 @@ ${nav(0)}
     </div>
   </section>
 
-  <!-- ============ SZÁMOK ============ -->
-  <section class="section-sm">
+  <!-- ============ SZÁMOK (világos sáv) ============ -->
+  <section class="section-sm on-paper">
     <div class="wrap">
       <div class="stats" data-render="stats"></div>
     </div>
@@ -444,8 +532,8 @@ ${nav(0)}
     </div>
   </section>
 
-  <!-- ============ FOLYAMAT ============ -->
-  <section class="section" id="folyamat">
+  <!-- ============ FOLYAMAT (világos sáv) ============ -->
+  <section class="section on-paper" id="folyamat">
     <div class="wrap split split-sticky">
       <div>
         <span class="label">03 — Hogyan dolgozom</span>
@@ -487,7 +575,9 @@ ${nav(0)}
   <section class="section" id="rolam">
     <div class="wrap about">
       <div class="about__photo" data-photo-wrap data-reveal="left">
-        <img data-cfg-src="advisor.photo" src="assets/brand/portre.jpg" alt="" loading="lazy" onerror="this.closest('[data-photo-wrap]').classList.add('no-photo')">
+        <img data-cfg-src="advisor.photo" src="assets/brand/portre.webp" width="1400" height="781"
+             alt="${esc(CFG.advisor.name)} ${esc(CFG.advisor.role)}" loading="lazy" decoding="async"
+             onerror="this.closest('[data-photo-wrap]').classList.add('no-photo')">
       </div>
       <div data-reveal="right">
         <span class="label">04 — Rólam</span>
@@ -513,6 +603,54 @@ ${nav(0)}
     </div>
   </section>
 
+  <!-- ============ ORSZÁGOS LEFEDETTSÉG + A LEGKERESETTEBB TÉMÁK ============
+       Ez a blokk két dolgot csinál: elmondja, hogy a tanácsadás országos és
+       online is megy (a keresők ebből értik meg a szolgáltatási területet),
+       és beszédes linkszöveggel mutat a legtöbbet keresett aloldalakra. -->
+  <section class="section-sm" id="orszagos">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <span class="label">05 — Hol érsz el</span>
+          <h2 class="h2 sec-head__title" data-reveal>Pénzügyi tanácsadás online, az egész országban</h2>
+        </div>
+        <p class="lead" data-reveal>
+          Budapesten személyesen, az ország bármely pontjáról videóhíváson és e-mailben.
+          Az összehasonlítás, a számolás és az ajánlatkérés végig online megy — aláírásra
+          jellemzően egyetlen alkalommal van szükség.
+        </p>
+      </div>
+
+      <h3 class="h4" style="margin-bottom:1rem">A legtöbbet keresett témák 2026-ban</h3>
+      <ul class="seo-links">
+        ${[
+          ["tamogatott-hitelek", "Otthon Start lakáshitel", "fix 3% kamat, max. 50 millió Ft, 25 év"],
+          ["piaci-hitelek", "Lakáshitel és hitelkiváltás", "THM-összehasonlítás több banktól"],
+          ["nyugdij-megtakaritas", "Nyugdíj-megtakarítás", "évi 280 000 Ft adójóváírásig"],
+          ["gyerek-megtakaritas", "Gyerek-megtakarítás és Babakötvény", "7,4% kamat, állami támogatással"],
+          ["kgfb-casco", "KGFB és casco", "évfordulós váltás, teljes piaci ár-összevetés"],
+          ["szemelyi-kolcson", "Személyi kölcsön", "THM-összehasonlítás, hitelkiváltás"],
+          ["dijmentes-bankszamla", "Díjmentes bankszámla", "0 Ft számlavezetés, rejtett díjak nélkül"],
+          ["adokedvezmeny-gyerek-no", "20% adókedvezmény pénztári befizetésre", "évi 150 000 Ft-ig"],
+        ]
+          .map(
+            ([slug, label, note]) => `<li>
+          <a href="szolgaltatas/${slug}.html">
+            <span class="seo-links__t">${esc(label)}</span>
+            <span class="seo-links__n">${esc(note)}</span>
+          </a>
+        </li>`
+          )
+          .join("\n        ")}
+      </ul>
+      <p class="tiny mute" style="margin-top:1.25rem;max-width:80ch">
+        Mind a 13 terület megtalálható a <a href="#szolgaltatasok" style="color:var(--lime-text)">szolgáltatások
+        között</a>; ha nem tudod, melyik a tiéd, a <a href="#terkep" style="color:var(--lime-text)">Pénzügyi
+        Térkép</a> egy perc alatt kiválasztja.
+      </p>
+    </div>
+  </section>
+
   ${
     /* Referencia-szekció CSAK akkor, ha van valódi, engedélyezett vélemény.
        Üres configgal a JS is eltávolítaná, de akkor a fejléc egy pillanatra
@@ -533,11 +671,11 @@ ${nav(0)}
       : ""
   }
 
-  <!-- ============ GYIK ============ -->
-  <section class="section" id="gyik">
+  <!-- ============ GYIK (világos sáv) ============ -->
+  <section class="section on-paper" id="gyik">
     <div class="wrap split">
       <div>
-        <span class="label">05 — Gyakori kérdések</span>
+        <span class="label">06 — Gyakori kérdések</span>
         <h2 class="h2" style="margin-top:.75rem" data-reveal>Amit a legtöbben megkérdeznek</h2>
         <p class="lead" style="margin-top:1.25rem">
           Ha valami nincs itt, írj rá egy sort — konkrét kérdésre konkrét választ kapsz,
@@ -562,7 +700,7 @@ ${nav(0)}
   <section class="section-sm">
     <div class="wrap">
       <div class="cta-band" data-reveal="scale">
-        <img class="cta-band__glyph" src="assets/img/arrow-hero.png" alt="" aria-hidden="true">
+        <img class="cta-band__glyph" src="assets/img/arrow-hero.webp" alt="" aria-hidden="true">
         <span class="label" style="color:var(--lime-ink);opacity:.7">Kezdjük el</span>
         <h2 class="h2" style="margin-top:.75rem;max-width:24ch">Egy perc most, több százezer forint évente.</h2>
         <p style="margin-top:1rem;max-width:52ch;opacity:.8">
@@ -590,30 +728,50 @@ function servicePage(s) {
   const url = `${SITE}/szolgaltatas/${s.slug}.html`;
   const schema = `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
-    "@type": "Service",
-    name: s.title,
-    serviceType: CATEGORIES[s.cat].label,
-    description: s.seo.desc,
-    url,
-    provider: { "@type": "FinancialService", name: BRAND, url: SITE },
-    areaServed: "HU",
-  })}</script>
-<script type="application/ld+json">${JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: s.faq.map((f) => ({
-      "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
-    })),
-  })}</script>
-<script type="application/ld+json">${JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Főoldal", item: SITE + "/" },
-      { "@type": "ListItem", position: 2, name: CATEGORIES[s.cat].label, item: SITE + "/#szolgaltatasok" },
-      { "@type": "ListItem", position: 3, name: s.title, item: url },
+    "@graph": [
+      {
+        "@type": "Service",
+        "@id": `${url}#szolgaltatas`,
+        name: s.title,
+        serviceType: CATEGORIES[s.cat].label,
+        description: s.seo.desc,
+        url,
+        image: `${SITE}/assets/img/icons/${s.slug}.png`,
+        /* Az ajánlat 0 Ft: a jutalékot a szolgáltató fizeti. Ezt ki is
+           mondjuk a gráfban, mert a találatban megjelenhet mellette. */
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "HUF",
+          description: "A tanácsadás és az ajánlatkérés díjmentes.",
+        },
+        provider: { "@id": ORG_ID },
+        areaServed: { "@type": "Country", name: "Magyarország" },
+        availableChannel: {
+          "@type": "ServiceChannel",
+          serviceUrl: url + "#funnel",
+          availableLanguage: { "@type": "Language", name: "Hungarian", alternateName: "hu" },
+        },
+      },
+      businessSchema(),
+      personSchema(),
+      {
+        "@type": "FAQPage",
+        "@id": `${url}#gyik`,
+        mainEntity: s.faq.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Főoldal", item: SITE + "/" },
+          { "@type": "ListItem", position: 2, name: CATEGORIES[s.cat].label, item: SITE + "/#szolgaltatasok" },
+          { "@type": "ListItem", position: 3, name: s.title, item: url },
+        ],
+      },
     ],
   })}</script>`;
 
@@ -621,13 +779,19 @@ function servicePage(s) {
     .sort((a, b) => (a.cat === s.cat ? -1 : 1) - (b.cat === s.cat ? -1 : 1))
     .slice(0, 3);
 
-  return `${head({ title: s.seo.title, desc: s.seo.desc, url, depth: 1, schema })}
+  return `${head({
+    title: s.seo.title,
+    desc: s.seo.desc,
+    url,
+    depth: 1,
+    schema,
+    preloadLcp: `assets/img/icons/${s.slug}.webp`,
+  })}
 ${nav(1)}
 
 <main id="main">
 
   <section class="svc-hero">
-    <div class="glow-blob" style="top:-10%;right:-10%;width:min(70vw,560px);aspect-ratio:1" aria-hidden="true"></div>
     <div class="wrap svc-hero__grid">
       <div>
         <nav class="crumb" aria-label="Morzsamenü">
@@ -636,10 +800,12 @@ ${nav(1)}
           <span class="lime">${esc(s.navTitle)}</span>
         </nav>
         <div class="row" style="gap:1rem;align-items:center">
-          <span class="icon-lg" data-reveal="scale"><img src="../assets/img/icons/${s.slug}.png" alt="" width="88" height="88" loading="eager" decoding="async"></span>
+          <span class="icon-lg" data-reveal="scale"><img src="../assets/img/icons/${s.slug}.webp" alt="${esc(s.navTitle)} — ikon" width="88" height="88" loading="eager" fetchpriority="high" decoding="async"></span>
           <span class="svc__badge">${esc(s.badge)}</span>
         </div>
-        <h1 class="h1" style="margin-top:1.25rem" data-lines>${esc(s.title)}</h1>
+        <!-- A H1 a keresett kifejezés (services.js → h1), ha van ilyen;
+             a rövid title marad a kártyán, a menüben és a morzsamenüben. -->
+        <h1 class="h1" style="margin-top:1.25rem" data-lines>${esc(s.h1 || s.title)}</h1>
         <p class="lead" style="margin-top:1.25rem">${esc(s.hook)}</p>
 
         <div class="fact-row">
@@ -663,7 +829,7 @@ ${nav(1)}
     </div>
   </section>
 
-  <section class="section-sm">
+  <section class="section-sm on-paper">
     <div class="wrap split split-sticky">
       <div>
         <span class="label">Miről van szó</span>
@@ -711,7 +877,7 @@ ${nav(1)}
     </div>
   </section>
 
-  <section class="section-sm">
+  <section class="section-sm on-paper">
     <div class="wrap split">
       <div>
         <span class="label">Gyakori kérdések</span>
@@ -753,7 +919,7 @@ ${nav(1)}
           .map(
             (r, i) => `<a class="card card--spot svc" href="${r.slug}.html" data-reveal style="--reveal-delay:${i * 70}ms">
           <div class="svc__top">
-            <span class="svc__icon"><img src="../assets/img/icons/${r.slug}.png" alt="" width="54" height="54" loading="lazy" decoding="async"></span>
+            <span class="svc__icon"><img src="../assets/img/icons/${r.slug}.webp" alt="" width="54" height="54" loading="lazy" decoding="async"></span>
             <span class="svc__badge">${esc(r.badge)}</span>
           </div>
           <div>
@@ -774,7 +940,7 @@ ${nav(1)}
   <section class="section-sm">
     <div class="wrap">
       <div class="cta-band" data-reveal="scale">
-        <img class="cta-band__glyph" src="../assets/img/arrow-hero.png" alt="" aria-hidden="true">
+        <img class="cta-band__glyph" src="../assets/img/arrow-hero.webp" alt="" aria-hidden="true">
         <span class="label" style="color:var(--lime-ink);opacity:.7">Nem vagy biztos, hogy ez a téma a tiéd?</span>
         <h2 class="h2" style="margin-top:.75rem;max-width:26ch">Töltsd ki a Pénzügyi Térképet — 1 perc.</h2>
         <p style="margin-top:1rem;max-width:52ch;opacity:.8">
@@ -1053,7 +1219,55 @@ function write(rel, content) {
   console.log(`  ✓ ${rel.padEnd(52)} ${kb.padStart(6)} kB`);
 }
 
+/* --- CSS és JS csomagolás ---------------------------------------------
+   A források maradnak külön fájlban (azokat szerkesztjük), a böngésző
+   viszont egy CSS-t és egy-két JS-t kap. A JS-t szándékosan NEM tömörítjük:
+   a gzip/brotli úgyis elvégzi, viszont így hibakereséskor olvasható marad,
+   és nem visz be minifier-hibát. A CSS-ből csak a kommentek és a felesleges
+   szóközök esnek ki. */
+const CSS_FILES = [
+  "css/tokens.css",
+  "css/base.css",
+  "css/components.css",
+  "css/hero.css",
+  "css/funnel.css",
+  "css/motion.css",
+];
+const JS_FILES = [
+  "js/config.js",
+  "js/data/services.js",
+  "js/data/quiz.js",
+  "js/core/rt.js",
+  "js/core/ui.js",
+  "js/core/motion.js",
+  "js/lead.js",
+  "js/funnel.js",
+  "js/site.js",
+];
+const JS_3D_FILES = ["js/gl/mini3d.js", "js/hero3d.js", "js/scene3d.js"];
+
+const read = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
+
+function minifyCss(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, "")   // kommentek
+    .replace(/\s*\n\s*/g, "\n")          // sorvégi/sorelejei szóközök
+    .replace(/\n{2,}/g, "\n")
+    .replace(/\s*([{};:,>])\s*/g, "$1")  // elválasztók körüli szóköz
+    .replace(/;}/g, "}")
+    .trim();
+}
+
+const banner = (name) =>
+  `/* ${name} — GENERÁLT FÁJL, ne szerkeszd. Forrás: a build/generate.mjs\n` +
+  `   fűzi össze a css/*.css és js/**.js fájlokat. Újragenerálás:\n` +
+  `   node build/generate.mjs */\n`;
+
 console.log("\nÉrték Pont Pénzügyek — oldalgenerálás\n");
+
+write("css/site.css", banner("css/site.css") + CSS_FILES.map((f) => minifyCss(read(f))).join("\n"));
+write("js/app.js", banner("js/app.js") + JS_FILES.map(read).join("\n;\n"));
+write("js/3d.js", banner("js/3d.js") + JS_3D_FILES.map(read).join("\n;\n"));
 
 write("index.html", homePage());
 SERVICES.forEach((s) => write(`szolgaltatas/${s.slug}.html`, servicePage(s)));
@@ -1065,12 +1279,30 @@ write("404.html", notFoundPage());
    aláhúzással kezdődő fájlokat/mappákat. Ez a fájl kikapcsolja. */
 write(".nojekyll", "");
 
-/* sitemap + robots */
+/* sitemap + robots
+   A prioritás nem rangsorol, de a bejáráshoz jelzés: elöl a legnagyobb
+   keresési volumenű témák (támogatott és piaci hitel, nyugdíj, KGFB,
+   gyerek-megtakarítás, személyi kölcsön, bankszámla), utánuk a többi. */
+const TOP_SLUGS = [
+  "tamogatott-hitelek",
+  "piaci-hitelek",
+  "nyugdij-megtakaritas",
+  "kgfb-casco",
+  "gyerek-megtakaritas",
+  "szemelyi-kolcson",
+  "dijmentes-bankszamla",
+];
+const TODAY = new Date().toISOString().slice(0, 10);
+
 const urls = [
-  SITE + "/",
-  ...SERVICES.map((s) => `${SITE}/szolgaltatas/${s.slug}.html`),
-  SITE + "/impresszum.html",
-  SITE + "/adatkezeles.html",
+  { loc: SITE + "/", pri: "1.0", freq: "weekly" },
+  ...SERVICES.map((s) => ({
+    loc: `${SITE}/szolgaltatas/${s.slug}.html`,
+    pri: TOP_SLUGS.includes(s.slug) ? "0.9" : "0.7",
+    freq: "monthly",
+  })),
+  { loc: SITE + "/impresszum.html", pri: "0.3", freq: "yearly" },
+  { loc: SITE + "/adatkezeles.html", pri: "0.3", freq: "yearly" },
 ];
 write(
   "sitemap.xml",
@@ -1079,7 +1311,7 @@ write(
 ${urls
   .map(
     (u) =>
-      `  <url><loc>${u}</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod><changefreq>monthly</changefreq><priority>${u.endsWith("/") ? "1.0" : "0.8"}</priority></url>`
+      `  <url><loc>${u.loc}</loc><lastmod>${TODAY}</lastmod><changefreq>${u.freq}</changefreq><priority>${u.pri}</priority></url>`
   )
   .join("\n")}
 </urlset>

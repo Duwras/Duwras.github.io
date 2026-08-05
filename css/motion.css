@@ -2,31 +2,8 @@
    MOZGÁS — kurzor-glow, magnetikus gombok, parallax, 3D szekció, tilt
    ========================================================================== */
 
-/* --- Kurzort követő derengés ------------------------------------------- */
-/* Se filter:blur, se mix-blend-mode — mindkettő minden képkockán teljes
-   képernyős újrafestést kényszerít. A lágy átmenet elég a hatáshoz, és
-   így a folt a saját kompozit rétegén, GPU-n mozog. */
-.cursor-glow {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 2;
-  background: radial-gradient(
-    circle closest-side,
-    rgba(194, 255, 114, 0.13),
-    rgba(194, 255, 114, 0.06) 45%,
-    transparent 72%
-  );
-  will-change: transform;
-  contain: strict;
-}
-@media (prefers-reduced-motion: reduce), (hover: none) {
-  .cursor-glow { display: none; }
-}
+/* A kurzort követő lime derengés kikerült: háttér-glow volt, és minden
+   egérmozdulatra egy teljes képernyős réteget mozgatott. */
 
 /* --- Magnetikus gomb (a hover-transzformmal együtt él) ---------------- */
 .btn {
@@ -85,23 +62,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .fstep.is-active .opt { animation: none; }
-}
-
-/* --- Lime szövegkiemelés csillanása ---------------------------------- */
-.hero__title em {
-  background: linear-gradient(100deg, var(--lime) 0%, var(--lime-bright) 42%, var(--lime) 78%);
-  background-size: 220% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer 7s var(--ease-in-out) infinite;
-}
-@keyframes shimmer {
-  0%, 100% { background-position: 0% 0; }
-  50% { background-position: 100% 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero__title em { animation: none; color: var(--lime); -webkit-text-fill-color: var(--lime); }
 }
 
 /* --- 3D ikon a szolgáltatás-kártyán ---------------------------------- */

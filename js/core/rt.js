@@ -19,11 +19,25 @@
   let dirty = true;
   let maxY = 0;
   let navH = 72;
+  let navEl = null;
+  let needMeasure = true;
 
-  function measure() {
+  /* A TÉNYLEGES olvasás. Csak innen hívjuk, és csak képkocka elején:
+     ilyenkor a stílus friss, tehát nem kényszerít külön layoutot. */
+  function readMetrics() {
+    needMeasure = false;
     maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-    const nav = document.querySelector(".nav");
-    if (nav) navH = nav.offsetHeight;
+    if (!navEl) navEl = document.querySelector(".nav");
+    if (navEl) navH = navEl.offsetHeight;
+  }
+
+  /* Kívülről ezt hívják. Nem olvas: csak megjelöli, hogy mérni kell.
+     Miért: a ResizeObserver a reveal-animációk alatt képkockánként
+     többször is elsül, és minden szinkron scrollHeight-olvasás kikényszerít
+     egy teljes layoutot (a trace 380 ms-ot mutatott ki ebből). Így
+     képkockánként LEGFELJEBB egy mérés lesz belőle. */
+  function measure() {
+    needMeasure = true;
     dirty = true;
     /* Kell a kick: ha a hurok épp áll (nincs aktív feliratkozó), egy
        akkordeon-nyitás vagy funnel-léptetés miatti magasságváltozás
@@ -41,6 +55,8 @@
   function loop(t) {
     const dt = Math.min(0.05, (t - lastT) / 1000);
     lastT = t;
+
+    if (needMeasure) readMetrics();
 
     const y = window.scrollY;
     const dy = y - lastY;
@@ -97,8 +113,11 @@
     },
 
     /* Aktuális nav-magasság: az anchor-ugrások ehhez igazodnak, nem
-       egy beégetett 90px-hez (a nav magassága scrollra változik). */
+       egy beégetett 90px-hez (a nav magassága scrollra változik).
+       Itt kivételesen azonnal mérünk, ha lejárt: az ugrás pontossága
+       fontosabb, mint az az egy layout — és csak kattintáskor fut. */
     get navHeight() {
+      if (needMeasure) readMetrics();
       return navH;
     },
     get maxY() {
@@ -125,5 +144,5 @@
   }
 
   window.EP.rt = rt;
-  measure();
+  readMetrics();
 })();

@@ -1,3 +1,113 @@
+/* js/app.js — GENERÁLT FÁJL, ne szerkeszd. Forrás: a build/generate.mjs
+   fűzi össze a css/*.css és js/**.js fájlokat. Újragenerálás:
+   node build/generate.mjs */
+/* ==========================================================================
+   KONFIGURÁCIÓ — itt kell kitölteni a saját adatokat, máshol nem
+   Minden oldal ebből olvassa a nevet, elérhetőséget, jogi adatokat.
+   ========================================================================== */
+window.EP = window.EP || {};
+
+window.EP.CONFIG = {
+  /* --- Márka ---------------------------------------------------------- */
+  brand: "Érték Pont Pénzügyek",
+
+  /* --- Hol lakik az oldal ---------------------------------------------
+     Most ideiglenesen a GitHub Pages ingyenes hostingján fut.
+     Ez a három érték csak a canonical URL-t, az OG-képet, a sitemap-et és
+     a robots.txt-t állítja — az oldal belső linkjei relatívak, ezért
+     bármelyik útvonalon működik. Módosítás után: node build/generate.mjs
+
+     A tárhely a GitHub Pages (Duwras/Duwras.github.io repó), a domain a
+     Rackhostnál van bejegyezve. A kettőt a DNS köti össze — a github.io cím
+     is működik, de átirányít ide.                                       */
+  domain: "ertekpontpenzugyek.hu",
+  basePath: "", // pl. "/ertekpont-penzugyek", ha alkönyvtárba kerül az oldal
+  /* true esetén: robots.txt Disallow + noindex minden oldalon. Ideiglenes
+     címnél kellett, hogy ne versenyezzen a saját domainnel. Most éles. */
+  noindex: false,
+
+  /* --- Tanácsadó ------------------------------------------------------ */
+  advisor: {
+    name: "Tímár Richárd",
+    role: "pénzügyi tanácsadó",
+    /* WebP: ugyanaz a kép 100 kB helyett 43 kB-ban. A .jpg megmarad a
+       mappában tartaléknak, de a lapok a webp-et töltik. */
+    photo: "assets/brand/portre.webp",
+    bio:
+      "Fiatal vállalkozóként és egyetemi hallgatóként elkötelezett vagyok a folyamatos " +
+      "szakmai fejlődés és a pénzügyi tudatosság iránt. Célom, hogy minden helyzetben " +
+      "megbízható, átlátható és személyre szabott támogatást nyújtsak ügyfeleimnek. " +
+      "Számomra fontos az őszinte kommunikáció, a hosszú távú gondolkodás és az " +
+      "eredményes megoldáskeresés.",
+  },
+
+  /* --- Elérhetőség ---------------------------------------------------- */
+  contact: {
+    phone: "+36 20 369 5312",
+    phoneHref: "+36203695312",
+    email: "timar.richard2@ovb.hu",
+    area: "Budapest és online, az egész ország területén",
+    hours: "Hétfő–péntek 9:00–19:00, szombaton egyeztetés szerint",
+    facebook: "https://www.facebook.com/profile.php?id=61587459482095",
+    instagram: "",
+    /* LinkedIn: a saját profil URL-je. Üresen a link NEM jelenik meg
+       sehol — a generátor kihagyja. */
+    linkedin: "https://www.linkedin.com/in/richard-timar/",
+    messenger: "https://m.me/61587459482095",
+    /* Időpontfoglaló (Calendly stb.) szándékosan NINCS az oldalon: a
+       visszahívás a telefonszámon és az online űrlapon megy, harmadik
+       fél nélkül. */
+  },
+
+  /* --- Jogi adatok (impresszumhoz kötelező) ---------------------------
+     Fontos: a szerződések nem velem, hanem az OVB-vel, illetve a
+     biztosítóval / bankkal / pénztárral jönnek létre. Az OVB az MNB
+     nyilvántartásában TÖBBES ÜGYNÖK (nem alkusz) — a szövegek ezt tükrözik. */
+  legal: {
+    companyName:
+      "OVB Vermögensberatung Általános Biztosítási és Pénzügyi Szolgáltató Kft.",
+    address: "1138 Budapest, Váci út 140.",
+    taxNumber: "13231796-2-41",
+    regNumber: "Cg. 01-09-724845 (Fővárosi Törvényszék Cégbírósága)",
+    office: "Hernádi István iroda",
+    mnbNumber: "125100300147",
+    mnbCreditNumber: "120123100000",
+    mnbRegisterUrl: "https://intezmenykereso.mnb.hu/",
+    role:
+      "biztosításközvetítő és pénzügyi szolgáltatás közvetítője, " +
+      "az OVB Vermögensberatung Kft. (többes ügynök) nevében",
+  },
+
+  /* --- Számok a főoldali stat blokkhoz --------------------------------
+     Csak ellenőrizhető adat. Most a 2026-os jogszabályi maximumok
+     szerepelnek — ezek nem marketing-állítások, hanem tények.
+     Ha lesz igazolható saját ügyfélszámod, cseréld le bármelyiket.
+     Tipp: a szám maradjon rövid (max. 7 karakter), különben töri a rácsot. */
+  stats: [
+    { value: 280000, suffix: " Ft", label: "maximális éves adójóváírás nyugdíjcélra" },
+    { value: 150000, suffix: " Ft", label: "éves adójóváírás pénztári befizetésre" },
+    { value: 3, suffix: "%", label: "fix kamat az Otthon Start lakáshitelnél, 25 évre" },
+    { value: 13, suffix: "", label: "pénzügyi terület, egy helyen, egy emberrel" },
+  ],
+
+  /* --- Lead-fogadás (Google Sheets) -----------------------------------
+     Táblázat: „Érték Pont — weboldal jelentkezések”.
+     A leadEndpoint az Apps Script webalkalmazás /exec URL-je. Ha új
+     verziót telepítesz („Új telepítés”), az URL is új lesz — akkor ide
+     kell beírni az újat. A „Telepítés kezelése → szerkesztés → új verzió”
+     úton viszont az URL változatlan marad, ezért az az egyszerűbb.
+     Útmutató: docs/google-sheets-setup.md
+
+     A táblázat linkje SZÁNDÉKOSAN nincs itt: ez a fájl minden látogatóhoz
+     letöltődik. A link a docs/google-sheets-setup.md-ben van.            */
+  leadEndpoint:
+    "https://script.google.com/macros/s/AKfycbw8k8XaYf8R7nutRBOUiMZiqhrBMJP2tlPDdkaRXNRjiPWdkAylqGUD5q_SEl-zFlEZ/exec",
+
+  /* --- Referenciák (csak valós ügyfél-vélemény kerüljön be) ----------- */
+  testimonials: [],
+};
+
+;
 window.EP = window.EP || {};
 /* ==========================================================================
    SZOLGÁLTATÁS-ADATBÁZIS — Érték Pont Pénzügyek
@@ -2011,3 +2121,1783 @@ const bySlug = (slug) => SERVICES.find((s) => s.slug === slug);
 const byCat = (cat) => SERVICES.filter((s) => s.cat === cat);
 
 Object.assign(window.EP, { MINWAGE_2026, MAX_PENSION_INS, MAX_PENSION_FUND, MAX_NYESZ, MAX_PENSION_TOTAL, MAX_HEALTH_FUND, HOUSING_MONTHLY_CAP, BABY_BOND_RATE, OTTHON_START_RATE, OTTHON_START_MAX, fmt, ft, pct, annuity, futureValue, CATEGORIES, SERVICES, bySlug, byCat });
+
+;
+window.EP = window.EP || {};
+/* ==========================================================================
+   PÉNZÜGYI TÉRKÉP — globális kérdőív
+   6 kérdés → a 13 szolgáltatásból kiválasztja a 3 legrelevánsabbat.
+   A pontozás súlyokkal működik: minden válasz megnövel bizonyos slug-okat.
+   ========================================================================== */
+
+const QUIZ = {
+  title: "Pénzügyi Térkép",
+  lead:
+    "Hat kérdés, kb. egy perc. A végén megmutatom, melyik három téma hozza neked most a legtöbb pénzt vagy a legnagyobb biztonságot — és mennyi az a szám.",
+  steps: [
+    {
+      id: "life",
+      kicker: "Élethelyzet",
+      q: "Melyik írja le a leginkább a mostani helyzetedet?",
+      opts: [
+        {
+          v: "single",
+          label: "Egyedül, még építem",
+          note: "Karrier kezdet, első komolyabb megtakarítások",
+          w: { "nyugdij-megtakaritas": 3, "szabad-felhasznalasu-megtakaritas": 3, "dijmentes-bankszamla": 2, "baleset-biztositas": 1 },
+        },
+        {
+          v: "couple",
+          label: "Párban, gyerek még nincs",
+          note: "Közös célok, lakás, tartalék",
+          w: { "tamogatott-hitelek": 3, "szabad-felhasznalasu-megtakaritas": 2, "nyugdij-megtakaritas": 2, "egeszsegbiztositas": 1 },
+        },
+        {
+          v: "smallkids",
+          label: "Kisgyerekes család",
+          note: "Sok kiadás, kevés idő",
+          w: { "adokedvezmeny-gyerek-no": 4, "gyerek-megtakaritas": 3, "elet-biztositas": 3, "egeszsegbiztositas": 2 },
+        },
+        {
+          v: "schoolkids",
+          label: "Iskolás/nagyobb gyerekek",
+          note: "Tanszer, sport, jövőtervezés",
+          w: { "adokedvezmeny-gyerek-no": 4, "gyerek-megtakaritas": 3, "baleset-biztositas": 2, "nyugdij-megtakaritas": 2 },
+        },
+        {
+          v: "mature",
+          label: "50 felett, a nyugdíj a téma",
+          note: "Utolsó nagy szakasz a felkészülésre",
+          w: { "nyugdij-megtakaritas": 4, "egeszsegbiztositas": 3, "adokedvezmeny-gyerek-no": 2 },
+        },
+      ],
+    },
+    {
+      id: "home",
+      kicker: "Lakhatás",
+      q: "Hogy állsz a lakhatással?",
+      opts: [
+        {
+          v: "rent",
+          label: "Bérlek",
+          note: "A saját lakás a cél",
+          w: { "tamogatott-hitelek": 4, "szabad-felhasznalasu-megtakaritas": 3 },
+        },
+        {
+          v: "plan",
+          label: "Most vásárolnék elsőként",
+          note: "Otthon Start-terület",
+          w: { "tamogatott-hitelek": 5, "piaci-hitelek": 2, "szabad-felhasznalasu-megtakaritas": 2 },
+        },
+        {
+          v: "loan",
+          label: "Van lakáshitelem",
+          note: "Van mit optimalizálni",
+          w: { "adokedvezmeny-lakashitel": 5, "elet-biztositas": 3, "piaci-hitelek": 3 },
+        },
+        {
+          v: "own",
+          label: "Saját lakás, hitel nélkül",
+          note: "Szabad kapacitás megtakarításra",
+          w: { "nyugdij-megtakaritas": 3, "szabad-felhasznalasu-megtakaritas": 3, "egeszsegbiztositas": 2 },
+        },
+      ],
+    },
+    {
+      id: "car",
+      kicker: "Autó",
+      q: "Autó?",
+      opts: [
+        { v: "none", label: "Nincs", note: "Ez a téma kimarad", w: {} },
+        {
+          v: "kgfb",
+          label: "Van, csak kötelezővel",
+          note: "Évfordulós váltás lehetőség",
+          w: { "kgfb-casco": 4 },
+        },
+        {
+          v: "casco",
+          label: "Van, cascóval is",
+          note: "Két szerződés, két optimalizálási pont",
+          w: { "kgfb-casco": 3, "baleset-biztositas": 1 },
+        },
+        {
+          v: "buy",
+          label: "Most veszek autót",
+          note: "Hitel + biztosítás egyszerre",
+          w: { "kgfb-casco": 4, "szemelyi-kolcson": 2 },
+        },
+      ],
+    },
+    {
+      id: "pain",
+      kicker: "Fókusz",
+      q: "Mi zavar most a legjobban a pénzügyeidben?",
+      opts: [
+        {
+          v: "notax",
+          label: "Túl sok adót fizetek",
+          note: "Van rá három legális eszköz",
+          w: { "nyugdij-megtakaritas": 4, "adokedvezmeny-gyerek-no": 4, "adokedvezmeny-lakashitel": 3 },
+        },
+        {
+          v: "nosave",
+          label: "Nem marad félretenni való",
+          note: "Először a kiadási oldalt nézzük",
+          w: { "dijmentes-bankszamla": 4, "kgfb-casco": 3, "szabad-felhasznalasu-megtakaritas": 2 },
+        },
+        {
+          v: "risk",
+          label: "Kiszolgáltatottnak érzem magunkat",
+          note: "Ha valami történik, összeomlik a kassza",
+          w: { "elet-biztositas": 4, "baleset-biztositas": 4, "egeszsegbiztositas": 2 },
+        },
+        {
+          v: "money",
+          label: "Most kell pénz egy célra",
+          note: "Finanszírozás",
+          w: { "szemelyi-kolcson": 4, "piaci-hitelek": 3, "tamogatott-hitelek": 2 },
+        },
+        {
+          v: "future",
+          label: "Nem látom, mi lesz 10–20 év múlva",
+          note: "Terv kell, nem termék",
+          w: { "nyugdij-megtakaritas": 4, "gyerek-megtakaritas": 2, "szabad-felhasznalasu-megtakaritas": 2 },
+        },
+      ],
+    },
+    {
+      id: "health",
+      kicker: "Egészség",
+      q: "Mikor jártál utoljára szakorvosnál várólista nélkül?",
+      opts: [
+        {
+          v: "private",
+          label: "Privátban járok, zsebből fizetem",
+          note: "Ez tipikusan kiváltható előfizetéssel",
+          w: { "egeszsegbiztositas": 4, "adokedvezmeny-gyerek-no": 3 },
+        },
+        {
+          v: "waited",
+          label: "Hónapokat vártam",
+          note: "Itt van a legnagyobb életszínvonal-nyereség",
+          w: { "egeszsegbiztositas": 4 },
+        },
+        {
+          v: "rare",
+          label: "Ritkán fordulok orvoshoz",
+          note: "Prevenció és baleseti fedezet a fókusz",
+          w: { "baleset-biztositas": 2, "egeszsegbiztositas": 1 },
+        },
+        {
+          v: "kids",
+          label: "A gyerekekkel járunk gyakran",
+          note: "Gyermek-szakrendelés + pénztári elszámolás",
+          w: { "egeszsegbiztositas": 3, "adokedvezmeny-gyerek-no": 4 },
+        },
+      ],
+    },
+    {
+      id: "tax",
+      kicker: "Adózás",
+      q: "Fizetsz személyi jövedelemadót?",
+      help: "A 20%-os állami jóváírásokhoz ez a feltétel. Ha nem, más eszközökre koncentrálunk.",
+      opts: [
+        {
+          v: "yes",
+          label: "Igen",
+          note: "Minden adókedvezmény nyitva áll",
+          w: { "nyugdij-megtakaritas": 3, "adokedvezmeny-gyerek-no": 3, "adokedvezmeny-lakashitel": 2 },
+        },
+        {
+          v: "exempt",
+          label: "Nem, kedvezmény miatt nem fizetek",
+          note: "Pl. gyermeket nevelő anyák szja-mentessége",
+          w: { "gyerek-megtakaritas": 3, "szabad-felhasznalasu-megtakaritas": 3, "elet-biztositas": 2, "dijmentes-bankszamla": 2 },
+        },
+        {
+          v: "dunno",
+          label: "Nem tudom pontosan",
+          note: "Átnézzük együtt",
+          w: { "nyugdij-megtakaritas": 1, "adokedvezmeny-gyerek-no": 1, "dijmentes-bankszamla": 1 },
+        },
+      ],
+    },
+  ],
+
+  /** Válaszok → rangsorolt slug-lista */
+  score(answers) {
+    const totals = {};
+    this.steps.forEach((step) => {
+      const picked = answers[step.id];
+      if (!picked) return;
+      const opt = step.opts.find((o) => o.v === picked);
+      if (!opt) return;
+      Object.entries(opt.w || {}).forEach(([slug, w]) => {
+        totals[slug] = (totals[slug] || 0) + w;
+      });
+    });
+    return Object.entries(totals)
+      .sort((a, b) => b[1] - a[1])
+      .map(([slug, score]) => ({ slug, score }));
+  },
+};
+
+
+Object.assign(window.EP, { QUIZ });
+
+;
+/* ==========================================================================
+   RUNTIME — EGY rAF hurok és EGY scroll-busz az egész oldalra.
+   Miért: korábban 5 külön scroll-listener olvasott layoutot (nav, parallax,
+   marquee, hero3d, scene3d), és 3 külön rAF hurok futott. Ez layout-thrash-t
+   és akadozást okozott. Itt egy helyen olvasunk, egy helyen rajzolunk.
+   A hurok LEÁLL, ha nincs aktív feliratkozó — üresjáratban nem eszi az akkut.
+   ========================================================================== */
+(function () {
+  "use strict";
+  window.EP = window.EP || {};
+
+  const frameSubs = new Set();
+  const scrollSubs = new Set();
+
+  let running = false;
+  let lastT = 0;
+  let lastY = window.scrollY;
+  let vel = 0;
+  let dirty = true;
+  let maxY = 0;
+  let navH = 72;
+  let navEl = null;
+  let needMeasure = true;
+
+  /* A TÉNYLEGES olvasás. Csak innen hívjuk, és csak képkocka elején:
+     ilyenkor a stílus friss, tehát nem kényszerít külön layoutot. */
+  function readMetrics() {
+    needMeasure = false;
+    maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    if (!navEl) navEl = document.querySelector(".nav");
+    if (navEl) navH = navEl.offsetHeight;
+  }
+
+  /* Kívülről ezt hívják. Nem olvas: csak megjelöli, hogy mérni kell.
+     Miért: a ResizeObserver a reveal-animációk alatt képkockánként
+     többször is elsül, és minden szinkron scrollHeight-olvasás kikényszerít
+     egy teljes layoutot (a trace 380 ms-ot mutatott ki ebből). Így
+     képkockánként LEGFELJEBB egy mérés lesz belőle. */
+  function measure() {
+    needMeasure = true;
+    dirty = true;
+    /* Kell a kick: ha a hurok épp áll (nincs aktív feliratkozó), egy
+       akkordeon-nyitás vagy funnel-léptetés miatti magasságváltozás
+       különben csak a következő scrollnál jutna el a scroll-bar-hoz. */
+    kick();
+  }
+
+  function kick() {
+    if (running) return;
+    running = true;
+    lastT = performance.now();
+    requestAnimationFrame(loop);
+  }
+
+  function loop(t) {
+    const dt = Math.min(0.05, (t - lastT) / 1000);
+    lastT = t;
+
+    if (needMeasure) readMetrics();
+
+    const y = window.scrollY;
+    const dy = y - lastY;
+    lastY = y;
+    vel += (Math.abs(dy) - vel) * 0.2;
+    if (vel < 0.02) vel = 0;
+
+    if (dirty || dy !== 0) {
+      dirty = false;
+      const st = { y, dy, vel, maxY, p: maxY > 0 ? y / maxY : 0 };
+      scrollSubs.forEach((fn) => fn(st));
+    }
+
+    let active = false;
+    frameSubs.forEach((s) => {
+      if (!s.active) return;
+      active = true;
+      s.fn(t / 1000, dt);
+    });
+
+    if (active || dy !== 0 || vel > 0) requestAnimationFrame(loop);
+    else running = false;
+  }
+
+  /* --- publikus API ---------------------------------------------------- */
+  const rt = {
+    /* Feliratkozás scroll-állapotra. fn({y, dy, vel, maxY, p}) */
+    onScroll(fn) {
+      scrollSubs.add(fn);
+      dirty = true;
+      kick();
+      return () => scrollSubs.delete(fn);
+    },
+
+    /* Feliratkozás minden képkockára. A visszaadott handle .active
+       flagjével kapcsolható — így a hurok üresjáratban leáll. */
+    onFrame(fn, active) {
+      const sub = { fn, active: active !== false };
+      frameSubs.add(sub);
+      const handle = {
+        set active(v) {
+          sub.active = !!v;
+          if (v) kick();
+        },
+        get active() {
+          return sub.active;
+        },
+        stop() {
+          frameSubs.delete(sub);
+        },
+      };
+      if (sub.active) kick();
+      return handle;
+    },
+
+    /* Aktuális nav-magasság: az anchor-ugrások ehhez igazodnak, nem
+       egy beégetett 90px-hez (a nav magassága scrollra változik).
+       Itt kivételesen azonnal mérünk, ha lejárt: az ugrás pontossága
+       fontosabb, mint az az egy layout — és csak kattintáskor fut. */
+    get navHeight() {
+      if (needMeasure) readMetrics();
+      return navH;
+    },
+    get maxY() {
+      return maxY;
+    },
+    remeasure: measure,
+    kick,
+  };
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      dirty = true;
+      kick();
+    },
+    { passive: true }
+  );
+  window.addEventListener("resize", measure, { passive: true });
+  window.addEventListener("orientationchange", measure, { passive: true });
+
+  /* A dokumentum magassága akkordeon nyitásra / funnel léptetésre változik */
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(measure).observe(document.documentElement);
+  }
+
+  window.EP.rt = rt;
+  readMetrics();
+})();
+
+;
+/* ==========================================================================
+   UI mag — reveal, nav, akkordeon, számlálók, marquee, banner, overlay
+   Klasszikus script (nem modul), hogy file:// alól is működjön.
+   Minden scroll-reakció az EP.rt közös buszán megy (js/core/rt.js).
+   ========================================================================== */
+(function () {
+  "use strict";
+
+  window.EP = window.EP || {};
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const rt = window.EP.rt;
+
+  /* --- kis segédek ---------------------------------------------------- */
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const on = (el, ev, fn, opt) => el && el.addEventListener(ev, fn, opt);
+
+  /* --- 1. Reveal on scroll -------------------------------------------- */
+  /* EGY megfigyelő az egész oldalra. Korábban minden funnel-léptetés új
+     IntersectionObserver-t hozott létre, amit soha nem zártunk le. */
+  let revealIO = null;
+  function initReveal(root = document) {
+    const items = $$("[data-reveal], .split-words", root);
+    if (!items.length) return;
+    if (reduced || !("IntersectionObserver" in window)) {
+      items.forEach((el) => el.classList.add("is-in"));
+      return;
+    }
+    if (!revealIO) {
+      revealIO = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (!e.isIntersecting) return;
+            e.target.classList.add("is-in");
+            revealIO.unobserve(e.target);
+          });
+        },
+        { rootMargin: "0px 0px -12% 0px", threshold: 0.08 }
+      );
+    }
+    items.forEach((el) => revealIO.observe(el));
+  }
+
+  /* --- 2. Címsor szavankénti bontása ---------------------------------- */
+  /* A szövegcsomópontokat szavakra bontjuk, az inline elemeket (pl. <em>)
+     érintetlenül hagyjuk, így a lime kiemelés megmarad.                  */
+  function splitLines(root = document) {
+    $$("[data-lines]", root).forEach((el) => {
+      if (el.dataset.split === "1") return;
+      el.dataset.split = "1";
+      el.classList.add("split-words");
+
+      let i = 0;
+      const walk = (node) => {
+        Array.from(node.childNodes).forEach((child) => {
+          if (child.nodeType === 3) {
+            const parts = child.textContent.split(/(\s+)/).filter((p) => p !== "");
+            if (!parts.length) return;
+            const frag = document.createDocumentFragment();
+            parts.forEach((p) => {
+              if (/^\s+$/.test(p)) {
+                frag.appendChild(document.createTextNode(" "));
+                return;
+              }
+              const w = document.createElement("span");
+              w.className = "w";
+              w.style.setProperty("--i", i++);
+              w.textContent = p;
+              frag.appendChild(w);
+            });
+            child.replaceWith(frag);
+          } else if (child.nodeType === 1) {
+            walk(child);
+          }
+        });
+      };
+      walk(el);
+    });
+  }
+
+  /* --- 3. Navigáció ---------------------------------------------------- */
+  function initNav() {
+    const nav = $(".nav");
+    if (!nav) return;
+    const bar = $(".scroll-bar");
+    const sticky = $(".sticky-cta");
+
+    /* Hiszterézis: korábban 6px-es küszöb döntött az elrejtésről, ezért
+       tapipadon / lendületes görgetésnél a sáv villogott. Most 64px
+       összefüggő mozgás kell a váltáshoz, és a két irány külön sávban. */
+    let acc = 0;
+    let dirDown = true;
+    let hidden = false;
+    let stuck = false;
+    let ctaOn = false;
+
+    /* A lebegő alsó CTA-sáv telefonon pontosan a funnel léptető gombjaira
+       (Vissza / Tovább / Kérek visszahívást) esett, és elfogta a koppintást.
+       Amikor a funnel a képernyőn van, nincs is szükség rá: a funnel maga a
+       cselekvésre hívás. IntersectionObserverrel figyeljük, hogy ne kelljen
+       görgetésenként újabb layoutot olvasni. */
+    let funnelSeen = false;
+    const funnelEl = $("[data-funnel]");
+    if (sticky && funnelEl && "IntersectionObserver" in window) {
+      new IntersectionObserver(
+        (entries) => {
+          funnelSeen = entries.some((e) => e.isIntersecting);
+          if (funnelSeen && ctaOn) {
+            ctaOn = false;
+            sticky.classList.remove("is-in");
+          }
+        },
+        { threshold: 0 }
+      ).observe(funnelEl);
+    }
+
+    rt.onScroll(({ y, dy, maxY }) => {
+      if (dy !== 0) {
+        const down = dy > 0;
+        if (down !== dirDown) {
+          dirDown = down;
+          acc = 0;
+        }
+        acc += Math.abs(dy);
+      }
+
+      const wantStuck = y > 24;
+      if (wantStuck !== stuck) {
+        stuck = wantStuck;
+        nav.classList.toggle("is-stuck", stuck);
+      }
+
+      const wantHidden = y > 480 && dirDown && acc > 64;
+      const wantShown = !dirDown && acc > 24;
+      if (wantHidden && !hidden) {
+        hidden = true;
+        nav.classList.add("is-hidden");
+      } else if ((wantShown || y <= 480) && hidden) {
+        hidden = false;
+        nav.classList.remove("is-hidden");
+      }
+
+      if (bar) bar.style.setProperty("--p", maxY > 0 ? (y / maxY).toFixed(4) : 0);
+
+      if (sticky) {
+        /* külön be- és kikapcsolási pont, hogy a határon ne pumpáljon */
+        const vh = window.innerHeight;
+        if (!ctaOn && !funnelSeen && y > vh * 0.85) {
+          ctaOn = true;
+          sticky.classList.add("is-in");
+        } else if (ctaOn && y < vh * 0.65) {
+          ctaOn = false;
+          sticky.classList.remove("is-in");
+        }
+      }
+    });
+
+    // mobil menü
+    const burger = $(".burger");
+    const menu = $(".menu");
+    if (burger && menu) {
+      const toggle = (open) => {
+        burger.setAttribute("aria-expanded", String(open));
+        menu.classList.toggle("is-open", open);
+        lockScroll(open);
+      };
+      on(burger, "click", () =>
+        toggle(burger.getAttribute("aria-expanded") !== "true")
+      );
+      $$("a", menu).forEach((a) => on(a, "click", () => toggle(false)));
+      on(document, "keydown", (e) => {
+        if (e.key === "Escape") toggle(false);
+      });
+    }
+  }
+
+  /* --- 3b. Scroll-zár pozíciótartással -------------------------------- */
+  /* A sima `overflow:hidden` a mobil böngészők egy részében elveszíti a
+     görgetési pozíciót, és a menü bezárása után a lap a tetejére ugrik. */
+  let lockY = 0;
+  let locked = false;
+  function lockScroll(state) {
+    if (state === locked) return;
+    locked = state;
+    const body = document.body;
+    if (state) {
+      lockY = window.scrollY;
+      body.style.top = -lockY + "px";
+      body.classList.add("no-scroll");
+    } else {
+      const y = lockY;
+      body.classList.remove("no-scroll");
+      body.style.top = "";
+      /* Kényszerített layout: amíg a body fixed volt, a dokumentum magassága
+         a viewportra omlott, így a scrollTo 0-ra csonkolt volna. */
+      void body.offsetHeight;
+      /* A html-en `scroll-behavior: smooth` van; a visszaállásnak azonnalinak
+         kell lennie, különben látszik a visszapörgés. */
+      const root = document.documentElement;
+      const prev = root.style.scrollBehavior;
+      root.style.scrollBehavior = "auto";
+      window.scrollTo(0, y);
+      root.style.scrollBehavior = prev;
+    }
+  }
+
+  /* --- 4. Akkordeon ---------------------------------------------------- */
+  /* Nyitás után height:auto-ra váltunk, különben az átméretezéskor (vagy
+     betöltődő betűtípusnál) beragadt px-magasság levágja vagy kilógatja
+     a szöveget. */
+  function initAccordion(root = document) {
+    $$(".acc__btn", root).forEach((btn) => {
+      const panel = btn.nextElementSibling;
+      if (!panel || panel.dataset.acc === "1") return;
+      panel.dataset.acc = "1";
+
+      const close = (b, pnl) => {
+        b.setAttribute("aria-expanded", "false");
+        pnl.style.height = pnl.scrollHeight + "px";
+        requestAnimationFrame(() => (pnl.style.height = "0px"));
+      };
+
+      on(panel, "transitionend", (e) => {
+        if (e.propertyName !== "height") return;
+        if (btn.getAttribute("aria-expanded") === "true") panel.style.height = "auto";
+      });
+
+      on(btn, "click", () => {
+        const open = btn.getAttribute("aria-expanded") === "true";
+        const group = btn.closest(".acc");
+        if (group && !open) {
+          $$(".acc__btn[aria-expanded='true']", group).forEach((b) => {
+            if (b.nextElementSibling) close(b, b.nextElementSibling);
+          });
+        }
+        if (open) {
+          close(btn, panel);
+        } else {
+          btn.setAttribute("aria-expanded", "true");
+          panel.style.height = panel.scrollHeight + "px";
+        }
+      });
+    });
+  }
+
+  /* --- 5. Számlálók ---------------------------------------------------- */
+  function initCounters(root = document) {
+    const els = $$("[data-count]", root);
+    if (!els.length) return;
+    const run = (el) => {
+      const target = parseFloat(el.dataset.count);
+      const dur = parseInt(el.dataset.countDur || "1400", 10);
+      const suffix = el.dataset.countSuffix || "";
+      const dec = parseInt(el.dataset.countDec || "0", 10);
+      if (reduced) {
+        el.textContent = target.toLocaleString("hu-HU", { minimumFractionDigits: dec }) + suffix;
+        return;
+      }
+      const t0 = performance.now();
+      const tick = (t) => {
+        const p = Math.min(1, (t - t0) / dur);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent =
+          (target * eased).toLocaleString("hu-HU", {
+            minimumFractionDigits: dec,
+            maximumFractionDigits: dec,
+          }) + suffix;
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
+    if (!("IntersectionObserver" in window)) return els.forEach(run);
+    const io = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            run(e.target);
+            io.unobserve(e.target);
+          }
+        }),
+      { threshold: 0.4 }
+    );
+    els.forEach((el) => io.observe(el));
+  }
+
+  /* --- 6. Marquee duplázás (a mozgatást a motion.js végzi) ------------ */
+  function initMarquee(root = document) {
+    $$(".marquee", root).forEach((m) => {
+      const track = $(".marquee__track", m);
+      if (!track || track.dataset.cloned === "1") return;
+      const clone = track.cloneNode(true);
+      clone.setAttribute("aria-hidden", "true");
+      m.appendChild(clone);
+      track.dataset.cloned = "1";
+    });
+  }
+
+  /* --- 7. Süti banner -------------------------------------------------- */
+  function initCookie() {
+    const el = $(".cookie");
+    if (!el) return;
+    const KEY = "ep-cookie-v1";
+    if (localStorage.getItem(KEY)) return el.remove();
+    setTimeout(() => el.classList.add("is-in"), 1200);
+    $$("[data-cookie]", el).forEach((btn) =>
+      on(btn, "click", () => {
+        localStorage.setItem(KEY, btn.dataset.cookie);
+        el.classList.remove("is-in");
+        setTimeout(() => el.remove(), 600);
+      })
+    );
+  }
+
+  /* --- 8. Toast -------------------------------------------------------- */
+  function toast(msg, ms = 2600) {
+    let el = $(".toast");
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "toast";
+      el.setAttribute("role", "status");
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    requestAnimationFrame(() => el.classList.add("is-in"));
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove("is-in"), ms);
+  }
+
+  /* --- 9. Overlay (funnel modal) ------------------------------------- */
+  function initOverlay() {
+    const overlay = $(".overlay");
+    if (!overlay) return;
+    const open = (id) => {
+      overlay.classList.add("is-open");
+      lockScroll(true);
+      overlay.dispatchEvent(new CustomEvent("ep:open", { detail: { id } }));
+    };
+    const close = () => {
+      overlay.classList.remove("is-open");
+      lockScroll(false);
+    };
+    $$("[data-open-funnel]").forEach((btn) =>
+      on(btn, "click", (e) => {
+        e.preventDefault();
+        open(btn.dataset.openFunnel);
+      })
+    );
+    $$("[data-close-overlay]", overlay).forEach((b) => on(b, "click", close));
+    on(overlay, "click", (e) => {
+      if (e.target === overlay) close();
+    });
+    on(document, "keydown", (e) => {
+      if (e.key === "Escape" && overlay.classList.contains("is-open")) close();
+    });
+    window.EP.openOverlay = open;
+    window.EP.closeOverlay = close;
+  }
+
+  /* --- 10. Sima ugrás horgonyokra ------------------------------------- */
+  /* Az eltolás a NAV TÉNYLEGES magasságából jön, nem beégetett 90px-ből:
+     a nav magassága scrollra változik (is-stuck), a fix érték miatt a
+     célszekció fejlécét hol levágta, hol alá ugrott. */
+  function scrollToEl(el) {
+    const y = el.getBoundingClientRect().top + window.scrollY - (rt.navHeight + 24);
+    window.scrollTo({ top: Math.max(0, y), behavior: reduced ? "auto" : "smooth" });
+  }
+  function initAnchors() {
+    $$('a[href^="#"]').forEach((a) => {
+      on(a, "click", (e) => {
+        const id = a.getAttribute("href");
+        if (id.length < 2) return;
+        const t = document.querySelector(id);
+        if (!t) return;
+        e.preventDefault();
+        scrollToEl(t);
+      });
+    });
+  }
+
+  /* --- 11. Év a footerben --------------------------------------------- */
+  function initYear() {
+    $$("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
+  }
+
+  /* --- indítás --------------------------------------------------------- */
+  function boot() {
+    initNav();
+    splitLines();
+    initReveal();
+    initAccordion();
+    initCounters();
+    initMarquee();
+    initCookie();
+    initOverlay();
+    initAnchors();
+    initYear();
+    rt.remeasure();
+  }
+
+  Object.assign(window.EP, {
+    $, $$, on, reduced, toast, lockScroll, scrollToEl,
+    initReveal, initAccordion, initCounters, splitLines,
+  });
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+})();
+
+;
+/* ==========================================================================
+   MIKRO-ANIMÁCIÓK — kártya-tilt + fényfolt, magnetikus gombok, parallax,
+   kurzor-glow, futószalag. Mind az EP.rt közös rAF hurkán fut: egy hurok,
+   egy layout-olvasás képkockánként.
+   ========================================================================== */
+(function () {
+  "use strict";
+  window.EP = window.EP || {};
+  const { $, $$, on, rt } = window.EP;
+  const reduced = window.EP.reduced;
+  const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+  /* --- 1. Kártya: tilt + fényfolt EGY handlerben ----------------------- */
+  /* Korábban a tilt (motion.js) és a spotlight (ui.js) külön pointermove-ot
+     kötött ugyanarra a kártyára, és mindkettő külön getBoundingClientRect-et
+     hívott. Most egy mérés, egy írás, rAF-ba fogva. */
+  function initCards() {
+    if (!fine || reduced) return;
+    $$(".card--spot").forEach((card) => {
+      let raf = 0;
+      let mx = 0, my = 0, px = 0, py = 0;
+      const write = () => {
+        raf = 0;
+        card.style.setProperty("--mx", mx + "px");
+        card.style.setProperty("--my", my + "px");
+        card.style.transform =
+          `perspective(900px) rotateY(${(px * 5).toFixed(2)}deg) rotateX(${(-py * 5).toFixed(2)}deg) translateY(-4px)`;
+      };
+      on(
+        card,
+        "pointermove",
+        (e) => {
+          const r = card.getBoundingClientRect();
+          mx = Math.round(e.clientX - r.left);
+          my = Math.round(e.clientY - r.top);
+          px = mx / r.width - 0.5;
+          py = my / r.height - 0.5;
+          if (!raf) raf = requestAnimationFrame(write);
+        },
+        { passive: true }
+      );
+      on(card, "pointerleave", () => {
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+        card.style.transform = "";
+      });
+    });
+  }
+
+  /* --- 2. Magnetikus gombok -------------------------------------------- */
+  function initMagnetic() {
+    if (!fine || reduced) return;
+    $$(".btn--lg, .nav__actions .btn").forEach((btn) => {
+      on(
+        btn,
+        "pointermove",
+        (e) => {
+          const r = btn.getBoundingClientRect();
+          const dx = (e.clientX - (r.left + r.width / 2)) / r.width;
+          const dy = (e.clientY - (r.top + r.height / 2)) / r.height;
+          btn.style.setProperty("--mag-x", (dx * 7).toFixed(2) + "px");
+          btn.style.setProperty("--mag-y", (dy * 7).toFixed(2) + "px");
+        },
+        { passive: true }
+      );
+      on(btn, "pointerleave", () => {
+        btn.style.setProperty("--mag-x", "0px");
+        btn.style.setProperty("--mag-y", "0px");
+      });
+    });
+  }
+
+  /* --- 3. Parallax rétegek --------------------------------------------- */
+  /* A dokumentumhoz mért pozíciót CSAK átméretezéskor olvassuk ki. Korábban
+     minden scroll-eventben minden rétegre getBoundingClientRect futott, ami
+     kényszerített layoutot okozott — ez volt az akadozás egyik fő oka. */
+  function initParallax() {
+    if (reduced) return;
+    const layers = $$("[data-parallax]");
+    if (!layers.length) return;
+
+    let cache = [];
+    const measure = () => {
+      const sy = window.scrollY;
+      cache = layers.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { el, mid: r.top + sy + r.height / 2, speed: parseFloat(el.dataset.parallax) || 0.15 };
+      });
+    };
+    measure();
+    on(window, "resize", measure, { passive: true });
+
+    rt.onScroll(({ y }) => {
+      const center = y + window.innerHeight / 2;
+      for (let i = 0; i < cache.length; i++) {
+        const c = cache[i];
+        c.el.style.setProperty("--py", (-(c.mid - center) * c.speed).toFixed(1) + "px");
+      }
+    });
+  }
+
+  /* --- 4. Futószalag ---------------------------------------------------- */
+  /* Korábban a scroll-tempó a CSS animation-duration átírásával gyorsított.
+     Az animáció haladása a hosszúság ARÁNYA, ezért duration-váltásnál a sáv
+     látványosan előre-hátra ugrott, a klónozott sáv pedig elcsúszott az
+     eredetitől. Most a pozíciót magunk integráljuk: nincs ugrás, nincs rés. */
+  function initMarquee() {
+    /* Telefonon marad a CSS-animáció: az a kompozitor szálon fut, míg ez a
+       változat képkockánként a fő szálon számol és ír. A scroll-tempóhoz
+       kötött gyorsítás úgyis csak egérrel érdekes. */
+    if (!fine || reduced) return;
+    const list = $$(".marquee");
+    if (!list.length) return;
+
+    list.forEach((m) => {
+      const tracks = $$(".marquee__track", m);
+      if (tracks.length < 2) return;
+
+      m.classList.add("is-js");
+      const gap = parseFloat(getComputedStyle(m).columnGap) || 0;
+      let x = 0, span = 0, speed = 0, boost = 0, paused = false;
+
+      const measure = () => {
+        span = tracks[0].getBoundingClientRect().width + gap;
+        speed = span / 38; // px/s — ugyanaz a tempó, mint a CSS változatnál
+      };
+      measure();
+      on(window, "resize", measure, { passive: true });
+
+      const handle = rt.onFrame((t, dt) => {
+        if (!paused && span > 0) {
+          x -= speed * (1 + boost) * dt;
+          if (x <= -span) x += span;
+        }
+        boost += (0 - boost) * Math.min(1, dt * 3);
+        const v = `translate3d(${x.toFixed(2)}px,0,0)`;
+        tracks[0].style.transform = v;
+        tracks[1].style.transform = v;
+      }, false);
+
+      if (!reduced) {
+        rt.onScroll(({ vel }) => {
+          boost = Math.min(2.6, vel / 16);
+        });
+      }
+      on(m, "pointerenter", () => (paused = true));
+      on(m, "pointerleave", () => (paused = false));
+
+      new IntersectionObserver(
+        (es) => (handle.active = es[0].isIntersecting && !document.hidden && !reduced),
+        { threshold: 0 }
+      ).observe(m);
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) handle.active = false;
+      });
+    });
+  }
+
+  /* --- 5. Funnel opciók léptetett belépése ---------------------------- */
+  function initOptStagger() {
+    const io = new MutationObserver((muts) => {
+      muts.forEach((mu) => {
+        mu.addedNodes.forEach((node) => {
+          if (node.nodeType !== 1 || !node.querySelectorAll) return;
+          node.querySelectorAll(".opt").forEach((o, i) => o.style.setProperty("--opt-i", i));
+        });
+      });
+    });
+    $$("[data-funnel]").forEach((f) => io.observe(f, { childList: true, subtree: true }));
+  }
+
+  function boot() {
+    initCards();
+    initMagnetic();
+    initParallax();
+    initMarquee();
+    initOptStagger();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
+
+;
+/* ==========================================================================
+   LEAD KÜLDÉS — Google Sheets (Apps Script webhook)
+   Az Apps Script CORS miatt nem ad olvasható választ, ezért "fire and forget":
+   ha a kérés hiba nélkül lefut, sikeresnek tekintjük.
+   Beállítás: js/config.js -> leadEndpoint  (útmutató: docs/google-sheets-setup.md)
+   ========================================================================== */
+(function () {
+  "use strict";
+  window.EP = window.EP || {};
+
+  const LOCAL_KEY = "ep-leads-local";
+
+  function storeLocal(payload) {
+    try {
+      const arr = JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]");
+      arr.push(payload);
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(arr.slice(-50)));
+    } catch (e) {
+      /* tele van a tároló, nem gond */
+    }
+  }
+
+  window.EP.sendLead = async function sendLead(payload) {
+    const cfg = (window.EP.CONFIG || {});
+    const url = cfg.leadEndpoint;
+
+    storeLocal(payload); // biztonsági másolat a böngészőben, mindig
+
+    if (!url) {
+      console.warn(
+        "[Érték Pont] A leadEndpoint nincs beállítva (js/config.js). " +
+          "A jelentkezés csak lokálisan mentődött. Élesítés előtt kötelező beállítani! " +
+          "Útmutató: docs/google-sheets-setup.md"
+      );
+      console.info("[Érték Pont] Beérkezett jelentkezés:", payload);
+      await new Promise((r) => setTimeout(r, 650)); // hogy a UI valósághű legyen
+      return true;
+    }
+
+    try {
+      await fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+      });
+      return true;
+    } catch (err) {
+      console.error("[Érték Pont] Lead küldési hiba:", err);
+      return false;
+    }
+  };
+
+  /** Fejlesztői figyelmeztetés, ha nincs beállítva az endpoint */
+  window.EP.leadHealthCheck = function () {
+    const cfg = window.EP.CONFIG || {};
+    const local =
+      location.protocol === "file:" ||
+      /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+    if (!cfg.leadEndpoint && local) {
+      document.querySelectorAll("[data-config-warning]").forEach((el) => {
+        el.hidden = false;
+      });
+    }
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", window.EP.leadHealthCheck);
+  } else {
+    window.EP.leadHealthCheck();
+  }
+})();
+
+;
+/* ==========================================================================
+   FUNNEL MOTOR
+   Kétféle üzemmód:
+     type: "map"     → globális Pénzügyi Térkép (6 kérdés → top 3 javaslat)
+     type: "service" → egy szolgáltatás funnelje (kérdések → kalkulátor → lead)
+   Használat:  EP.Funnel.mount(el, { type: "service", slug: "nyugdij-..." })
+   ========================================================================== */
+(function () {
+  "use strict";
+  window.EP = window.EP || {};
+
+  const { $, $$, on } = window.EP;
+  const ICON_ARROW =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 17 17 7M9 7h8v8"/></svg>';
+  const ICON_BACK =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14 6l-6 6 6 6"/></svg>';
+
+  const esc = (s) =>
+    String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    })[c]);
+
+  /* ==================================================================== */
+  class Funnel {
+    constructor(root, opts) {
+      this.root = root;
+      this.type = opts.type || "map";
+      this.slug = opts.slug || null;
+      this.svc = this.slug ? window.EP.SERVICES.find((s) => s.slug === this.slug) : null;
+      this.answers = {};
+      this.calcValues = {};
+      this.index = 0;
+      this.build();
+    }
+
+    /* --- lépéslista összeállítása ------------------------------------- */
+    get steps() {
+      if (this._steps) return this._steps;
+      const list = [];
+      if (this.type === "map") {
+        window.EP.QUIZ.steps.forEach((s) => list.push({ kind: "choice", data: s }));
+      } else {
+        (this.svc.funnel.steps || []).forEach((s) => list.push({ kind: "choice", data: s }));
+        if (this.svc.funnel.calc) list.push({ kind: "calc", data: this.svc.funnel.calc });
+      }
+      list.push({ kind: "result" });
+      list.push({ kind: "thanks" });
+      this._steps = list;
+      return list;
+    }
+
+    /* --- váz ---------------------------------------------------------- */
+    build() {
+      const title =
+        this.type === "map" ? window.EP.QUIZ.title : this.svc.title;
+      const badge = this.type === "map" ? "1 perc" : this.svc.badge;
+
+      this.root.innerHTML = `
+        <div class="funnel">
+          <div class="funnel__head">
+            <div>
+              <span class="label">${esc(badge)}</span>
+              <div class="h4" style="margin-top:4px">${esc(title)}</div>
+            </div>
+            <div class="row" style="gap:.75rem;flex:0 0 auto">
+              <div class="progress"><div class="progress__fill"></div></div>
+              <span class="progress__text"></span>
+            </div>
+          </div>
+          <div class="funnel__body"></div>
+          <div class="funnel__foot">
+            <button class="btn btn--ghost" data-back type="button">${ICON_BACK}<span>Vissza</span></button>
+            <span class="tiny mute" data-hint>Válassz egy lehetőséget</span>
+            <button class="btn" data-next type="button"><span class="btn__label">Tovább</span><span class="btn__arrow">${ICON_ARROW}</span></button>
+          </div>
+        </div>`;
+
+      this.body = $(".funnel__body", this.root);
+      this.fill = $(".progress__fill", this.root);
+      this.ptext = $(".progress__text", this.root);
+      this.btnBack = $("[data-back]", this.root);
+      this.btnNext = $("[data-next]", this.root);
+      this.hint = $("[data-hint]", this.root);
+
+      on(this.btnBack, "click", () => this.go(-1));
+      on(this.btnNext, "click", () => this.go(1));
+      this.render();
+    }
+
+    go(dir) {
+      const next = this.index + dir;
+      if (next < 0 || next >= this.steps.length) return;
+      if (dir > 0 && !this.valid()) {
+        this.hint.textContent = "Válassz egy lehetőséget a továbblépéshez";
+        this.hint.style.color = "var(--danger)";
+        return;
+      }
+      this.index = next;
+      this.render();
+      /* Csak akkor görgetünk, ha a funnel feje tényleg kicsúszott a képből.
+         A korábbi verzió a scrollY-t egy fix 100px-es eltoláshoz mérte, és
+         emiatt lépésenként oda-vissza ugrott az oldal. */
+      const nav = (window.EP.rt ? window.EP.rt.navHeight : 72) + 24;
+      const r = this.root.getBoundingClientRect();
+      if (r.top < nav - 8 || r.top > window.innerHeight * 0.55) {
+        window.scrollTo({
+          top: Math.max(0, r.top + window.scrollY - nav),
+          behavior: window.EP.reduced ? "auto" : "smooth",
+        });
+      }
+    }
+
+    valid() {
+      const step = this.steps[this.index];
+      if (step.kind !== "choice") return true;
+      const v = this.answers[step.data.id];
+      return step.data.multi ? Array.isArray(v) && v.length > 0 : v !== undefined;
+    }
+
+    progress() {
+      const inputs = this.steps.filter((s) => s.kind === "choice" || s.kind === "calc").length;
+      const step = this.steps[this.index];
+      const p = step.kind === "choice" || step.kind === "calc"
+        ? this.index / inputs
+        : 1;
+      this.fill.style.width = Math.min(1, p) * 100 + "%";
+      this.ptext.textContent =
+        step.kind === "thanks"
+          ? "kész"
+          : step.kind === "result"
+          ? "eredmény"
+          : `${this.index + 1} / ${inputs}`;
+    }
+
+    render() {
+      const step = this.steps[this.index];
+      this.progress();
+      this.hint.style.color = "";
+      this.btnBack.style.visibility = this.index === 0 ? "hidden" : "visible";
+
+      const isLastInput = step.kind === "result";
+      this.btnNext.style.display =
+        step.kind === "result" || step.kind === "thanks" ? "none" : "inline-flex";
+      this.hint.style.display = step.kind === "choice" || step.kind === "calc" ? "" : "none";
+
+      if (step.kind === "choice") this.renderChoice(step.data);
+      else if (step.kind === "calc") this.renderCalc(step.data);
+      else if (step.kind === "result") this.renderResult();
+      else this.renderThanks();
+
+      window.EP.initReveal(this.body);
+    }
+
+    /* --- kérdés ------------------------------------------------------- */
+    renderChoice(q) {
+      const picked = this.answers[q.id];
+      const multi = !!q.multi;
+      const keys = "ABCDEFG";
+      this.hint.textContent = multi
+        ? "Több választ is megjelölhetsz"
+        : "Válassz egy lehetőséget";
+
+      this.body.innerHTML = `
+        <div class="fstep is-active">
+          <span class="fstep__kicker">${esc(q.kicker || "")}</span>
+          <h2 class="fstep__q">${esc(q.q)}</h2>
+          ${q.help ? `<p class="fstep__help">${esc(q.help)}</p>` : ""}
+          <div class="opts ${q.opts.length <= 3 && !multi ? "" : ""}">
+            ${q.opts
+              .map((o, i) => {
+                const isOn = multi
+                  ? Array.isArray(picked) && picked.includes(o.v)
+                  : picked === o.v;
+                return `<button type="button" class="opt${isOn ? " is-picked" : ""}" data-v="${esc(o.v)}">
+                  <span class="opt__key">${keys[i] || i + 1}</span>
+                  <span class="opt__label">${esc(o.label)}
+                    ${o.note ? `<span class="opt__note">${esc(o.note)}</span>` : ""}
+                  </span>
+                </button>`;
+              })
+              .join("")}
+          </div>
+        </div>`;
+
+      $$(".opt", this.body).forEach((btn) =>
+        on(btn, "click", () => {
+          const raw = btn.dataset.v;
+          const opt = q.opts.find((o) => String(o.v) === raw);
+          const val = opt ? opt.v : raw;
+          if (multi) {
+            const arr = Array.isArray(this.answers[q.id]) ? this.answers[q.id].slice() : [];
+            const i = arr.indexOf(val);
+            if (i >= 0) arr.splice(i, 1);
+            else arr.push(val);
+            this.answers[q.id] = arr;
+            btn.classList.toggle("is-picked");
+            this.hint.textContent = arr.length
+              ? arr.length + " kiválasztva"
+              : "Több választ is megjelölhetsz";
+          } else {
+            this.answers[q.id] = val;
+            $$(".opt", this.body).forEach((b) => b.classList.remove("is-picked"));
+            btn.classList.add("is-picked");
+            setTimeout(() => this.go(1), 220);
+          }
+        })
+      );
+    }
+
+    /* --- kalkulátor --------------------------------------------------- */
+    /* Beviteli típusok:
+         slider  — folytonos szám (összeg, futamidő)
+         chips   — 2–4 diszkrét szám
+         select  — sok diszkrét érték (évjárat, bónusz fokozat, hónap):
+                   ezekre a csúszka pontatlan, a legördülő pontos       */
+    renderCalc(calc) {
+      const hasSelect = calc.inputs.some((i) => i.type === "select");
+      this.hint.textContent = hasSelect
+        ? "Töltsd ki a saját adataiddal — az eredmény azonnal frissül"
+        : "Húzd a csúszkákat, az eredmény azonnal frissül";
+
+      calc.inputs.forEach((inp) => {
+        if (this.calcValues[inp.key] === undefined) this.calcValues[inp.key] = inp.def;
+      });
+
+      this.body.innerHTML = `
+        <div class="fstep is-active">
+          <span class="fstep__kicker">${esc(calc.kicker || "Kalkulátor")}</span>
+          <h2 class="fstep__q">${esc(calc.title)}</h2>
+          ${calc.help ? `<p class="fstep__help">${esc(calc.help)}</p>` : ""}
+          <div class="calc">
+            <div class="calc__in" data-controls></div>
+            <div class="calc__out" data-out></div>
+          </div>
+        </div>`;
+
+      const controls = $("[data-controls]", this.body);
+      controls.innerHTML = calc.inputs
+        .map((inp) => {
+          const head = `<div class="field__label"><span>${esc(inp.label)}</span>
+              <span class="field__value" data-val="${inp.key}"></span></div>`;
+
+          if (inp.type === "select") {
+            return `<div class="field field--select">
+              <div class="field__label"><span>${esc(inp.label)}</span></div>
+              <div class="select-wrap">
+                <select class="select" data-select="${inp.key}" aria-label="${esc(inp.label)}">
+                  ${inp.options
+                    .map(
+                      (o) =>
+                        `<option value="${esc(o.v)}"${String(o.v) === String(this.calcValues[inp.key]) ? " selected" : ""}>${esc(o.label)}</option>`
+                    )
+                    .join("")}
+                </select>
+              </div>
+              ${inp.note ? `<p class="field__note">${esc(inp.note)}</p>` : ""}
+            </div>`;
+          }
+
+          if (inp.type === "chips") {
+            return `<div class="field">
+              ${head}
+              <div class="chips" data-chips="${inp.key}">
+                ${inp.options
+                  .map(
+                    (o) =>
+                      `<button type="button" class="chip" data-o="${o.v !== undefined ? esc(o.v) : o}">${esc(o.label !== undefined ? o.label : o + (inp.unit || ""))}</button>`
+                  )
+                  .join("")}
+              </div>
+              ${inp.note ? `<p class="field__note">${esc(inp.note)}</p>` : ""}
+            </div>`;
+          }
+
+          return `<div class="field">
+            ${head}
+            <input class="slider" type="range" min="${inp.min}" max="${inp.max}" step="${inp.step}"
+              value="${this.calcValues[inp.key]}" data-slider="${inp.key}"
+              aria-label="${esc(inp.label)}">
+            ${inp.note ? `<p class="field__note">${esc(inp.note)}</p>` : ""}
+          </div>`;
+        })
+        .join("");
+
+      const out = $("[data-out]", this.body);
+      const update = () => {
+        // értékkijelzők
+        calc.inputs.forEach((inp) => {
+          const el = $(`[data-val="${inp.key}"]`, this.body);
+          const v = this.calcValues[inp.key];
+          if (el) {
+            const opt =
+              inp.options && inp.options.length && inp.options[0] && inp.options[0].v !== undefined
+                ? inp.options.find((o) => String(o.v) === String(v))
+                : null;
+            /* A "%" közvetlenül a szám után jön (5%), a szöveges mértékegység
+               elé kerül szóköz (5 év) — kivéve, ha az már benne van. */
+            const unit = inp.unit || "";
+            el.textContent = opt
+              ? opt.short || opt.label
+              : unit === "Ft"
+              ? window.EP.ft(v)
+              : unit === "" || unit === "%" || /^\s/.test(unit)
+              ? v + unit
+              : v + " " + unit;
+          }
+          if (inp.type === "chips") {
+            $$(`[data-chips="${inp.key}"] .chip`, this.body).forEach((c) =>
+              c.classList.toggle("is-picked", String(c.dataset.o) === String(v))
+            );
+          } else if (inp.type !== "select") {
+            const s = $(`[data-slider="${inp.key}"]`, this.body);
+            if (s) {
+              const pct = ((v - inp.min) / (inp.max - inp.min)) * 100;
+              s.style.setProperty("--fill", pct + "%");
+            }
+          }
+        });
+
+        const r = calc.compute(this.calcValues);
+        this.result = r;
+        out.innerHTML = `
+          <div class="result__hero result__hero--calc">
+            <div class="result__big${r.bigSmall ? " result__big--sm" : ""}">${esc(r.big)}</div>
+            <div class="result__cap"><strong>${esc(r.bigLabel)}</strong><br>${esc(r.caption)}</div>
+          </div>
+          <div class="breakdown">
+            ${r.rows
+              .filter(Boolean)
+              .map(
+                (row) =>
+                  `<div class="breakdown__row"><span>${esc(row[0])}</span><b>${esc(row[1])}</b></div>`
+              )
+              .join("")}
+            ${
+              r.total
+                ? `<div class="breakdown__row breakdown__row--total"><span>${esc(r.total[0])}</span><b>${esc(r.total[1])}</b></div>`
+                : ""
+            }
+          </div>
+          <p class="tiny mute calc__note">${esc(r.note || "")}</p>`;
+      };
+
+      /* A csúszka `input` eventje húzás közben sűrűn tüzel; a kiírást
+         képkockához kötjük, hogy ne számoljunk újra feleslegesen. */
+      let raf = 0;
+      const schedule = () => {
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          update();
+        });
+      };
+
+      $$("[data-slider]", this.body).forEach((s) =>
+        on(s, "input", () => {
+          this.calcValues[s.dataset.slider] = Number(s.value);
+          schedule();
+        })
+      );
+      $$("[data-chips] .chip", this.body).forEach((c) =>
+        on(c, "click", () => {
+          const key = c.closest("[data-chips]").dataset.chips;
+          const raw = c.dataset.o;
+          this.calcValues[key] = isNaN(Number(raw)) ? raw : Number(raw);
+          update();
+        })
+      );
+      $$("[data-select]", this.body).forEach((s) =>
+        on(s, "change", () => {
+          const raw = s.value;
+          this.calcValues[s.dataset.select] = isNaN(Number(raw)) ? raw : Number(raw);
+          update();
+        })
+      );
+      update();
+    }
+
+    /* --- eredmény + lead form ---------------------------------------- */
+    renderResult() {
+      const isMap = this.type === "map";
+      let recoHtml = "";
+      let headline = "";
+      let sub = "";
+
+      if (isMap) {
+        const ranked = window.EP.QUIZ.score(this.answers).slice(0, 3);
+        this.reco = ranked.map((r) => r.slug);
+        headline = "Ez a három téma hozza neked most a legtöbbet";
+        sub =
+          "A válaszaid alapján ezekkel érdemes kezdeni. Kattints bármelyikre a részletekért, vagy kérj visszahívást, és végigvesszük együtt.";
+        recoHtml = `<div class="reco">
+          ${ranked
+            .map((r, i) => {
+              const s = window.EP.SERVICES.find((x) => x.slug === r.slug);
+              if (!s) return "";
+              return `<a class="reco__item" href="${this.hrefTo(s.slug)}">
+                <span class="reco__rank">0${i + 1}</span>
+                <span class="reco__body">
+                  <strong>${esc(s.title)}</strong>
+                  <span>${esc(s.metric)} — ${esc(s.hook.slice(0, 92))}…</span>
+                </span>
+                ${ICON_ARROW}
+              </a>`;
+            })
+            .join("")}
+        </div>`;
+      } else {
+        headline = "Kész a helyzetkép";
+        sub =
+          "Ha szeretnéd konkrét ajánlatokkal, a saját számaidra szabva látni, hagyd itt az elérhetőségedet. 24 órán belül keresek — nem call center, hanem én.";
+        if (this.result) {
+          recoHtml = `<div class="result__hero">
+            <div class="result__big${this.result.bigSmall ? " result__big--sm" : ""}">${esc(this.result.big)}</div>
+            <div class="result__cap"><strong>${esc(this.result.bigLabel)}</strong><br>${esc(this.result.caption)}</div>
+          </div>`;
+        }
+      }
+
+      this.body.innerHTML = `
+        <div class="fstep is-active">
+          <span class="fstep__kicker">Eredmény</span>
+          <h2 class="fstep__q">${esc(headline)}</h2>
+          <p class="fstep__help">${esc(sub)}</p>
+          <div class="result">${recoHtml}</div>
+          <form class="lead-form" novalidate>
+            <div class="lead-form__row">
+              <div class="input-wrap">
+                <input class="input" id="f-name" name="name" placeholder=" " autocomplete="name" required>
+                <label for="f-name">Neved *</label>
+                <div class="field-error">Add meg a nevedet</div>
+              </div>
+              <div class="input-wrap">
+                <input class="input" id="f-phone" name="phone" type="tel" placeholder=" " autocomplete="tel" required>
+                <label for="f-phone">Telefonszám *</label>
+                <div class="field-error">Adj meg egy elérhető telefonszámot</div>
+              </div>
+            </div>
+            <div class="input-wrap">
+              <input class="input" id="f-email" name="email" type="email" placeholder=" " autocomplete="email">
+              <label for="f-email">E-mail (nem kötelező)</label>
+              <div class="field-error">Ez az e-mail cím nem tűnik érvényesnek</div>
+            </div>
+            <div class="input-wrap">
+              <textarea class="input" id="f-msg" name="message" placeholder=" "></textarea>
+              <label for="f-msg">Megjegyzés, kérdés (nem kötelező)</label>
+            </div>
+            <input class="honeypot" name="_hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <label class="consent">
+              <input type="checkbox" name="consent" required>
+              <span>Hozzájárulok, hogy a megadott adataimat a megkeresés megválaszolása céljából kezeljék. Részletek az <a href="${this.hrefTo("adatkezeles", true)}" target="_blank" rel="noopener">adatkezelési tájékoztatóban</a>. *</span>
+            </label>
+            <div class="field-error" data-consent-error>A hozzájárulás megadása kötelező</div>
+            <button class="btn btn--lg btn--block" type="submit">
+              <span class="btn__label">Kérek visszahívást</span><span class="btn__arrow">${ICON_ARROW}</span>
+            </button>
+            <p class="tiny mute">Nem küldünk hírlevelet, nem adjuk át az adataidat harmadik félnek. Egy hívás, konkrét számokkal.</p>
+          </form>
+        </div>`;
+
+      const form = $("form", this.body);
+      /* Időbélyeg a bot-szűréshez: ember nem tölt ki egy négymezős űrlapot
+         két másodperc alatt, egy script viszont milliszekundum alatt kitölti. */
+      this.formShownAt = Date.now();
+      on(form, "submit", (e) => {
+        e.preventDefault();
+        this.submit(form);
+      });
+    }
+
+    renderThanks() {
+      this.body.innerHTML = `
+        <div class="fstep is-active thanks">
+          <div class="thanks__check">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <h2 class="fstep__q">Megérkezett. Köszönöm!</h2>
+          <p class="fstep__help center" style="margin-inline:auto">
+            24 órán belül keresni fogom a megadott számon. Addig sem kell tétlenül várni:
+            nézz körül a többi témában, hátha van még pár tízezer forint az asztalon.
+          </p>
+          <div class="row center" style="justify-content:center;margin-top:2rem">
+            <a class="btn btn--ghost" href="${this.hrefTo("", true)}#szolgaltatasok">Többi téma</a>
+          </div>
+        </div>`;
+    }
+
+    /* --- útvonalak (aloldal / főoldal kontextus) ---------------------- */
+    hrefTo(target, isRoot) {
+      const inSub = /\/szolgaltatas\//.test(location.pathname);
+      if (isRoot) {
+        if (target === "adatkezeles") return inSub ? "../adatkezeles.html" : "adatkezeles.html";
+        return inSub ? "../index.html" : "index.html";
+      }
+      return inSub ? `${target}.html` : `szolgaltatas/${target}.html`;
+    }
+
+    /* --- beküldés ----------------------------------------------------- */
+    async submit(form) {
+      const data = new FormData(form);
+      const name = (data.get("name") || "").toString().trim();
+      const phone = (data.get("phone") || "").toString().trim();
+      const email = (data.get("email") || "").toString().trim();
+      const consent = form.querySelector('[name="consent"]').checked;
+
+      /* --- bot-szűrés: még a validáció ELŐTT, és csendben ---------------
+         Aki idáig eljut, az script. Nem adunk neki visszajelzést arról,
+         hogy min bukott el, mert abból tanulni lehet. A form csak nem
+         csinál semmit. Ez a kliensoldali szűrő; a valódi védelem a
+         szerveroldalon van (docs/apps-script.gs), mert a végpontra a
+         böngésző kihagyásával is lehet POST-olni.                       */
+      if ((data.get("_hp") || "").toString().length) return; // honeypot
+      /* 1,5 s: a botok 100 ms alatt küldenek, egy ember viszont még
+         automatikus kitöltéssel is legalább ennyit tölt a hozzájárulás
+         bepipálásával és a gombra kattintással. */
+      if (Date.now() - (this.formShownAt || 0) < 1500) return;
+
+      let bad = false;
+      const mark = (sel, cond) => {
+        const el = form.querySelector(sel);
+        if (!el) return;
+        el.classList.toggle("is-bad", cond);
+        if (cond) bad = true;
+      };
+      const digits = phone.replace(/\D/g, "");
+      mark("#f-name", name.length < 2 || name.length > 80);
+      /* 8 számjegy alatt nincs hívható szám, 15 fölött nincs érvényes
+         nemzetközi szám sem (E.164 maximum). */
+      mark("#f-phone", digits.length < 8 || digits.length > 15);
+      mark("#f-email", email !== "" && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email));
+      const ce = form.querySelector("[data-consent-error]");
+      if (ce) ce.style.display = consent ? "none" : "block";
+      if (!consent) bad = true;
+      if (bad) {
+        window.EP.toast("Nézd át a kiemelt mezőket");
+        return;
+      }
+
+      const btn = form.querySelector('button[type="submit"]');
+      btn.classList.add("is-loading");
+      btn.querySelector(".btn__label").textContent = "Küldés";
+
+      const payload = {
+        tipus: this.type === "map" ? "Pénzügyi Térkép" : "Szolgáltatás-funnel",
+        tema: this.type === "map" ? (this.reco || []).join(", ") : this.svc.title,
+        slug: this.slug || "penzugyi-terkep",
+        nev: name,
+        telefon: phone,
+        email: email,
+        megjegyzes: (data.get("message") || "").toString().trim(),
+        valaszok: JSON.stringify(this.answers),
+        kalkulator: this.result
+          ? `${this.result.bigLabel}: ${this.result.big}` +
+            (Object.keys(this.calcValues).length ? " | " + JSON.stringify(this.calcValues) : "")
+          : "",
+        oldal: location.href,
+        idopont: new Date().toISOString(),
+      };
+
+      const ok = await window.EP.sendLead(payload);
+      btn.classList.remove("is-loading");
+      if (ok) {
+        this.index = this.steps.length - 1;
+        this.render();
+      } else {
+        btn.querySelector(".btn__label").textContent = "Kérek visszahívást";
+        window.EP.toast("Nem sikerült elküldeni — próbáld újra, vagy hívj közvetlenül");
+      }
+    }
+  }
+
+  /* --- publikus API ---------------------------------------------------- */
+  window.EP.Funnel = {
+    mount(el, opts) {
+      if (!el) return null;
+      return new Funnel(el, opts);
+    },
+    autoMount() {
+      $$("[data-funnel]").forEach((el) => {
+        const v = el.dataset.funnel;
+        if (el.dataset.mounted === "1") return;
+        el.dataset.mounted = "1";
+        if (v === "map") this.mount(el, { type: "map" });
+        else this.mount(el, { type: "service", slug: v });
+      });
+    },
+  };
+
+  const boot = () => window.EP.Funnel.autoMount();
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
+
+;
+/* ==========================================================================
+   OLDAL-LOGIKA — config-kötések, stat blokk, kategória-szűrő, referenciák
+   A tartalom a HTML-be van égetve (SEO), a személyes adatok innen jönnek,
+   hogy a config.js módosítása után ne kelljen újragenerálni az oldalakat.
+   ========================================================================== */
+(function () {
+  "use strict";
+  window.EP = window.EP || {};
+  const { $, $$, on } = window.EP;
+  const CFG = window.EP.CONFIG || {};
+
+  const get = (path) =>
+    path.split(".").reduce((o, k) => (o == null ? undefined : o[k]), CFG);
+
+  const isTodo = (v) =>
+    v === undefined || v === null || v === "" || /^TODO/i.test(String(v));
+
+  /* --- 1. Config-kötések ---------------------------------------------- */
+  function bindConfig() {
+    $$("[data-cfg]").forEach((el) => {
+      const v = get(el.dataset.cfg);
+      if (!isTodo(v)) el.textContent = v;
+      else el.classList.add("is-todo");
+    });
+    $$("[data-cfg-href]").forEach((el) => {
+      const raw = el.dataset.cfgHref;
+      const [path, prefix] = raw.split("|");
+      const v = get(path);
+      if (isTodo(v)) {
+        el.setAttribute("aria-disabled", "true");
+        el.classList.add("is-todo");
+        return;
+      }
+      el.href = (prefix || "") + v;
+    });
+    $$("[data-cfg-src]").forEach((el) => {
+      const v = get(el.dataset.cfgSrc);
+      if (!isTodo(v)) {
+        const inSub = /\/szolgaltatas\//.test(location.pathname);
+        el.src = (inSub ? "../" : "") + v;
+      } else {
+        el.closest("[data-photo-wrap]")?.classList.add("no-photo");
+      }
+    });
+    // teljes blokkok elrejtése, ha nincs hozzá adat
+    $$("[data-cfg-if]").forEach((el) => {
+      if (isTodo(get(el.dataset.cfgIf))) el.hidden = true;
+    });
+  }
+
+  /* --- 2. Stat blokk --------------------------------------------------- */
+  function renderStats() {
+    const host = $("[data-render='stats']");
+    if (!host) return;
+    const items = (CFG.stats || []).filter((s) => Number(s.value) > 0);
+    if (!items.length) {
+      // valós adat nélkül a szakmai tartalomra váltunk, nem találunk ki számokat
+      host.innerHTML = `
+        <div class="stat" data-reveal>
+          <div class="stat__value">280<span class="stat__unit"> e Ft</span></div>
+          <p class="stat__label">maximális éves adójóváírás nyugdíjcélra, a három forma kombinálásával</p>
+        </div>
+        <div class="stat" data-reveal style="--reveal-delay:80ms">
+          <div class="stat__value">150<span class="stat__unit"> e Ft</span></div>
+          <p class="stat__label">éves adójóváírás egészség- és önsegélyező pénztári befizetésre</p>
+        </div>
+        <div class="stat" data-reveal style="--reveal-delay:160ms">
+          <div class="stat__value">3<span class="stat__unit">%</span></div>
+          <p class="stat__label">fix kamat az Otthon Start támogatott lakáshitelnél, 25 évre</p>
+        </div>
+        <div class="stat" data-reveal style="--reveal-delay:240ms">
+          <div class="stat__value">13</div>
+          <p class="stat__label">terület, amit egy helyen, egy emberrel átnézhetsz</p>
+        </div>`;
+      window.EP.initReveal(host);
+      return;
+    }
+    host.innerHTML = items
+      .map(
+        (s, i) => `
+      <div class="stat" data-reveal style="--reveal-delay:${i * 80}ms">
+        <div class="stat__value"><span data-count="${s.value}" data-count-suffix="">0</span><span class="stat__unit">${s.suffix || ""}</span></div>
+        <p class="stat__label">${s.label}</p>
+      </div>`
+      )
+      .join("");
+    window.EP.initReveal(host);
+    window.EP.initCounters(host);
+  }
+
+  /* --- 3. Kategória-szűrő a bento gridhez ----------------------------- */
+  function initFilter() {
+    const bar = $("[data-filter]");
+    const grid = $("[data-grid]");
+    if (!bar || !grid) return;
+    const cards = $$("[data-cat]", grid);
+    $$("button", bar).forEach((btn) =>
+      on(btn, "click", () => {
+        const cat = btn.dataset.cat;
+        $$("button", bar).forEach((b) => b.classList.toggle("is-picked", b === btn));
+        cards.forEach((c) => {
+          const show = cat === "all" || c.dataset.cat === cat;
+          c.style.display = show ? "" : "none";
+        });
+      })
+    );
+  }
+
+  /* --- 4. Referenciák -------------------------------------------------- */
+  function renderTestimonials() {
+    const host = $("[data-render='testimonials']");
+    if (!host) return;
+    const items = CFG.testimonials || [];
+    if (!items.length) {
+      host.closest("section")?.remove();
+      return;
+    }
+    host.innerHTML = items
+      .map(
+        (t, i) => `
+      <figure class="quote" data-reveal style="--reveal-delay:${i * 90}ms">
+        <blockquote class="quote__text">„${t.text}”</blockquote>
+        <figcaption class="quote__meta">${t.name}${t.meta ? " — " + t.meta : ""}</figcaption>
+      </figure>`
+      )
+      .join("");
+    window.EP.initReveal(host);
+  }
+
+
+  function boot() {
+    bindConfig();
+    renderStats();
+    initFilter();
+    renderTestimonials();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
