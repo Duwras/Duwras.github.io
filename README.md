@@ -64,6 +64,7 @@ js/gl/mini3d.js             ← saját mini WebGL réteg + GLB olvasó (~8 kB, t
 js/hero3d.js                ← hero: a 3D logó nyíl
 js/scene3d.js               ← scroll-vezérelt 3D szekció a Pénzügyi Térkép mögött
 
+css/fonts.css               ← @font-face-ek a saját betűkhöz (assets/fonts/)
 css/tokens.css              ← színek, tipográfia, térkezelés (itt állítsd a márkaszíneket)
                               + `.on-paper`: a világos (fehér) szekciók tokenjei
 css/base.css                ← reset, tipó, layout, animációk
@@ -71,6 +72,10 @@ css/components.css          ← nav, gombok, kártyák, footer, banner
 css/hero.css                ← hero és oldalspecifikus blokkok
 css/funnel.css              ← funnel, kalkulátor, űrlap
 css/motion.css              ← animációk, 3D szekció, 3D ikonok
+
+assets/fonts/*.woff2        ← a három betűcsalád, magyar jelekre vágva (~58 kB)
+                              + OFL-*.txt (a licenc, a betűk mellett kell lennie)
+build/subset-fonts.py       ← ezeket állítja elő a Google Fonts-ról (ritkán kell futtatni)
 
 assets/brand/               ← logók, portré (portre.webp 43 kB — a .jpg tartaléknak marad)
 _source/                    ← nyers eredetik (NEM kell feltölteni): portre-original.jpg
@@ -131,22 +136,57 @@ Néhány szabály tartja alacsonyan a terhelést:
    a szinkron olvasás korábban ~380 ms kényszerített layoutot okozott betöltéskor.)
 3. **Egy CSS és egy JS kérés.** A `build/generate.mjs` a `css/*.css`-ből `css/site.css`-t, a
    `js/**`-ból `js/app.js`-t (és a 3D-ből `js/3d.js`-t) fűz össze. Szerkeszteni a FORRÁSOKAT
-   kell, a csomagot a generátor írja újra. A scriptek `defer`-rel töltődnek.
+   kell, a csomagot a generátor írja újra. A scriptek `defer`-rel töltődnek. A generátor a
+   csomagokból kiszedi a kommenteket és a behúzást (`minifyJs` / `minifyCss`) — átnevezés és
+   sorösszevonás nélkül, hogy minifier-hiba ne kerülhessen be. A forrásban minden
+   magyarázat megmarad.
 4. **A 3D saját, helyi WebGL réteg** (`js/gl/mini3d.js`, ~8 kB). Korábban a three.js volt,
    ami **1,3 MB-ot töltött le az unpkg CDN-ről minden oldalbetöltéskor**. Ha 3D-t bővítesz,
    maradj ebben a rétegben, vagy számolj a méret- és GDPR-következménnyel (a CDN-hívás
    kiszivárogtatja a látogató IP-jét egy harmadik félhez).
 5. **Képek WebP-ben.** Új képet is konvertálj (a repóban lévők forrása megmaradt PNG/JPG-ben):
    `ffmpeg -i kep.png -c:v libwebp -quality 82 kep.webp`. A megosztó (OG) kép marad PNG, mert
-   azt nem minden közösségi platform olvassa WebP-ben.
+   azt nem minden közösségi platform olvassa WebP-ben. A hero nyíl (`arrow-hero.webp`,
+   15,7 kB) szándékosan 900 px: telefonon is retina sűrűséggel jelenik meg, és kisebb
+   vágatból ugyanezen a minőségen NAGYOBB fájl lett.
+6. **A betűk saját domainről jönnek**, magyar karakterkészletre vágva (`assets/fonts/`,
+   `css/fonts.css`). Ne tedd vissza a Google Fonts CDN-t: onnan 296 kB jött két idegen
+   origóról, és a betűfájlok csak a CDN-stíluslap MEGÉRKEZÉSE UTÁN indultak — három
+   egymásra épülő kérés a kritikus úton. Most ~58 kB, egy origó, a két legfontosabb vágat
+   `preload`-dal. Ha új nyelv vagy jel kell: `build/subset-fonts.py`.
+7. **A 3D csak akkor töltődik le, ha futni is fog.** A `hero3d` 860 px alatt, a `scene3d`
+   1024 px alatt magától kilép — statikus `<script>`-tel a telefon így is letöltötte és
+   lefordította a 25 kB-ot feleslegesen. A főoldalon egy beágyazott betöltő a `load`
+   esemény után, üresjáratban teszi be a `js/3d.js`-t, így a WebGL-indítás nincs a
+   kritikus úton. Ha ezt a snippetet módosítod, a CSP SHA-256 lenyomata magától
+   újraszámolódik (`generate.mjs → loader3dSrc` + `cspMeta`).
+8. **CSP `<meta>`-ban.** A GitHub Pages nem enged saját HTTP-fejlécet, ezért a
+   tartalombiztonsági házirend meta-tagben van (`generate.mjs → cspMeta`). Ha új külső
+   szolgáltatást kötsz be (Calendly-beágyazás, analitika, másik lead-végpont), vedd fel a
+   megfelelő direktívába — különben a böngésző csendben blokkolja. A lead-küldés
+   (`script.google.com`) már benne van.
 
 Amit szándékosan **nem** használunk, mert görgetés közben újrafestést kényszerít:
 `filter: blur()` és `mix-blend-mode` mozgó elemen, `backdrop-filter` telefonon (asztali
 gépen bekapcsolva marad), `will-change` sok elemen egyszerre, továbbá CSS
 `animation-duration` menet közbeni átírása (ettől ugrik az animáció).
 
-Mért állapot (Lighthouse, mobil profil, 4× lassított CPU + Fast 4G): **LCP ~1,1 s, CLS 0,00,
-Akadálymentesség / Ajánlott gyakorlat / SEO 100**.
+Mért állapot (DevTools trace, mobil profil, 4× lassított CPU + Slow 4G, hideg gyorsítótár):
+**LCP 0,70 s, CLS 0,00** — ugyanezen a mérésen a 2026. augusztusi állapot 1,92 s volt.
+Akadálymentesség / Ajánlott gyakorlat 100, SEO 100 a gyökér-URL-en.
+
+Két dolog a PageSpeed-jelentésből **szándékosan** maradt így:
+
+- **„Hatékony gyorsítótár-élettartam” (10 perc).** A GitHub Pages fixen 600 mp `max-age`-et
+  küld, és nem enged fejléc-beállítást. Csak úgy lehetne hosszabb, ha a domain elé egy
+  Cloudflare (vagy más CDN) kerülne. Az első betöltést nem érinti, csak a visszatérő
+  látogatót. Az összefűzött fájlok neve `?v=…` bélyeget kap, tehát hosszabb TTL is
+  biztonságos lenne.
+- **„Nincs érvényes rel=canonical” (SEO 92).** Ez akkor jön elő, ha a jelentést az
+  `/index.html` címre kéred: a canonical a gyökérre (`/`) mutat, a Lighthouse pedig ezt
+  „a domain gyökerére mutat” hibaként jelzi. A canonical helyes — a látogatók és a Google
+  is a gyökeret látja. **A méréshez a `https://ertekpontpenzugyek.hu/` címet add meg**
+  `index.html` nélkül, akkor a SEO 100.
 
 ### Világos szekciók
 

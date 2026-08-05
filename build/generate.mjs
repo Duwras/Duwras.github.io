@@ -7,6 +7,7 @@
    ========================================================================== */
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -50,21 +51,70 @@ const ARROW = icon('<path d="M7 17 17 7M9 7h8v8"/>', 16, 2.2);
 /*  Közös részek                                                          */
 /* ====================================================================== */
 
-/* A Google Fonts stíluslapja HARMADIK ORIGÓRÓL jön, és alapból blokkolja a
-   megjelenítést: amíg meg nem érkezik, a böngésző egy pixelt sem fest. A
-   `media="print"` trükkel nem blokkol, az onload után viszont azonnal
-   érvénybe lép. A súlyok a ténylegesen használtakra vannak szűkítve
-   (korábban 9 vágat töltődött, ebből 3-at semmi nem használt). */
-const FONT_URL =
-  "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Inter+Tight:wght@700;800&family=JetBrains+Mono:wght@400&display=swap";
+/* A betűk SAJÁT domainről jönnek (assets/fonts/, lásd css/fonts.css és
+   build/subset-fonts.py). Korábban a Google Fonts CDN adta őket: 296 kB két
+   idegen origóról, és a betűfájlok csak a CDN-stíluslap megérkezése UTÁN
+   indultak — három egymásra épülő kérés a kritikus úton. Most ~58 kB, egy
+   origó, és a két legfontosabb vágat előre töltődik. */
+const PRELOAD_FONTS = ["assets/fonts/inter-latin.woff2", "assets/fonts/inter-tight-latin.woff2"];
 
-function head({ title, desc, url, depth = 0, schema = "", preloadLcp = "" }) {
+/* --- Tartalombiztonsági házirend (CSP) ---------------------------------
+   A GitHub Pages nem enged saját HTTP-fejlécet, ezért <meta>-ban adjuk meg.
+   Amit véd: ha valaha idegen szöveg kerülne az oldalra (pl. egy jövőbeli
+   beágyazás), a böngésző nem futtat idegen scriptet és nem tölt idegen
+   forrást. A beágyazott 3D-betöltőt SHA-256 lenyomattal engedjük — nem
+   'unsafe-inline'-nal —, így a házirend valódi védelmet ad.
+
+   FIGYELEM, ha bővíted az oldalt:
+   - új külső script/beágyazás (pl. Calendly iframe, Google Analytics) csak
+     akkor fut, ha ide is felveszed (script-src / frame-src / connect-src);
+   - a lead-küldés a script.google.com-ra megy, ezért az a connect-src-ben van;
+   - a style-src-ben azért kell 'unsafe-inline', mert a generált HTML-ben
+     vannak style="..." attribútumok (pl. --reveal-delay).
+   A frame-ancestors / HSTS / COOP fejlécet <meta>-ban nem lehet megadni,
+   azokhoz saját szerver vagy Cloudflare kellene. */
+function cspMeta(inlineHashes = []) {
+  const scriptSrc = ["'self'", ...inlineHashes.map((h) => `'${h}'`)].join(" ");
+  const policy = [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    `script-src ${scriptSrc}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:",
+    "font-src 'self'",
+    "connect-src 'self' https://script.google.com",
+    "form-action 'self'",
+    "frame-src 'none'",
+    "upgrade-insecure-requests",
+  ].join("; ");
+  return `<meta http-equiv="Content-Security-Policy" content="${policy}">`;
+}
+
+const sha256 = (s) => "sha256-" + crypto.createHash("sha256").update(s, "utf8").digest("base64");
+
+function head({ title, desc, url, depth = 0, schema = "", preloadLcp = "", hero3d = false }) {
   const up = upOf(depth);
+  /* Csak a főoldalon van beágyazott script (a 3D-betöltő) — a lenyomata
+     pontosan azt a szöveget fedi, amit a scripts() kiír. */
+  const inlineHashes = hero3d ? [sha256(loader3dSrc(up))] : [];
+  /* A preloadLcp lehet sima útvonal, vagy objektum:
+     { href, srcset, sizes, media } — a hero képnél csak asztali gépen kell
+     előre tölteni, telefonon a szöveg az LCP, ott a kép csak sávot venne el. */
+  const lcp = typeof preloadLcp === "string" ? (preloadLcp ? { href: preloadLcp } : null) : preloadLcp;
+  const lcpTag = lcp
+    ? `<link rel="preload" as="image" href="${up}${lcp.href}"` +
+      (lcp.srcset ? ` imagesrcset="${lcp.srcset.replace(/(^|, )/g, `$1${up}`)}"` : "") +
+      (lcp.sizes ? ` imagesizes="${lcp.sizes}"` : "") +
+      (lcp.media ? ` media="${lcp.media}"` : "") +
+      ` fetchpriority="high">\n`
+    : "";
   return `<!doctype html>
 <html lang="hu">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+${cspMeta(inlineHashes)}
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${url}">
@@ -92,16 +142,14 @@ function head({ title, desc, url, depth = 0, schema = "", preloadLcp = "" }) {
 <link rel="icon" href="${up}assets/brand/logo-mark.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="${up}assets/img/arrow-hero.png">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="${FONT_URL}">
-<link rel="stylesheet" href="${FONT_URL}" media="print" onload="this.media='all';this.onload=null">
-<noscript><link rel="stylesheet" href="${FONT_URL}"></noscript>
+<!-- A betűk saját domainről, magyar karakterkészletre vágva (css/fonts.css).
+     Nincs harmadik fél, nincs külön DNS/TLS, és nincs stíluslap-lánc. -->
+${PRELOAD_FONTS.map((f) => `<link rel="preload" as="font" type="font/woff2" href="${up}${f}" crossorigin>`).join("\n")}
 
-<!-- EGY stíluslap: a hat forrásfájlból a generátor fűzi össze (css/site.css).
-     Hat blokkoló kérés helyett egy. Szerkeszteni továbbra is a css/*.css-t kell. -->
+<!-- EGY stíluslap: a hét forrásfájlból a generátor fűzi össze (css/site.css).
+     Hét blokkoló kérés helyett egy. Szerkeszteni továbbra is a css/*.css-t kell. -->
 <link rel="stylesheet" href="${up}css/site.css?v=${V}">
-${preloadLcp ? `<link rel="preload" as="image" href="${up}${preloadLcp}" fetchpriority="high">\n` : ""}
+${lcpTag}
 ${schema}
 </head>
 <body class="grain">
@@ -252,12 +300,36 @@ function footer(depth = 0) {
 /* Kilenc külön script helyett egy csomag (a generátor fűzi össze, a sorrend
    ugyanaz). `defer`: a letöltés a HTML feldolgozásával párhuzamosan megy, a
    futtatás a DOM felépítése után — így semmi nem blokkolja a megjelenítést.
-   A 3D külön csomag, szintén defer, és csak a főoldalon. */
+
+   A 3D csomag KÜLÖN, és csak akkor töltjük le, ha egyáltalán futni fog:
+   a hero3d 860 px alatt, a scene3d 1024 px alatt magától kilép, mozgásra
+   érzékeny beállításnál mindkettő. Statikus <script>-tel a telefon így is
+   letöltötte és lefordította a 25 kB-ot, hogy aztán az első sorban kilépjen.
+   A feltételes betöltés ezt teljesen megspórolja mobilon — ott a statikus
+   nyíl-kép látszik, pontosan ugyanúgy, mint eddig. */
+/* A 3D-betöltő beágyazott script FORRÁSA. Külön függvény, mert a CSP-hez
+   pontosan ennek a szövegnek a SHA-256 lenyomata kell (lásd cspMeta). */
+function loader3dSrc(up) {
+  return `
+(function(){var m=window.matchMedia;if(!m)return;
+if(m("(prefers-reduced-motion: reduce)").matches)return;
+if(!m("(min-width: 861px)").matches)return;
+var go=function(){var s=document.createElement("script");s.src="${up}js/3d.js?v=${V}";document.head.appendChild(s);};
+var idle=window.requestIdleCallback||function(f){setTimeout(f,200);};
+addEventListener("load",function(){idle(go,{timeout:2000});},{once:true});})();
+`;
+}
+
 function scripts(depth = 0, hero3d = false) {
   const up = upOf(depth);
+  /* A betöltés a `load` esemény UTÁN, üresjáratban indul: a 3D díszítés,
+     a statikus nyíl-kép addig is látszik, és van rá kereszttűnés. Így a
+     WebGL-indítás (kontextus, GLB-olvasás, első méretlekérdezés) nem a
+     kritikus úton fut. Az app.js-nek ekkor már biztosan lefutott — a 3D
+     modulok az EP.rt közös hurkára építenek. */
   return `
 <script src="${up}js/app.js?v=${V}" defer></script>
-${hero3d ? `<script src="${up}js/3d.js?v=${V}" defer></script>` : ""}
+${hero3d ? `<script>${loader3dSrc(up)}</script>` : ""}
 </body>
 </html>`;
 }
@@ -427,7 +499,15 @@ function homePage() {
     url: SITE + "/",
     depth: 0,
     schema,
-    preloadLcp: "assets/img/arrow-hero.webp",
+    /* A hero képet CSAK asztali gépen töltjük előre: ott a nyíl a legnagyobb
+       festett elem. Telefonon a szöveg az LCP, és a kép (dekoráció) csak
+       elvenné a sávot a betűk elől — ott a srcset amúgy is a 360-as vágatot
+       kéri, nem a 900-ast. */
+    preloadLcp: {
+      href: "assets/img/arrow-hero.webp",
+      media: "(min-width: 1024px)",
+    },
+    hero3d: true, // a CSP-hez kell: ezen az oldalon van beágyazott script
   })}
 ${nav(0)}
 
@@ -463,7 +543,11 @@ ${nav(0)}
 
       <div class="hero__stage" data-hero3d="assets/3d/ep-arrow.glb">
         <canvas aria-hidden="true"></canvas>
-        <img class="hero__fallback" src="assets/img/arrow-hero.webp" alt="" width="900" height="900" loading="eager" fetchpriority="high" decoding="async">
+        <!-- A kép 900px-es, mert telefonon is retina sűrűséggel (2,5-3x) jelenik
+             meg 375 CSS px-en. 15,7 kB — kisebb vágat q80-nal NAGYOBB lett, itt
+             nincs mit nyerni. A fetchpriority szándékosan nincs rajta: mobilon
+             a szöveg az LCP, és a magas prioritás a betűk elől vitte a sávot. -->
+        <img class="hero__fallback" src="assets/img/arrow-hero.webp" alt="" width="900" height="900" loading="eager" decoding="async">
       </div>
     </div>
 
@@ -1221,11 +1305,14 @@ function write(rel, content) {
 
 /* --- CSS és JS csomagolás ---------------------------------------------
    A források maradnak külön fájlban (azokat szerkesztjük), a böngésző
-   viszont egy CSS-t és egy-két JS-t kap. A JS-t szándékosan NEM tömörítjük:
-   a gzip/brotli úgyis elvégzi, viszont így hibakereséskor olvasható marad,
-   és nem visz be minifier-hibát. A CSS-ből csak a kommentek és a felesleges
-   szóközök esnek ki. */
+   viszont egy CSS-t és egy-két JS-t kap. Mindkettőből kiesnek a kommentek
+   és a behúzás — a forrásokban minden magyarázat megmarad, csak a letöltött
+   csomagba nem kerül bele (a JS-forrás fele magyar nyelvű komment volt).
+   Nevet, szerkezetet, sorvégeket NEM bántunk: nincs változó-átnevezés és
+   nincs sorösszevonás, így minifier-hiba sem tud bekerülni, és a hibaüzenetek
+   sorszáma is értelmezhető marad. */
 const CSS_FILES = [
+  "css/fonts.css",
   "css/tokens.css",
   "css/base.css",
   "css/components.css",
@@ -1258,6 +1345,143 @@ function minifyCss(src) {
     .trim();
 }
 
+/* JS-tömörítés kézzel, függőség nélkül (nincs npm a projektben).
+   Amit csinál: kommentek ki, sor eleji behúzás ki, üres sorok ki.
+   Amit NEM csinál: nem nevez át, nem von össze sorokat, nem nyúl a
+   pontosvesszőkhöz — így ASI-hiba nem keletkezhet. A sztringeket, template
+   literálokat és regex literálokat karakterre pontosan átmásolja. */
+function minifyJs(src) {
+  let out = "";
+  let i = 0;
+  const n = src.length;
+
+  /* Az utolsó ÉRDEMI karakter dönti el, hogy a `/` osztás vagy regex kezdete. */
+  const lastToken = () => {
+    let j = out.length - 1;
+    while (j >= 0 && /\s/.test(out[j])) j--;
+    return j >= 0 ? out[j] : "";
+  };
+  const regexAllowed = () => {
+    const c = lastToken();
+    if (c === "") return true;
+    if (/[)\]]/.test(c)) return false;
+    if (/[A-Za-z0-9_$]/.test(c)) {
+      /* `return /re/` és `typeof /re/` — kulcsszó után mégis regex jön. */
+      const m = out.match(/([A-Za-z0-9_$]+)\s*$/);
+      return m ? ["return", "typeof", "case", "in", "of", "new", "delete", "void", "instanceof", "do", "else", "yield", "await"].includes(m[1]) : true;
+    }
+    return true;
+  };
+
+  while (i < n) {
+    const c = src[i];
+    const c2 = src[i + 1];
+
+    if (c === "/" && c2 === "/") {
+      while (i < n && src[i] !== "\n") i++;
+      continue;
+    }
+    if (c === "/" && c2 === "*") {
+      i += 2;
+      while (i < n && !(src[i] === "*" && src[i + 1] === "/")) i++;
+      i += 2;
+      out += " "; // nehogy két tokent összeragasszunk
+      continue;
+    }
+    if (c === '"' || c === "'") {
+      const q = c;
+      out += c;
+      i++;
+      while (i < n) {
+        out += src[i];
+        if (src[i] === "\\") { out += src[i + 1] ?? ""; i += 2; continue; }
+        if (src[i] === q) { i++; break; }
+        i++;
+      }
+      continue;
+    }
+    if (c === "`") {
+      /* Template literál: a szöveges részt KARAKTERRE PONTOSAN visszük át
+         (a benne lévő sortörés és behúzás a kimenet része lehet), a `${…}`
+         belsejét viszont sima kódként tömörítjük. */
+      out += "`";
+      i++;
+      while (i < n) {
+        if (src[i] === "\\") { out += src[i] + (src[i + 1] ?? ""); i += 2; continue; }
+        if (src[i] === "`") { out += "`"; i++; break; }
+        if (src[i] === "$" && src[i + 1] === "{") {
+          out += "${";
+          i += 2;
+          const start = i;
+          let depth = 1;
+          while (i < n && depth > 0) {
+            const d = src[i];
+            if (d === "{") depth++;
+            else if (d === "}") { depth--; if (!depth) break; }
+            else if (d === "`") {
+              i++;
+              let tdepth = 0;
+              while (i < n) {
+                if (src[i] === "\\") { i += 2; continue; }
+                if (src[i] === "$" && src[i + 1] === "{") { tdepth++; i += 2; continue; }
+                if (src[i] === "}" && tdepth) { tdepth--; i++; continue; }
+                if (src[i] === "`" && !tdepth) break;
+                i++;
+              }
+            } else if (d === '"' || d === "'") {
+              const q2 = d;
+              i++;
+              while (i < n && src[i] !== q2) { if (src[i] === "\\") i++; i++; }
+            }
+            i++;
+          }
+          out += minifyJs(src.slice(start, i)) + "}";
+          i++;
+          continue;
+        }
+        out += src[i];
+        i++;
+      }
+      continue;
+    }
+    if (c === "/" && regexAllowed()) {
+      /* regex literál */
+      let j = i + 1;
+      let inClass = false;
+      let ok = false;
+      while (j < n) {
+        const d = src[j];
+        if (d === "\\") { j += 2; continue; }
+        if (d === "\n") break;
+        if (d === "[") inClass = true;
+        else if (d === "]") inClass = false;
+        else if (d === "/" && !inClass) { ok = true; break; }
+        j++;
+      }
+      if (ok) {
+        j++;
+        while (j < n && /[gimsuyd]/.test(src[j])) j++;
+        out += src.slice(i, j);
+        i = j;
+        continue;
+      }
+    }
+    if (c === "\n") {
+      out += "\n";
+      i++;
+      while (i < n && (src[i] === " " || src[i] === "\t")) i++;
+      continue;
+    }
+    out += c;
+    i++;
+  }
+
+  return out
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{2,}/g, "\n")
+    .trim();
+}
+
 const banner = (name) =>
   `/* ${name} — GENERÁLT FÁJL, ne szerkeszd. Forrás: a build/generate.mjs\n` +
   `   fűzi össze a css/*.css és js/**.js fájlokat. Újragenerálás:\n` +
@@ -1266,8 +1490,8 @@ const banner = (name) =>
 console.log("\nÉrték Pont Pénzügyek — oldalgenerálás\n");
 
 write("css/site.css", banner("css/site.css") + CSS_FILES.map((f) => minifyCss(read(f))).join("\n"));
-write("js/app.js", banner("js/app.js") + JS_FILES.map(read).join("\n;\n"));
-write("js/3d.js", banner("js/3d.js") + JS_3D_FILES.map(read).join("\n;\n"));
+write("js/app.js", banner("js/app.js") + JS_FILES.map((f) => minifyJs(read(f))).join("\n;\n"));
+write("js/3d.js", banner("js/3d.js") + JS_3D_FILES.map((f) => minifyJs(read(f))).join("\n;\n"));
 
 write("index.html", homePage());
 SERVICES.forEach((s) => write(`szolgaltatas/${s.slug}.html`, servicePage(s)));

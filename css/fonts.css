@@ -1,0 +1,73 @@
+/* ==========================================================================
+   BETŰTÍPUSOK — saját kiszolgálásból, magyar karakterkészletre szűkítve.
+
+   Korábban a Google Fonts CDN-ről jött három család, összesen 296 kB, két
+   idegen origóról (fonts.googleapis.com + fonts.gstatic.com): külön DNS,
+   külön TLS, és a betűfájlok csak a stíluslap megérkezése UTÁN indultak —
+   ez a lánc telefonon másodperceket vitt el, ráadásul a látogató IP-címét
+   átadta egy harmadik félnek (GDPR).
+
+   Most ugyanaz a három család a saját domainről jön, a magyar szöveghez
+   szükséges jelekre vágva: 296 kB helyett ~58 kB, harmadik fél nélkül.
+
+   Újragenerálás (ha új jel kell, pl. cirill vagy ₽): a build/subset-fonts.py
+   fejlécében állítsd a karakterlistát, és futtasd újra. A licenc SIL OFL
+   (Inter, Inter Tight, JetBrains Mono) — a szűkített változat is szabadon
+   használható, lásd assets/fonts/OFL.txt.
+   ========================================================================== */
+
+/* Alapjelek: ASCII + a magyar ékezetek Latin-1-ből + tipográfiai írásjelek. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../assets/fonts/inter-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+2010-2015, U+2018-201E, U+2022, U+2026, U+2030,
+    U+2039-203A, U+20AC, U+2122, U+2190-2193, U+2212;
+}
+/* Az ő/ű a Latin Extended-A-ban van, külön fájlban — 1,6 kB. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../assets/fonts/inter-ext.woff2") format("woff2");
+  unicode-range: U+0150-0151, U+0170-0171;
+}
+
+@font-face {
+  font-family: "Inter Tight";
+  font-style: normal;
+  font-weight: 700 800;
+  font-display: swap;
+  src: url("../assets/fonts/inter-tight-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+2010-2015, U+2018-201E, U+2022, U+2026, U+2030,
+    U+2039-203A, U+20AC, U+2122, U+2190-2193, U+2212;
+}
+@font-face {
+  font-family: "Inter Tight";
+  font-style: normal;
+  font-weight: 700 800;
+  font-display: swap;
+  src: url("../assets/fonts/inter-tight-ext.woff2") format("woff2");
+  unicode-range: U+0150-0151, U+0170-0171;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/jetbrains-mono-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+2010-2015, U+2018-201E, U+2022, U+2026, U+2030,
+    U+2039-203A, U+20AC, U+2122, U+2190-2193, U+2212;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/jetbrains-mono-ext.woff2") format("woff2");
+  unicode-range: U+0150-0151, U+0170-0171;
+}

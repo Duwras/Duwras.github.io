@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://script.google.com; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
 <title>Impresszum — Érték Pont Pénzügyek</title>
 <meta name="description" content="Az Érték Pont Pénzügyek üzemeltetői adatai, MNB nyilvántartási szám, elérhetőségek.">
 <link rel="canonical" href="https://ertekpontpenzugyek.hu/impresszum.html">
@@ -30,15 +31,14 @@
 <link rel="icon" href="assets/brand/logo-mark.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/img/arrow-hero.png">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Inter+Tight:wght@700;800&family=JetBrains+Mono:wght@400&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Inter+Tight:wght@700;800&family=JetBrains+Mono:wght@400&display=swap" media="print" onload="this.media='all';this.onload=null">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Inter+Tight:wght@700;800&family=JetBrains+Mono:wght@400&display=swap"></noscript>
+<!-- A betűk saját domainről, magyar karakterkészletre vágva (css/fonts.css).
+     Nincs harmadik fél, nincs külön DNS/TLS, és nincs stíluslap-lánc. -->
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/inter-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/inter-tight-latin.woff2" crossorigin>
 
-<!-- EGY stíluslap: a hat forrásfájlból a generátor fűzi össze (css/site.css).
-     Hat blokkoló kérés helyett egy. Szerkeszteni továbbra is a css/*.css-t kell. -->
-<link rel="stylesheet" href="css/site.css?v=msg1zg5o">
+<!-- EGY stíluslap: a hét forrásfájlból a generátor fűzi össze (css/site.css).
+     Hét blokkoló kérés helyett egy. Szerkeszteni továbbra is a css/*.css-t kell. -->
+<link rel="stylesheet" href="css/site.css?v=msg5oj0x">
 
 
 </head>
@@ -279,7 +279,7 @@
   </div>
 </div>
 
-<script src="js/app.js?v=msg1zg5o" defer></script>
+<script src="js/app.js?v=msg5oj0x" defer></script>
 
 </body>
 </html>
