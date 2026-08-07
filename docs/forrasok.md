@@ -70,8 +70,15 @@ Utolsó ellenőrzés: **2026. augusztus**.
   Ez a görbe kiterjesztése, nem forrásadat — a kalkulátorok jegyzete ki is mondja.
 - Hol használjuk: `gyerek-megtakaritas`, `nyugdij-megtakaritas`,
   `szabad-felhasznalasu-megtakaritas` (program-módban).
-- A `szabad-felhasznalasu-megtakaritas` betét-módjának 6%-a **feltételezés**, nem
-  konkrét banki ajánlat.
+- **Tényleges nettó hozam** (`programNetYield`): a görbéből számolt IRR — ez mutatja
+  meg, mit ér a bruttó feltevés a költségek után. A 9%-os görbén: 3 év → −44,5%,
+  10 év → 3,8%, 15 év → 6,1%, 20 év → 6,9%. Emiatt rövid távra ez az eszköz nem való.
+- **Kivett feltevés:** a `szabad-felhasznalasu-megtakaritas` korábbi „betét 6%” módja
+  törölve. Az a ráta nem a tanácsadói eszközből jött, hanem becslés volt, ráadásul
+  adó- és költségmentes, 20 évig fix betétet feltételezett — ilyen nincs. Egy kitalált,
+  ideális eszközt állított szembe egy valós, költségterhelt termékkel, ezért a betét
+  a 15. évig „megverte” a programot. Alternatív eszközre azóta nem írunk ki számot —
+  a konkrét bankbetét- vagy állampapír-kondíció beszélgetés kérdése.
 
 **KGFB / casco**
 - <https://grantis.hu/kotelezo-biztositas-valtas/>

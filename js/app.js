@@ -158,6 +158,24 @@ return (target / unit) * PROGRAM_BASE;
 }
 
  
+function programNetYield(years, yieldPct) {
+const fv = programValue(PROGRAM_BASE, years, yieldPct);
+const n = years * 12;
+const diff = (r) => {
+const i = r / 12;
+const factor = i === 0 ? n : (Math.pow(1 + i, n) - 1) / i;
+return PROGRAM_BASE * factor - fv;
+};
+ 
+let lo = -11.99, hi = 1.0;
+for (let k = 0; k < 300; k++) {
+const mid = (lo + hi) / 2;
+if (diff(mid) > 0) hi = mid; else lo = mid;
+}
+return (lo + hi) / 2;
+}
+
+ 
 
 const I = {
 pension: '<path d="M4 20V8m0 0 8-4 8 4M4 8h16v12M9 20v-6h6v6"/><path d="M12 11.5v.01"/>',
@@ -446,56 +464,43 @@ calc: {
 kicker: "Célösszeg-kalkulátor",
 title: "Mennyit kell félretenned a célodhoz?",
 help:
-"A táv dönti el az eszközt. Rövid célra betét vagy állampapír való, hosszúra rendszeres megtakarítási program — a kettő matematikája nem ugyanaz, ezért itt külön is számol.",
+"Egy tényleges, rendszeres díjas megtakarítási program valós költséggörbéjén számol. A „tényleges nettó hozam” sor mutatja meg, mit ér a bruttó hozamfeltevés a költségek után — ez dönti el, hogy a te távodra jó eszköz-e ez egyáltalán.",
 inputs: [
 { key: "target", label: "Célösszeg", type: "slider", min: 500000, max: 30000000, step: 500000, def: 5000000, unit: "Ft" },
-{ key: "years", label: "Mennyi idő alatt", type: "slider", min: 1, max: 20, step: 1, def: 5, unit: "év" },
+{ key: "years", label: "Mennyi idő alatt", type: "slider", min: 1, max: 20, step: 1, def: 12, unit: "év" },
 {
-key: "mode",
-label: "Milyen eszközzel?",
- 
-type: "select",
-def: "betet",
-options: [
-{ v: "betet", label: "Betét / rövid állampapír — 6% feltételezéssel", short: "betét 6%" },
-{ v: "prog8", label: "Megtakarítási program — 8% bruttó, valós költséggörbével", short: "program 8%" },
-{ v: "prog9", label: "Megtakarítási program — 9% bruttó, valós költséggörbével", short: "program 9%" },
-],
-note:
-"A betétnél nincs termékköltség, de a hozam alacsony. A programnál magasabb a hozampotenciál, viszont a kezdeti évek költsége valós — a számítás ezt levonja.",
+key: "yield",
+label: "Feltételezett éves bruttó hozam",
+type: "chips",
+options: PROGRAM_YIELDS,
+def: 9,
+unit: "%",
+note: "Csak erre a két szintre van visszafejtve a termék valós költséggörbéje. A bruttó hozam nem azonos azzal, ami nálad marad — lásd a tényleges nettó hozamot lent.",
 },
 ],
 compute(v) {
-const DEPOSIT_RATE = 0.06;
-const isProgram = v.mode !== "betet";
-const yieldPct = v.mode === "prog8" ? 8 : 9;
-const n = v.years * 12;
-
-let monthly, label;
-if (isProgram) {
  
-monthly = programMonthlyFor(v.target, v.years, yieldPct);
-label = `megtakarítási program, ${yieldPct}% bruttó`;
-} else {
-const i = DEPOSIT_RATE / 12;
-monthly = (v.target * i) / (Math.pow(1 + i, n) - 1);
-label = "betét / állampapír, 6%";
-}
-const own = monthly * n;
+const monthly = programMonthlyFor(v.target, v.years, v.yield);
+const own = monthly * v.years * 12;
+const net = programNetYield(v.years, v.yield);
  
 const underwater = own > v.target;
 return {
 big: ft(monthly),
 bigLabel: "szükséges havi félretétel",
 bigSmall: monthly >= 1000000,
-caption:
-isProgram && underwater
-? `${v.years} év alatt a program kezdeti költségei még nem térülnek meg: többet kellene befizetned, mint amennyi a célösszeg. A fordulópont nagyjából a 10. év — ennél rövidebb célra betét vagy állampapír a helyes eszköz, váltsd át fent.`
-: `Ennyit kell havonta elhelyezned, hogy ${v.years} év alatt összegyűljön ${ft(v.target)} — ${label} mellett.`,
+caption: underwater
+? `${v.years} év alatt ez az eszköz nem hoz hozamot: a kezdeti költségek miatt többet kellene befizetned, mint amennyi a célösszeg. Ilyen távra egyszerű, biztonságos forma való — bankbetét vagy lakossági állampapír. Nézzük meg együtt, mi a mai kondíció.`
+: `Ennyit kell havonta elhelyezned, hogy ${v.years} év alatt összegyűljön ${ft(v.target)} — a termék költségei már levonva.`,
 rows: [
 ["Célösszeg", ft(v.target)],
 ["Havi félretétel", ft(monthly)],
 ["Saját befizetés összesen", ft(own)],
+ 
+[
+`Tényleges nettó hozam (${v.years} év)`,
+net < -0.5 ? "nincs értelmezhető hozam" : pct(Math.round(net * 1000) / 10),
+],
 [
 underwater ? "Költség és hozam egyenlege" : "Hozamból jön össze",
 ft(v.target - own),
@@ -503,7 +508,7 @@ ft(v.target - own),
 ],
 total: ["Cél elérése", `${v.years} év alatt`],
 note:
-"A programra vonatkozó számítás egy tényleges, rendszeres díjas megtakarítási termék visszafejtett költséggörbéjén fut (8% és 9% bruttó hozamfeltevés, kezdeti és folyó költségek levonva, hűségbónuszok hozzáadva) — csak erre a két szintre van valós adat. A betét 6%-a feltételezés, nem konkrét ajánlat. A számítás rendszeres havi befizetéssel dolgozik; egyszeri induló összeget külön veszünk figyelembe. A hozam egyik esetben sem garantált.",
+"A számítás egy tényleges, rendszeres díjas megtakarítási termék visszafejtett költséggörbéjén fut (kezdeti és folyó költségek levonva, hűségbónuszok hozzáadva) — csak 8% és 9% bruttó hozamfeltevésre van valós adat. A „tényleges nettó hozam” az az éves hozam, ami a költségek után marad: a kezdeti évek terhelése miatt rövid távon negatív, és nagyjából a 15. évtől kerül 6% fölé. Rövid célra ezért nem ez az eszköz való. A számítás rendszeres havi befizetéssel dolgozik; egyszeri induló összeget külön veszünk figyelembe. A hozam nem garantált.",
 };
 },
 },
@@ -2125,7 +2130,7 @@ legal:
 const bySlug = (slug) => SERVICES.find((s) => s.slug === slug);
 const byCat = (cat) => SERVICES.filter((s) => s.cat === cat);
 
-Object.assign(window.EP, { MINWAGE_2026, MAX_PENSION_INS, MAX_PENSION_FUND, MAX_NYESZ, MAX_PENSION_TOTAL, MAX_HEALTH_FUND, HOUSING_MONTHLY_CAP, OTTHON_START_RATE, OTTHON_START_MAX, PROGRAM_YIELDS, fmt, ft, pct, annuity, futureValue, programValue, programMonthlyFor, programNetRate, CATEGORIES, SERVICES, bySlug, byCat });
+Object.assign(window.EP, { MINWAGE_2026, MAX_PENSION_INS, MAX_PENSION_FUND, MAX_NYESZ, MAX_PENSION_TOTAL, MAX_HEALTH_FUND, HOUSING_MONTHLY_CAP, OTTHON_START_RATE, OTTHON_START_MAX, PROGRAM_YIELDS, fmt, ft, pct, annuity, futureValue, programValue, programMonthlyFor, programNetRate, programNetYield, CATEGORIES, SERVICES, bySlug, byCat });
 ;
 window.EP = window.EP || {};
 const QUIZ = {
