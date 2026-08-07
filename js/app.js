@@ -67,7 +67,7 @@ leadEndpoint:
 "https://script.google.com/macros/s/AKfycbw8k8XaYf8R7nutRBOUiMZiqhrBMJP2tlPDdkaRXNRjiPWdkAylqGUD5q_SEl-zFlEZ/exec",
 siteCredit: {
 name: "StratosWeb",
-url: "https://ertekpontpenzugyek.hu/index.html",
+url: "https://www.stratosweb.hu/",
 },
 testimonials: [],
 };

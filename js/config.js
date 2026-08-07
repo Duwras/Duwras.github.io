@@ -139,7 +139,7 @@ window.EP.CONFIG = {
      target="_blank" rel="noopener" attribútumot kap.                     */
   siteCredit: {
     name: "StratosWeb",
-    url: "https://ertekpontpenzugyek.hu/index.html",
+    url: "https://www.stratosweb.hu/",
   },
 
   /* --- Referenciák (csak valós ügyfél-vélemény kerüljön be) ----------- */
