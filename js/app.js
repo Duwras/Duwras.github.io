@@ -80,7 +80,6 @@ const MAX_NYESZ = 100000;
 const MAX_PENSION_TOTAL = 280000;
 const MAX_HEALTH_FUND = 150000;
 const HOUSING_MONTHLY_CAP = Math.round(MINWAGE_2026 * 0.15);
-const BABY_BOND_RATE = 0.074;
 const OTTHON_START_RATE = 0.03;
 const OTTHON_START_MAX = 50_000_000;
 
@@ -107,6 +106,51 @@ const i = rate / 12;
 const n = years * 12;
 const fvSeries = i === 0 ? monthly * n : monthly * ((Math.pow(1 + i, n) - 1) / i);
 return fvSeries + initial * Math.pow(1 + i, n);
+}
+
+ 
+const PROGRAM_COEF = {
+8: [62670, 224940, 495576, 785940, 1094700, 1422900, 1771707, 2142240, 2592189,
+3475500, 3978810, 4512708, 5079009, 5679996, 6794190, 7495732.8, 8239968,
+9029178, 9866472, 11683020, 12807900, 14010810, 15297617.4, 16672968],
+9: [62972.899951667474, 226707.34218369008, 501086.89785764652, 797999.03690298228,
+1116700.0997719497, 1458529.2043039321, 1825076.631395071, 2217913.4652752788,
+2710231.3593126731, 3633402.8954802253, 4182935.50617284, 4770918.6194646191,
+5399903.653609639, 6073284.6074350951, 7304667.851102409, 8107786.9571338845,
+8967264.0118841287, 9886456.1172904074, 10870103.629739838, 12936195.744840106,
+14273787.969679387, 15716662.94701696, 17273870.273962244, 18952743.608097181],
+};
+const PROGRAM_BASE = 25000;
+const PROGRAM_YIELDS = [8, 9];
+
+ 
+function programNetRate(yieldPct) {
+const t = PROGRAM_COEF[yieldPct];
+const last = t[t.length - 1];
+const prev = t[t.length - 2];
+return (last - prev - PROGRAM_BASE * 12) / prev;
+}
+
+ 
+function programValue(monthly, years, yieldPct) {
+const t = PROGRAM_COEF[yieldPct] || PROGRAM_COEF[9];
+const y = Math.floor(years);
+if (y <= 0) return 0;
+if (y <= t.length) return (monthly / PROGRAM_BASE) * t[y - 1];
+const r = programNetRate(yieldPct);
+const extra = y - t.length;
+ 
+return (
+(monthly / PROGRAM_BASE) * t[t.length - 1] * Math.pow(1 + r, extra) +
+futureValue(monthly, r, extra)
+);
+}
+
+ 
+function programMonthlyFor(target, years, yieldPct) {
+const unit = programValue(PROGRAM_BASE, years, yieldPct);
+if (unit <= 0) return Infinity;
+return (target / unit) * PROGRAM_BASE;
 }
 
  
@@ -251,12 +295,12 @@ note:
 { key: "years", label: "Hátralévő évek a nyugdíjig", type: "slider", min: 5, max: 40, step: 1, def: 25, unit: "év" },
 {
 key: "yield",
-label: "Feltételezett éves hozam",
+label: "Feltételezett éves bruttó hozam",
 type: "chips",
-options: [3, 5, 7],
-def: 5,
+options: PROGRAM_YIELDS,
+def: 9,
 unit: "%",
-note: "A hozam nem garantált — a három sáv csak érzékenységvizsgálat.",
+note: "A várható összeg egy tényleges, rendszeres díjas program valós költséggörbéjén fut — a bruttó hozamból a levonások már le vannak véve. Csak erre a két szintre van visszafejtett adat.",
 },
 ],
 compute(v) {
@@ -278,7 +322,8 @@ const credit = Math.min(yearly * 0.2, cap);
 const capped = yearly * 0.2 > cap;
 const totalCredit = credit * v.years;
 const own = yearly * v.years;
-const fv = futureValue(v.monthly + credit / 12, v.yield / 100, v.years);
+ 
+const fv = programValue(v.monthly + credit / 12, v.years, v.yield);
 return {
 big: ft(credit),
 bigLabel: "adójóváírás évente",
@@ -290,11 +335,11 @@ rows: [
 ["Adójóváírás (20%)", ft(credit) + (capped ? " — plafonon" : "")],
 [`Jóváírás ${v.years} év alatt`, ft(totalCredit)],
 ["Saját befizetés összesen", ft(own)],
-[`Ebből hozam ${v.yield}%-kal`, ft(Math.max(0, fv - own - totalCredit))],
+[`Nettó hozam ${v.yield}%-os feltevéssel, költségek után`, ft(Math.max(0, fv - own - totalCredit))],
 ],
 total: ["Nyugdíjkezdéskor várható összeg", ft(fv)],
 note:
-"A jóváírás feltétele, hogy legalább ennyi szja-t fizess az adott évben. Tájékoztató becslés, nem ajánlat és nem hozamgarancia: a tényleges eredményt a konstrukció költségei, a piaci hozamok és az adószabályok változása befolyásolják.",
+"A jóváírás feltétele, hogy legalább ennyi szja-t fizess az adott évben. A felhalmozás egy tényleges, rendszeres díjas nyugdíjbiztosítási program visszafejtett költséggörbéjén fut, ezért a kimutatott összeg már a levonások utáni — pénztárnál és NYESZ-nél a költségszerkezet ettől eltér, jellemzően kedvezőbb. A 24 évnél hosszabb távot a görbe utolsó évéből adódó nettó rátával vezetjük tovább. Tájékoztató becslés, nem ajánlat és nem hozamgarancia.",
 };
 },
 },
@@ -396,41 +441,65 @@ opts: [
 calc: {
 kicker: "Célösszeg-kalkulátor",
 title: "Mennyit kell félretenned a célodhoz?",
+help:
+"A táv dönti el az eszközt. Rövid célra betét vagy állampapír való, hosszúra rendszeres megtakarítási program — a kettő matematikája nem ugyanaz, ezért itt külön is számol.",
 inputs: [
 { key: "target", label: "Célösszeg", type: "slider", min: 500000, max: 30000000, step: 500000, def: 5000000, unit: "Ft" },
 { key: "years", label: "Mennyi idő alatt", type: "slider", min: 1, max: 20, step: 1, def: 5, unit: "év" },
-{ key: "start", label: "Amivel most indulsz", type: "slider", min: 0, max: 10000000, step: 250000, def: 0, unit: "Ft" },
 {
-key: "yield",
-label: "Feltételezett éves hozam",
-type: "chips",
-options: [2, 4, 6],
-def: 4,
-unit: "%",
-note: "Rövid célra alacsonyabb, hosszabb célra magasabb sáv reális.",
+key: "mode",
+label: "Milyen eszközzel?",
+ 
+type: "select",
+def: "betet",
+options: [
+{ v: "betet", label: "Betét / rövid állampapír — 6% feltételezéssel", short: "betét 6%" },
+{ v: "prog8", label: "Megtakarítási program — 8% bruttó, valós költséggörbével", short: "program 8%" },
+{ v: "prog9", label: "Megtakarítási program — 9% bruttó, valós költséggörbével", short: "program 9%" },
+],
+note:
+"A betétnél nincs termékköltség, de a hozam alacsony. A programnál magasabb a hozampotenciál, viszont a kezdeti évek költsége valós — a számítás ezt levonja.",
 },
 ],
 compute(v) {
-const i = v.yield / 100 / 12;
+const DEPOSIT_RATE = 0.06;
+const isProgram = v.mode !== "betet";
+const yieldPct = v.mode === "prog8" ? 8 : 9;
 const n = v.years * 12;
-const fromStart = v.start * Math.pow(1 + i, n);
-const need = Math.max(0, v.target - fromStart);
-const monthly = i === 0 ? need / n : (need * i) / (Math.pow(1 + i, n) - 1);
-const own = monthly * n + v.start;
+
+let monthly, label;
+if (isProgram) {
+ 
+monthly = programMonthlyFor(v.target, v.years, yieldPct);
+label = `megtakarítási program, ${yieldPct}% bruttó`;
+} else {
+const i = DEPOSIT_RATE / 12;
+monthly = (v.target * i) / (Math.pow(1 + i, n) - 1);
+label = "betét / állampapír, 6%";
+}
+const own = monthly * n;
+ 
+const underwater = own > v.target;
 return {
 big: ft(monthly),
 bigLabel: "szükséges havi félretétel",
-caption: `Ennyit kell havonta elhelyezned, hogy ${v.years} év alatt összegyűljön ${ft(v.target)}${v.start > 0 ? ` — a mostani ${ft(v.start)}-tal együtt` : ""}.`,
+bigSmall: monthly >= 1000000,
+caption:
+isProgram && underwater
+? `${v.years} év alatt a program kezdeti költségei még nem térülnek meg: többet kellene befizetned, mint amennyi a célösszeg. A fordulópont nagyjából a 10. év — ennél rövidebb célra betét vagy állampapír a helyes eszköz, váltsd át fent.`
+: `Ennyit kell havonta elhelyezned, hogy ${v.years} év alatt összegyűljön ${ft(v.target)} — ${label} mellett.`,
 rows: [
 ["Célösszeg", ft(v.target)],
-v.start > 0 ? ["Az induló összeg ennyire nő", ft(fromStart)] : null,
 ["Havi félretétel", ft(monthly)],
 ["Saját befizetés összesen", ft(own)],
-["Hozamból jön össze", ft(Math.max(0, v.target - own))],
+[
+underwater ? "Költség és hozam egyenlege" : "Hozamból jön össze",
+ft(v.target - own),
+],
 ],
 total: ["Cél elérése", `${v.years} év alatt`],
 note:
-"Tájékoztató számítás, a feltételezett hozam nem garantált. A konkrét eszközt a célhoz és az időtávhoz igazítjuk — ezt egy elemző beszélgetésen vesszük végig.",
+"A programra vonatkozó számítás egy tényleges, rendszeres díjas megtakarítási termék visszafejtett költséggörbéjén fut (8% és 9% bruttó hozamfeltevés, kezdeti és folyó költségek levonva, hűségbónuszok hozzáadva) — csak erre a két szintre van valós adat. A betét 6%-a feltételezés, nem konkrét ajánlat. A számítás rendszeres havi befizetéssel dolgozik; egyszeri induló összeget külön veszünk figyelembe. A hozam egyik esetben sem garantált.",
 };
 },
 },
@@ -925,34 +994,34 @@ slug: "gyerek-megtakaritas",
 cat: "megtakaritas",
 icon: I.gift,
  
-h1: "Gyerek-megtakarítás és Babakötvény",
+h1: "Gyerek-megtakarítás",
 title: "Gyerek-megtakarítás",
 navTitle: "Gyerek-megtakarítás",
-badge: "7,4% kamat",
-metric: "Babakötvény: 7,4% + támogatás",
-hook: "18 év alatt a havi 20 ezer forintból is komoly induló vagyon lesz. A kérdés nem az, hogy megéri-e, hanem hogy melyik formában.",
+badge: "18 évre tervezve",
+metric: "havi 20 e Ft → ~7,9 M Ft",
+hook: "18 év alatt a havi 20 ezer forintból is komoly induló vagyon lesz. A kérdés nem az, hogy megéri-e, hanem hogy mekkora összeggel és mikor kezded.",
 seo: {
-title: "Gyerek-megtakarítás 2026 — Babakötvény 7,4%, Start-számla, alternatívák",
-desc: "Babakötvény 2026-ban 7,4% kamat, 42 500 Ft állami induló összeg, évi 12 000 Ft támogatás. Nézd meg, mennyi lesz belőle 18 éves korra.",
+title: "Gyerek-megtakarítás 2026 — mennyi lesz belőle 18 éves korra?",
+desc: "Havi 20 000 Ft-ból 18 év alatt 7,2–7,9 millió forint — már a termék tényleges költségei után. Számold ki a saját összegeddel.",
 },
 facts: [
-{ v: "7,4%", l: "Babakötvény kamat 2026-ban (előző évi infláció + 3%)" },
-{ v: "42 500 Ft", l: "állami induló összeg Start-számla nyitásakor" },
-{ v: "max. 12 000 Ft", l: "évi állami támogatás: a befizetés 10%-a, felső korláttal" },
+{ v: "18 év", l: "ennyi idő alatt dolgozik igazán a kamatos kamat" },
+{ v: "~7,9 M Ft", l: "havi 20 000 Ft-ból, 9%-os hozamfeltevéssel, költségek után" },
+{ v: "8–9%", l: "bruttó hozamfeltevés; a kalkulátor ebből vonja le a valós költséggörbét" },
 ],
 intro:
-"A gyerekre szánt megtakarításnál 18 év a táv — ez az az időhorizont, ahol a kamatos kamat igazán dolgozik. Magyarországon a Babakötvény adja a legerősebb garantált alapot (infláció felett 3%, adómentes, költségmentes), és emellé lehet építeni rugalmasabb, magasabb hozampotenciálú részt.",
+"A gyerekre szánt megtakarításnál 18 év a táv — ez az az időhorizont, ahol a kamatos kamat igazán dolgozik, és ahol egy rendszeres díjas megtakarítási program kezdeti költségei bőven megtérülnek. A lenti kalkulátor nem elméleti kamatos kamattal számol: egy tényleges program visszafejtett költséggörbéjét használja, tehát ami ott megjelenik, az már a levonások utáni összeg.",
 how: [
-{ h: "Babakötvény + Start-számla", t: "Adómentes, inflációkövető állampapír 18 év alatti gyereknek. Start-számla nyitásakor 42 500 Ft állami induló összeg jár, a befizetésekhez évi 12 000 Ft állami támogatás. Minimum futamidő 3 év, a Start-számlára évente legfeljebb 1,2 millió forint helyezhető." },
-{ h: "Miért a legjobb alap", t: "Garantáltan infláció felett kamatozik, teljesen költségmentes, és a kamat adómentes. Ez a kombináció más terméknél nincs meg." },
-{ h: "Emellé: rugalmas rész", t: "Ha a 18. év után egyetemre, autóra, önerőre is kell, érdemes egy rugalmasabban elérhető részt is építeni. Itt jöhet szóba unit-linked megoldás vagy sima értékpapír-megtakarítás." },
+{ h: "Rendszeres, hosszú távú program", t: "Havi fix összeg, 18 éves távra. A hozam nem garantált, cserébe a részvény- és kötvényalapok hosszú távon érdemben többet hoznak, mint a bankbetét. A 18 év pont az a táv, ahol ez a kockázat a leginkább kisimul." },
+{ h: "A költség nem elhanyagolható", t: "Az első két-három év díjaiból jelentős rész megy kezdeti költségre — ezért nem szabad elméleti kamatos kamattal számolni. A kalkulátor ezt beleszámolja, és a hosszabb távon jóváírt hűségbónuszokat is." },
+{ h: "Rugalmasság és fegyelem", t: "A díj csökkenthető vagy szüneteltethető, de a program logikája a kitartásra épül: a korai megszüntetés az, ami valóban sokba kerül. Ezért a havi összeget úgy állítjuk be, hogy egy szűkebb évben is tartható legyen." },
 { h: "Kire szól a pénz", t: "Fontos döntés, hogy a megtakarítás a gyerek nevén van-e (18 évesen automatikusan hozzájut) vagy a tiéden (te döntesz a kiadásról). Ez nem technikai részlet, hanem nevelési kérdés is." },
 ],
 bullets: [
 "van gyereked vagy útban van",
 "nagyszülő vagy, és a unokára szeretnél félretenni",
 "azt akarod, hogy 18–20 évesen ne nulláról induljon",
-"nem tudod, a Babakötvény vagy a biztosítós forma jobb-e",
+"tudni akarod, mennyi marad a költségek után — nem a brosúrában szereplő bruttó hozamot",
 ],
 funnel: {
 steps: [
@@ -986,15 +1055,17 @@ q: "Kinek a nevén legyen a megtakarítás?",
 help: "A gyerek nevén lévő pénzhez 18 évesen automatikusan hozzájut.",
 type: "choice",
 opts: [
-{ v: "child", label: "A gyerek nevén", note: "Babakötvény / Start-számla logika" },
+{ v: "child", label: "A gyerek nevén", note: "18 évesen automatikusan az övé" },
 { v: "parent", label: "Az én nevemen", note: "Te döntesz a felhasználásról" },
 { v: "both", label: "Vegyesen", note: "Alap + rugalmas rész" },
 ],
 },
 ],
 calc: {
-kicker: "Babakötvény-kalkulátor",
+kicker: "Gyerek-megtakarítás kalkulátor",
 title: "Mennyi lesz 18 éves korra?",
+help:
+"A számítás egy tényleges, rendszeres díjas megtakarítási program valós költséggörbéjén fut — nem elméleti kamatos kamaton. Amit itt látsz, az már a levonások utáni összeg.",
 inputs: [
 {
 key: "monthly",
@@ -1005,69 +1076,54 @@ max: 100000,
 step: 5000,
 def: 20000,
 unit: "Ft",
-note: "A Start-számlára egy gyerek nevére évente legfeljebb 1,2 millió Ft helyezhető el.",
+note: "Azt az összeget állítsd be, ami egy szűkebb évben is tartható — a korai megszüntetés kerül igazán sokba.",
 },
 { key: "years", label: "Hátralévő évek 18 éves korig", type: "slider", min: 1, max: 18, step: 1, def: 16, unit: "év" },
 {
-key: "rate",
-label: "Feltételezett éves kamat",
+key: "yield",
+label: "Feltételezett éves bruttó hozam",
 type: "chips",
-options: [5, 7.4, 9],
-def: 7.4,
+options: PROGRAM_YIELDS,
+def: 9,
 unit: "%",
-note: "A Babakötvény kamata az előző évi infláció + 3%, tehát évente változik. A 7,4% a 2026-os érték.",
-},
-{
-key: "support",
-label: "Állami támogatás mértéke",
-type: "select",
-def: "alap",
-options: [
-{ v: "alap", label: "Alap: a befizetés 10%-a, max. 12 000 Ft/év", short: "10% / 12 e Ft" },
-{ v: "gyvk", label: "Rendszeres gyermekvédelmi kedvezmény: 20%, max. 24 000 Ft/év", short: "20% / 24 e Ft" },
-],
-note: "A támogatás a befizetés arányában jár, nem fix összeg — kis befizetésnél kevesebb.",
+note: "Csak erre a két hozamszintre van visszafejtve a termék valós költséggörbéje, ezért nincs több sáv. A hozam nem garantált.",
 },
 ],
 compute(v) {
-const rate = v.rate / 100;
-const START = 42500;
-const pct = v.support === "gyvk" ? 0.2 : 0.1;
-const capSupport = v.support === "gyvk" ? 24000 : 12000;
-const yearly = v.monthly * 12;
+const fv = programValue(v.monthly, v.years, v.yield);
+const own = v.monthly * 12 * v.years;
+const netGain = fv - own;
+const multiple = own > 0 ? fv / own : 0;
  
-const stateYearly = Math.min(yearly * pct, capSupport);
-const fv =
-futureValue(v.monthly, rate, v.years, START) +
-futureValue(stateYearly / 12, rate, v.years);
-const own = yearly * v.years;
-const stateAll = stateYearly * v.years;
+const early = netGain < 0;
 return {
 big: ft(fv),
 bigLabel: "várható összeg 18 éves korra",
-caption: `Havi ${ft(v.monthly)} félretétellel, ${v.rate}% éves kamattal, a születési 42 500 Ft-tal és az évi ${ft(stateYearly)} állami támogatással számolva.`,
+caption: early
+? `Havi ${ft(v.monthly)} félretétellel, ${v.years} év alatt ez a forma még a befizetés alatt van: a kezdeti költségek ilyen rövid távon nem térülnek meg. Ekkora távra más eszköz kell — beszéljük át.`
+: `Havi ${ft(v.monthly)} félretétellel, ${v.years} év alatt, ${v.yield}% bruttó hozamfeltevéssel — a termék költségei már levonva.`,
 rows: [
 ["Saját befizetés összesen", ft(own)],
-["Állami induló összeg", ft(START)],
-[`Állami támogatás (${v.years} év)`, ft(stateAll)],
-["Kamat összesen", ft(Math.max(0, fv - own - START - stateAll))],
-["Ebből adó és számlaköltség", "0 Ft"],
+["Nettó hozam (költségek után)", ft(netGain)],
+["A befizetés hányszorosa", multiple.toFixed(1).replace(".", ",") + "×"],
+["Levont adó a futamidő alatt", "0 Ft"],
 ],
 total: ["18 éves korra összesen", ft(fv)],
 note:
-"A Babakötvény kamata évente változik (előző évi infláció + 3%), a számítás állandó kamattal dolgozik, ezért tájékoztató jellegű. A Start-számla vezetése és a kamat adómentes. Az állami támogatás mértékét és a befizetési korlátot jogszabály határozza meg.",
+"A számítás egy konkrét, rendszeres díjas megtakarítási program visszafejtett költséggörbéjén alapul (kezdeti költség, adminisztráció, alapkezelés levonva, a hosszú távú hűségbónuszok hozzáadva), 8% és 9% bruttó hozamfeltevés mellett. A 24 évnél hosszabb távot a görbe utolsó évéből adódó nettó rátával vezetjük tovább. A hozam nem garantált, a tényleges eredmény a piactól és a választott konstrukciótól függ. Ez tájékoztató becslés, nem ajánlat.",
 };
 },
 },
 },
 faq: [
-{ q: "A Babakötvény tényleg költségmentes?", a: "Igen, a Start-számla és a Babakötvény vezetése és vásárlása díjmentes, a kamat pedig adómentes. Ez a kombináció ritka a piacon." },
-{ q: "Mennyit tehetek rá évente?", a: "A Start-számlára egy személy évente legfeljebb 1,2 millió forintot helyezhet el. A legtöbb családnál ez nem korlát, de nagyobb egyszeri összegnél számolni kell vele." },
-{ q: "Mi van, ha 18 éves korig kell a pénz?", a: "A Babakötvény minimum futamideje 3 év, de a rendszer alapvetően 18 éves korra van kitalálva. Ha valószínű, hogy előbb kell, akkor emellé kell egy rugalmasabb rész — ezt együtt tervezzük." },
-{ q: "Nagyszülőként is nyithatok ilyet?", a: "A befizetésbe bárki beszállhat. A számlanyitás és a rendelkezés szabályait a szülő/törvényes képviselő oldaláról kell megnézni." },
+{ q: "Miért nem a szokásos kamatos kamattal számol a kalkulátor?", a: "Mert az felfelé torzít. Egy rendszeres díjas programnál az első évek díjaiból jelentős rész megy kezdeti költségre, cserébe hosszú távon hűségbónusz jár. A kalkulátor egy tényleges termék visszafejtett költséggörbéjét használja, ezért amit látsz, az már a levonások utáni összeg — nem a brosúra bruttó száma." },
+{ q: "Miért csak 8% és 9% közül lehet választani?", a: "Mert csak erre a két hozamszintre van visszafejtve a termék valós költséggörbéje. Kitalálhatnék több sávot, de akkor a szám már nem a valóságon alapulna. Inkább kevesebb opció, ami viszont igaz." },
+{ q: "Mi van, ha 18 éves kor előtt kell a pénz?", a: "Ez a forma a hosszú távra van kitalálva: rövid távon a kezdeti költségek nem térülnek meg, a kalkulátor ezt meg is mutatja. Ha valószínű, hogy előbb kell, akkor emellé — vagy helyette — egy rugalmasabban elérhető rész kell. Ezt együtt tervezzük." },
+{ q: "Mennyi a minimum, amivel érdemes elkezdeni?", a: "Havi 10–20 ezer forinttal is működik. A nagyobb kérdés nem az összeg, hanem a folytonosság: egy kisebb, de végigvitt befizetés lényegesen többet hoz, mint egy nagy, amit pár év után abbahagysz." },
+{ q: "Nagyszülőként is indíthatok ilyet?", a: "Igen, a befizetésbe bárki beszállhat. A szerződő és a kedvezményezett személyét viszont tudatosan kell megválasztani — ezt az elemző beszélgetésen vesszük végig." },
 ],
 legal:
-"A Babakötvény állampapír, kamata jogszabály szerint alakul. Az itt szereplő számítás nem ajánlat és nem hozamgarancia.",
+"A megtakarítási programok hozama nem garantált, a múltbeli hozam nem jelent ígéretet a jövőre. A kalkulátor egy konkrét termék visszafejtett költséggörbéjén alapuló tájékoztató becslés — nem ajánlat, nem hozamgarancia, és nem személyre szóló befektetési tanácsadás. Ez az oldal nem foglalkozik a Babakötvénnyel és a Start-számlával.",
 },
 
  
@@ -2065,7 +2121,7 @@ legal:
 const bySlug = (slug) => SERVICES.find((s) => s.slug === slug);
 const byCat = (cat) => SERVICES.filter((s) => s.cat === cat);
 
-Object.assign(window.EP, { MINWAGE_2026, MAX_PENSION_INS, MAX_PENSION_FUND, MAX_NYESZ, MAX_PENSION_TOTAL, MAX_HEALTH_FUND, HOUSING_MONTHLY_CAP, BABY_BOND_RATE, OTTHON_START_RATE, OTTHON_START_MAX, fmt, ft, pct, annuity, futureValue, CATEGORIES, SERVICES, bySlug, byCat });
+Object.assign(window.EP, { MINWAGE_2026, MAX_PENSION_INS, MAX_PENSION_FUND, MAX_NYESZ, MAX_PENSION_TOTAL, MAX_HEALTH_FUND, HOUSING_MONTHLY_CAP, OTTHON_START_RATE, OTTHON_START_MAX, PROGRAM_YIELDS, fmt, ft, pct, annuity, futureValue, programValue, programMonthlyFor, programNetRate, CATEGORIES, SERVICES, bySlug, byCat });
 ;
 window.EP = window.EP || {};
 const QUIZ = {
@@ -2903,7 +2959,12 @@ body: JSON.stringify(payload),
 });
 return true;
 } catch (err) {
-console.error("[Érték Pont] Lead küldési hiba:", err);
+console.error(
+"[Érték Pont] Lead küldési hiba:",
+err,
+"\nEllenőrizd a CSP connect-src listáját (generate.mjs → cspMeta): " +
+"https://script.google.com ÉS https://script.googleusercontent.com is kell."
+);
 return false;
 }
 };

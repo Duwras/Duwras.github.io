@@ -173,7 +173,11 @@ Néhány szabály tartja alacsonyan a terhelést:
    tartalombiztonsági házirend meta-tagben van (`generate.mjs → cspMeta`). Ha új külső
    szolgáltatást kötsz be (Calendly-beágyazás, analitika, másik lead-végpont), vedd fel a
    megfelelő direktívába — különben a böngésző csendben blokkolja. A lead-küldés
-   (`script.google.com`) már benne van.
+   (`script.google.com`) már benne van — és vele együtt a
+   `script.googleusercontent.com` is, mert az Apps Script `/exec` végpont 302-vel
+   oda irányít át, a CSP pedig az átirányítás célját is ellenőrzi. Ha ez utóbbi
+   kimarad, a jelentkezés `Failed to fetch`-csel elszáll, és a funnel „Nem sikerült
+   elküldeni” hibát mutat.
 
 Amit szándékosan **nem** használunk, mert görgetés közben újrafestést kényszerít:
 `filter: blur()` és `mix-blend-mode` mozgó elemen, `backdrop-filter` telefonon (asztali

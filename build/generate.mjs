@@ -79,7 +79,13 @@ const PRELOAD_FONTS = ["assets/fonts/inter-latin.woff2", "assets/fonts/inter-tig
    FIGYELEM, ha bővíted az oldalt:
    - új külső script/beágyazás (pl. Calendly iframe, Google Analytics) csak
      akkor fut, ha ide is felveszed (script-src / frame-src / connect-src);
-   - a lead-küldés a script.google.com-ra megy, ezért az a connect-src-ben van;
+   - a lead-küldés a script.google.com-ra megy, ezért az a connect-src-ben van.
+     FONTOS: az Apps Script /exec végpont 302-vel átirányít a
+     script.googleusercontent.com-ra, és a CSP az átirányítás CÉLJÁT is
+     ellenőrzi. Ha az nincs engedve, a fetch elszáll ("Failed to fetch"),
+     és a funnel „Nem sikerült elküldeni” hibát mutat — ezért kell
+     mindkét origó. `no-cors` mellett a redirect:'manual' nem megoldás,
+     azt a fetch szabvány tiltja;
    - a style-src-ben azért kell 'unsafe-inline', mert a generált HTML-ben
      vannak style="..." attribútumok (pl. --reveal-delay).
    A frame-ancestors / HSTS / COOP fejlécet <meta>-ban nem lehet megadni,
@@ -94,7 +100,7 @@ function cspMeta(inlineHashes = []) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
     "font-src 'self'",
-    "connect-src 'self' https://script.google.com",
+    "connect-src 'self' https://script.google.com https://script.googleusercontent.com",
     "form-action 'self'",
     "frame-src 'none'",
     "upgrade-insecure-requests",
@@ -778,7 +784,7 @@ ${nav(0)}
           ["tamogatott-hitelek", "Otthon Start lakáshitel", "fix 3% kamat, max. 50 millió Ft, 25 év"],
           ["piaci-hitelek", "Lakáshitel és hitelkiváltás", "THM-összehasonlítás több banktól"],
           ["nyugdij-megtakaritas", "Nyugdíj-megtakarítás", "évi 280 000 Ft adójóváírásig"],
-          ["gyerek-megtakaritas", "Gyerek-megtakarítás és Babakötvény", "7,4% kamat, állami támogatással"],
+          ["gyerek-megtakaritas", "Gyerek-megtakarítás", "havi 20 e Ft-ból 18 év alatt ~7,9 M Ft"],
           ["kgfb-casco", "KGFB és casco", "évfordulós váltás, teljes piaci ár-összevetés"],
           ["szemelyi-kolcson", "Személyi kölcsön", "THM-összehasonlítás, hitelkiváltás"],
           ["dijmentes-bankszamla", "Díjmentes bankszámla", "0 Ft számlavezetés, rejtett díjak nélkül"],

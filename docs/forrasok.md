@@ -19,7 +19,6 @@ Utolsó ellenőrzés: **2026. augusztus**.
 | `MAX_PENSION_TOTAL` | 280 000 Ft | a három nyugdíjforma **együttes** felső korlátja (Szja tv. 44/A–44/C. §) |
 | `MAX_HEALTH_FUND` | 150 000 Ft | egészség-/önsegélyező pénztár max. éves adójóváírás |
 | `HOUSING_MONTHLY_CAP` | 48 420 Ft | minimálbér 15%-a — havi max. lakáshitel-törlesztés pénztárból |
-| `BABY_BOND_RATE` | 7,4% | Babakötvény kamat 2026-ban (előző évi infláció + 3%) |
 | `OTTHON_START_RATE` | 3% | Otthon Start fix kamat |
 | `OTTHON_START_MAX` | 50 000 000 Ft | Otthon Start max. hitelösszeg |
 
@@ -47,14 +46,32 @@ Utolsó ellenőrzés: **2026. augusztus**.
 - <https://net.jogtar.hu/jogszabaly?docid=a2500227.kor> — 227/2025. (VII. 31.) Korm. rendelet
 - <https://tudastar.money.hu/ismerteto/otthon-start-hitel-feltetelei-3-szazalek-lakashitel/>
 
-**Gyerek-megtakarítás, Babakötvény**
-- <https://tudastar.money.hu/ismerteto/babakotveny-start-szamla/>
-- <https://allampapirkalkulator.hu/baba>
-- <https://megtakaritasgyerekeknek.hu/babakotveny-utmutato/>
-- <https://www.allamkincstar.gov.hu/csaladok-tamogatasa/gyermekvallalas-tamogatasa/eletkezdesi-tamogatas-es-start-szamla-babakotveny>
-- Állami támogatás: a befizetés **10%-a, legfeljebb évi 12 000 Ft** (rendszeres
-  gyermekvédelmi kedvezmény esetén 20%, max. 24 000 Ft). Befizetési korlát: évi 1,2 M Ft.
-  **A kalkulátor korábban fix 12 000 Ft-tal számolt — ez kis befizetésnél túlbecsült, javítva.**
+**Gyerek-megtakarítás**
+- Az oldal **szándékosan nem foglalkozik a Babakötvénnyel és a Start-számlával**, ezért
+  a korábbi állami induló összeg (42 500 Ft), az évi 10% / max. 12 000 Ft állami támogatás
+  és a 7,4%-os babakötvény-kamat kikerült a kalkulátorból és a szövegekből.
+- A számítás alapja most a `PROGRAM_COEF` költséggörbe (lásd lent).
+
+**Rendszeres díjas megtakarítási program — valós költséggörbe (`PROGRAM_COEF`)**
+- Forrás: a saját tanácsadói eszköz, `hitelfedezeti_tanacsadoi_eszkoz_v8.2.html` →
+  „Okoshitel” modul, `COEF8` / `COEF9` sorok. Azok a „Másolat - Hitelkalkulátor 2024.xlsx”
+  rejtett *Öngondoskodási terv* lapjáról vannak visszafejtve.
+- Tartalom: 25 000 Ft/hó befizetés mellett a felhalmozott érték az 1–24. év végén,
+  **már levonva** a kezdeti egység-, adminisztrációs és alapkezelési költséget, és
+  **hozzáadva** a hűségbónuszokat (látható ugrás a 10., 15. és 20. évnél).
+- Hozamszintek: **csak 8% és 9%** — a forrás sem definiál mást. Ezért kínálnak a
+  kalkulátorok is csak ezt a két sávot; ez tudatos korlát, nem hiányosság.
+- A görbe a havi díjban lineáris, ezért tetszőleges összegre átskálázható, és a
+  „célösszeg → havi díj” irány pontosan invertálható (`programMonthlyFor`).
+- **Eltérés a forrástól:** a 24. év után a forrás-eszköz lineáris növekménnyel
+  (`INCR`) folytatja. Az egy hitel-végtörlesztésre jó közelítés, de egy 30–40 éves
+  nyugdíjtávot drasztikusan alábecsülne. Itt ehelyett a görbe utolsó teljes évéből
+  adódó nettó rátával kamatozik tovább (8%-os görbe → ~7,03%, 9%-os → ~7,98%).
+  Ez a görbe kiterjesztése, nem forrásadat — a kalkulátorok jegyzete ki is mondja.
+- Hol használjuk: `gyerek-megtakaritas`, `nyugdij-megtakaritas`,
+  `szabad-felhasznalasu-megtakaritas` (program-módban).
+- A `szabad-felhasznalasu-megtakaritas` betét-módjának 6%-a **feltételezés**, nem
+  konkrét banki ajánlat.
 
 **KGFB / casco**
 - <https://grantis.hu/kotelezo-biztositas-valtas/>
@@ -95,10 +112,11 @@ Utolsó ellenőrzés: **2026. augusztus**.
 Évente **január elején** érdemes átnézni:
 
 1. minimálbér → ezzel változik a `HOUSING_MONTHLY_CAP` és az iskolakezdési keret,
-2. Babakötvény kamat (előző évi infláció + 3%),
-3. adójóváírási plafonok,
-4. Otthon Start (vagy az azt felváltó program) feltételei,
-5. magán egészségbiztosítás adóterhelése.
+2. adójóváírási plafonok,
+3. Otthon Start (vagy az azt felváltó program) feltételei,
+4. magán egészségbiztosítás adóterhelése,
+5. a `PROGRAM_COEF` költséggörbe — ha a tanácsadói eszközben frissül a
+   `COEF8` / `COEF9` sor, ide is át kell vezetni.
 
 Módosítás után futtasd újra a generátort:
 

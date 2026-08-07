@@ -46,7 +46,16 @@
       });
       return true;
     } catch (err) {
-      console.error("[Érték Pont] Lead küldési hiba:", err);
+      /* A leggyakoribb ok nem hálózati hiba, hanem CSP: az Apps Script /exec
+         302-vel a script.googleusercontent.com-ra irányít, és a házirend az
+         átirányítás célját is ellenőrzi. Ha ez hiányzik a connect-src-ből,
+         itt "Failed to fetch" jön — a konzol előző sora mondja meg. */
+      console.error(
+        "[Érték Pont] Lead küldési hiba:",
+        err,
+        "\nEllenőrizd a CSP connect-src listáját (generate.mjs → cspMeta): " +
+          "https://script.google.com ÉS https://script.googleusercontent.com is kell."
+      );
       return false;
     }
   };
