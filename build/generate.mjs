@@ -236,6 +236,18 @@ function stickyCta(depth = 0) {
 </div>`;
 }
 
+/* Ki készítette az oldalt. A név a config-ból jön (`siteCredit`), hogy ne
+   kelljen 17 HTML-t átírni, ha változik. URL nélkül sima szöveg marad. */
+function siteCredit() {
+  const name = cfg("siteCredit.name");
+  if (!name) return "";
+  const url = cfg("siteCredit.url");
+  const who = url
+    ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(name)}</a>`
+    : `<span>${esc(name)}</span>`;
+  return `<p class="footer__credit">Az oldalt készítette: ${who}</p>`;
+}
+
 function footer(depth = 0) {
   const up = upOf(depth);
   const catBlock = (c) => `
@@ -306,6 +318,7 @@ function footer(depth = 0) {
         <a href="${up}adatkezeles.html">Adatkezelési tájékoztató</a>
       </span>
     </div>
+    ${siteCredit()}
   </div>
 </footer>
 

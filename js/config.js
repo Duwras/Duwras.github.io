@@ -132,6 +132,14 @@ window.EP.CONFIG = {
   leadEndpoint:
     "https://script.google.com/macros/s/AKfycbw8k8XaYf8R7nutRBOUiMZiqhrBMJP2tlPDdkaRXNRjiPWdkAylqGUD5q_SEl-zFlEZ/exec",
 
+  /* --- Ki készítette az oldalt (lábléc, minden lapon) ------------------
+     A `url` üresen hagyva sima szöveg lesz belőle, link nélkül. Ha lesz
+     saját weboldal, ide kerül — a generátor magától linkké alakítja.     */
+  siteCredit: {
+    name: "StratosWeb",
+    url: "",
+  },
+
   /* --- Referenciák (csak valós ügyfél-vélemény kerüljön be) ----------- */
   testimonials: [],
 };

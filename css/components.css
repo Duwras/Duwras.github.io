@@ -557,6 +557,19 @@
   font-size: var(--fs-xs);
   color: var(--text-mute);
 }
+/* Készítői kredit: a lábléc legalja, saját sorban a jogi sáv alatt. */
+.footer__credit {
+  margin-top: var(--space-4);
+  font-size: var(--fs-xs);
+  color: var(--text-mute);
+}
+.footer__credit span,
+.footer__credit a {
+  color: var(--text-soft);
+  font-weight: 620;
+}
+.footer__credit a { transition: color var(--t-fast); }
+.footer__credit a:hover { color: var(--lime-text); }
 .powered {
   font-family: var(--font-mono);
   font-size: var(--fs-micro);
