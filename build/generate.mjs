@@ -237,15 +237,25 @@ function stickyCta(depth = 0) {
 }
 
 /* Ki készítette az oldalt. A név a config-ból jön (`siteCredit`), hogy ne
-   kelljen 17 HTML-t átírni, ha változik. URL nélkül sima szöveg marad. */
-function siteCredit() {
+   kelljen 17 HTML-t átírni, ha változik. URL nélkül sima szöveg marad.
+
+   A saját domainre mutató cím RELATÍV belső linkké alakul: így nem nyit új
+   lapot a saját oldalunkra, és aloldalról is jó helyre visz (a `up` előtag
+   miatt), akkor is, ha a domain valaha változna. Idegen domain kap
+   target="_blank" rel="noopener"-t. */
+function siteCredit(up = "") {
   const name = cfg("siteCredit.name");
   if (!name) return "";
-  const url = cfg("siteCredit.url");
-  const who = url
-    ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(name)}</a>`
-    : `<span>${esc(name)}</span>`;
-  return `<p class="footer__credit">Az oldalt készítette: ${who}</p>`;
+  const url = String(cfg("siteCredit.url") || "").trim();
+  if (!url) return `<p class="footer__credit">Az oldalt készítette: <span>${esc(name)}</span></p>`;
+
+  const own = new RegExp(`^https?://(www\\.)?${CFG.domain.replace(/\./g, "\\.")}(${BASE}|)/?`, "i");
+  const internal = own.test(url);
+  const href = internal
+    ? up + (url.replace(own, "").replace(/^\/+/, "") || "index.html")
+    : url;
+  const attrs = internal ? "" : ' target="_blank" rel="noopener"';
+  return `<p class="footer__credit">Az oldalt készítette: <a href="${esc(href)}"${attrs}>${esc(name)}</a></p>`;
 }
 
 function footer(depth = 0) {
@@ -318,7 +328,7 @@ function footer(depth = 0) {
         <a href="${up}adatkezeles.html">Adatkezelési tájékoztató</a>
       </span>
     </div>
-    ${siteCredit()}
+    ${siteCredit(up)}
   </div>
 </footer>
 

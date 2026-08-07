@@ -133,11 +133,13 @@ window.EP.CONFIG = {
     "https://script.google.com/macros/s/AKfycbw8k8XaYf8R7nutRBOUiMZiqhrBMJP2tlPDdkaRXNRjiPWdkAylqGUD5q_SEl-zFlEZ/exec",
 
   /* --- Ki készítette az oldalt (lábléc, minden lapon) ------------------
-     A `url` üresen hagyva sima szöveg lesz belőle, link nélkül. Ha lesz
-     saját weboldal, ide kerül — a generátor magától linkké alakítja.     */
+     A `url` üresen hagyva sima szöveg lesz belőle, link nélkül.
+     A generátor megnézi, hova mutat: saját domainre mutató cím belső,
+     relatív linkké alakul (nem nyit új lapot), idegen domain viszont
+     target="_blank" rel="noopener" attribútumot kap.                     */
   siteCredit: {
     name: "StratosWeb",
-    url: "",
+    url: "https://ertekpontpenzugyek.hu/index.html",
   },
 
   /* --- Referenciák (csak valós ügyfél-vélemény kerüljön be) ----------- */
