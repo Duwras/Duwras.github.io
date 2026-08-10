@@ -62,7 +62,8 @@ js/3d.js                    ← GENERÁLT: a három 3D script egy fájlban (csak
 
 js/config.js                ← ITT állítod be a saját adataidat
 js/data/services.js         ← A TARTALOM: 13 szolgáltatás szövege, számai, funnelje, kalkulátora
-js/data/quiz.js             ← a Pénzügyi Térkép kérdései és pontozása
+js/data/quiz.js             ← a Pénzügyi Térkép kérdései, pontozása, jogosultsági
+                              szabályai (`ELIGIBLE`) és az indoklások (`REASON`)
 js/core/rt.js               ← EGY rAF hurok + EGY scroll-busz az egész oldalra
 js/core/ui.js               ← reveal, nav, akkordeon, számlálók, süti banner
 js/funnel.js                ← funnel motor (kérdés → kalkulátor → eredmény → lead)

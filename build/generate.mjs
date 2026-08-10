@@ -660,8 +660,9 @@ ${nav(0)}
           <h2 class="h2 sec-head__title" data-reveal>Pénzügyi Térkép</h2>
         </div>
         <p class="lead" data-reveal>
-          Hat kérdés, kb. egy perc. A végén megmutatom, melyik három téma hozza neked most a
-          legtöbb pénzt vagy a legnagyobb biztonságot — és mindegyikhez ott lesz a konkrét szám.
+          Hét gyors kérdés, kb. egy perc. A végén megmutatom, melyik három téma hozza neked most a
+          legtöbb pénzt vagy a legnagyobb biztonságot, mindegyikhez a konkrét számmal — és azt is,
+          mit miért hagytam ki a listádról.
         </p>
       </div>
       <div class="funnel-narrow" data-funnel="map" data-reveal="scale"></div>
@@ -1124,7 +1125,7 @@ ${nav(1)}
         <span class="label" style="color:var(--lime-ink);opacity:.7">Nem vagy biztos, hogy ez a téma a tiéd?</span>
         <h2 class="h2" style="margin-top:.75rem;max-width:26ch">Töltsd ki a Pénzügyi Térképet — 1 perc.</h2>
         <p style="margin-top:1rem;max-width:52ch;opacity:.8">
-          Hat kérdés alapján megmutatom, melyik három terület hozza neked most a legtöbbet.
+          Hét gyors kérdés alapján megmutatom, melyik három terület hozza neked most a legtöbbet.
         </p>
         <div class="hero__actions">
           <a class="btn btn--dark btn--lg" href="../index.html#terkep"><span class="btn__label">Pénzügyi Térkép</span><span class="btn__arrow">${ARROW}</span></a>

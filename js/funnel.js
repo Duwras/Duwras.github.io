@@ -1,7 +1,7 @@
 /* ==========================================================================
    FUNNEL MOTOR
    Kétféle üzemmód:
-     type: "map"     → globális Pénzügyi Térkép (6 kérdés → top 3 javaslat)
+     type: "map"     → globális Pénzügyi Térkép (7 kérdés + 1 feltételes → top 3)
      type: "service" → egy szolgáltatás funnelje (kérdések → kalkulátor → lead)
    Használat:  EP.Funnel.mount(el, { type: "service", slug: "nyugdij-..." })
    ========================================================================== */
@@ -33,19 +33,21 @@
       this.build();
     }
 
-    /* --- lépéslista összeállítása ------------------------------------- */
+    /* --- lépéslista összeállítása -------------------------------------
+       SZÁNDÉKOSAN nincs gyorsítótár: a Térkép egyes kérdései feltételesek
+       (`when`), és a feltétel a korábbi válaszoktól függ. Ha egy válasz
+       megváltozik, a lépéslistának is változnia kell — egy elmentett lista
+       ilyenkor elavult kérdést mutatna, vagy kihagyna egyet. */
     get steps() {
-      if (this._steps) return this._steps;
       const list = [];
       if (this.type === "map") {
-        window.EP.QUIZ.steps.forEach((s) => list.push({ kind: "choice", data: s }));
+        window.EP.QUIZ.visibleSteps(this.answers).forEach((s) => list.push({ kind: "choice", data: s }));
       } else {
         (this.svc.funnel.steps || []).forEach((s) => list.push({ kind: "choice", data: s }));
         if (this.svc.funnel.calc) list.push({ kind: "calc", data: this.svc.funnel.calc });
       }
       list.push({ kind: "result" });
       list.push({ kind: "thanks" });
-      this._steps = list;
       return list;
     }
 
@@ -188,12 +190,22 @@
           const opt = q.opts.find((o) => String(o.v) === raw);
           const val = opt ? opt.v : raw;
           if (multi) {
-            const arr = Array.isArray(this.answers[q.id]) ? this.answers[q.id].slice() : [];
+            let arr = Array.isArray(this.answers[q.id]) ? this.answers[q.id].slice() : [];
             const i = arr.indexOf(val);
             if (i >= 0) arr.splice(i, 1);
             else arr.push(val);
+            /* Kizáró opció ("Nincs futó hitelem"): nem állhat együtt a
+               többivel, mert az önmagának mondana ellent. Ha ezt választja,
+               a többi kiürül; ha a többiből választ, ez esik ki. */
+            if (opt && opt.exclusive && arr.includes(val)) arr = [val];
+            else if (opt && !opt.exclusive) {
+              const excl = q.opts.filter((o) => o.exclusive).map((o) => o.v);
+              arr = arr.filter((x) => !excl.includes(x));
+            }
             this.answers[q.id] = arr;
-            btn.classList.toggle("is-picked");
+            $$(".opt", this.body).forEach((b) =>
+              b.classList.toggle("is-picked", arr.map(String).includes(String(b.dataset.v)))
+            );
             this.hint.textContent = arr.length
               ? arr.length + " kiválasztva"
               : "Több választ is megjelölhetsz";
@@ -384,7 +396,8 @@
       let sub = "";
 
       if (isMap) {
-        const ranked = window.EP.QUIZ.score(this.answers).slice(0, 3);
+        const ranked = window.EP.QUIZ.top(this.answers, 3);
+        const notes = window.EP.QUIZ.notes(this.answers);
         this.reco = ranked.map((r) => r.slug);
         headline = "Ez a három téma hozza neked most a legtöbbet";
         sub =
@@ -398,13 +411,21 @@
                 <span class="reco__rank">0${i + 1}</span>
                 <span class="reco__body">
                   <strong>${esc(s.title)}</strong>
-                  <span>${esc(s.metric)} — ${esc(s.hook.slice(0, 92))}…</span>
+                  <span>${esc(s.metric)} — ${esc(r.reason || s.hook)}</span>
                 </span>
                 ${ICON_ARROW}
               </a>`;
             })
             .join("")}
-        </div>`;
+        </div>
+        ${
+          notes.length
+            ? `<div class="map-notes">
+                 <span class="label">Amit szándékosan kihagytam</span>
+                 ${notes.map((t) => `<p>${esc(t)}</p>`).join("")}
+               </div>`
+            : ""
+        }`;
       } else {
         headline = "Kész a helyzetkép";
         sub =

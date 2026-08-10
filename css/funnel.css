@@ -390,7 +390,31 @@
 }
 .reco__body { flex: 1; }
 .reco__body strong { display: block; letter-spacing: -0.015em; }
-.reco__body span { font-size: var(--fs-xs); color: var(--text-mute); }
+/* Az indoklás a válaszokból generált, teljes mondat — nem csonkolt hook,
+   ezért több sor is lehet. Blokként kell viselkednie, hogy legyen sorköze. */
+.reco__body span {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--fs-xs);
+  line-height: 1.55;
+  color: var(--text-mute);
+}
+
+/* „Amit szándékosan kihagytam" — a kizárások indoklása az ajánlások alatt.
+   Halványabb, mint a javaslatok, de nem elrejtve: ez teszi ellenőrizhetővé
+   a listát. */
+.map-notes {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  border-radius: var(--r-md);
+  border: 1px dashed var(--line-soft);
+}
+.map-notes p {
+  margin-top: var(--space-2);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  color: var(--text-mute);
+}
 
 /* --- Lead form -------------------------------------------------------- */
 

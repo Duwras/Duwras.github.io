@@ -2133,10 +2133,162 @@ const byCat = (cat) => SERVICES.filter((s) => s.cat === cat);
 Object.assign(window.EP, { MINWAGE_2026, MAX_PENSION_INS, MAX_PENSION_FUND, MAX_NYESZ, MAX_PENSION_TOTAL, MAX_HEALTH_FUND, HOUSING_MONTHLY_CAP, OTTHON_START_RATE, OTTHON_START_MAX, PROGRAM_YIELDS, fmt, ft, pct, annuity, futureValue, programValue, programMonthlyFor, programNetRate, programNetYield, CATEGORIES, SERVICES, bySlug, byCat });
 ;
 window.EP = window.EP || {};
+const asList = (v) => (Array.isArray(v) ? v : v == null ? [] : [v]);
+function facts(a) {
+const debt = asList(a.debt).filter((d) => d && d !== "none");
+const consumer = debt.length > 0;
+return {
+debt,
+kids: a.life === "smallkids" || a.life === "schoolkids" || a.tax === "exempt",
+household: a.life === "couple" || a.life === "smallkids" || a.life === "schoolkids",
+mortgage: a.home === "loan",
+buying: a.home === "plan",
+firstHome: a.home === "rent" || a.home === "plan" || a.home === "withparents",
+property: a.home === "own" || a.home === "loan",
+consumerDebt: consumer,
+expensiveDebt: debt.includes("card") || debt.includes("other"),
+anyDebt: consumer || a.home === "loan",
+taxpayer: a.tax !== "exempt",
+hasCar: a.car && a.car !== "none",
+};
+}
+const ELIGIBLE = {
+"kgfb-casco": (a, f) => f.hasCar,
+"tamogatott-hitelek": (a, f) => f.firstHome,
+"piaci-hitelek": (a, f) => f.property || f.buying,
+"szemelyi-kolcson": (a, f) => f.consumerDebt || a.pain === "money" || a.car === "buy",
+"adokedvezmeny-lakashitel": (a, f) => (f.mortgage || f.buying) && f.taxpayer,
+"nyugdij-megtakaritas": (a, f) => f.taxpayer,
+"adokedvezmeny-gyerek-no": (a, f) => f.taxpayer && (f.kids || a.health !== "rare"),
+"gyerek-megtakaritas": (a, f) => f.kids,
+"elet-biztositas": (a, f) => f.household || f.mortgage || f.buying || f.anyDebt,
+};
+const FALLBACK = [
+"dijmentes-bankszamla",
+"szabad-felhasznalasu-megtakaritas",
+"baleset-biztositas",
+"egeszsegbiztositas",
+];
+const TIEBREAK = [
+"adokedvezmeny-lakashitel",
+"adokedvezmeny-gyerek-no",
+"szemelyi-kolcson",
+"kgfb-casco",
+"nyugdij-megtakaritas",
+"piaci-hitelek",
+"tamogatott-hitelek",
+"elet-biztositas",
+"egeszsegbiztositas",
+"baleset-biztositas",
+"gyerek-megtakaritas",
+"szabad-felhasznalasu-megtakaritas",
+"dijmentes-bankszamla",
+];
+const REASON = {
+"adokedvezmeny-lakashitel": (a, f) =>
+f.buying
+? "Most induló lakáshitelnél ezt egyből be lehet állítani: a törlesztés egy részét a pénztár fizeti, és arra 20% állami jóváírás jár."
+: "Van élő lakáshiteled, és fizetsz szja-t — ez a kombináció adóstársanként évi 116 ezer forint körüli visszatérítést jelent ugyanarra a törlesztőre.",
+"adokedvezmeny-gyerek-no": (a, f) =>
+f.kids
+? "Tanszer, szemüveg, gyógyszer, fogszabályzó: ezeket a család úgyis kifizeti. Pénztáron keresztül a NAV visszaad belőle 20%-ot, évi 150 ezer forintig."
+: "Nem csak gyerekre szól: gyógyszer, szemüveg, fogászat és magánorvosi számla is elszámolható — a befizetésed 20%-át visszakapod az adódból.",
+"nyugdij-megtakaritas": (a, f) =>
+a.life === "mature"
+? "50 felett a kamatos kamat már kevesebbet hoz, az évi akár 280 ezer forint adójóváírás viszont ugyanúgy jár — itt ez a főszereplő."
+: a.pain === "notax"
+? "Ha sok az adód, ez a legjobban fizető legális szabály: minden befizetés 20%-át visszakapod, évi 280 ezer forintig."
+: "Van előtted elég idő ahhoz, hogy a 20% állami jóváírás és a kamatos kamat együtt dolgozzon — ez a kettő adja a hozam nagyobbik részét.",
+"szemelyi-kolcson": (a, f) => {
+if (a.car === "buy" && (!a.debtgoal || a.debtgoal === "fine"))
+return "Autóvásárláshoz fedezet nélkül is van megoldás — de a THM-ek között két-háromszoros a szórás ugyanarra az összegre.";
+if (f.consumerDebt) {
+const drága = f.expensiveDebt
+? "A hitelkártya és az áruhitel THM-je gyakran a duplája-triplája egy jó személyi kölcsönnek. "
+: "";
+if (a.debtgoal === "lower")
+return drága + "Kiváltással a havi törlesztő csökkenthető — akár hosszabb futamidővel, ha most a mozgástér a fontosabb.";
+if (a.debtgoal === "faster")
+return drága + "Kiváltással ugyanekkora törlesztő mellett rövidülhet a futamidő: hamarabb lesz vége, és összesen kevesebb kamatot fizetsz.";
+if (a.debtgoal === "cheaper")
+return drága + "A mérce a teljes visszafizetés, nem a havi törlesztő. Alacsonyabb THM-en ugyanaz a tartozás milliókkal kevesebbe kerülhet.";
+return drága + "Fut egy tartozásod — érdemes megnézni, mennyivel olcsóbb ma ugyanez. A kiváltás lehet kisebb törlesztő, rövidebb futamidő vagy kevesebb teljes költség.";
+}
+return a.car === "buy"
+? "Autóvásárláshoz fedezet nélkül is van megoldás — de a THM-ek között két-háromszoros a szórás ugyanarra az összegre."
+: "Egyszeri, tervezett kiadásra ez a leggyorsabb út. A döntés nem a havi törlesztőn, hanem a THM-en és a teljes visszafizetésen múlik.";
+},
+"piaci-hitelek": (a, f) =>
+f.mortgage
+? a.debtgoal === "lower"
+? "A lakáshitel kiváltása a havi törlesztőn látszik meg először — akár hosszabb futamidővel. A kiváltás költségeit (végtörlesztés, értékbecslés, közjegyző) előre beleszámoljuk."
+: a.debtgoal === "faster"
+? "Alacsonyabb kamaton ugyanekkora törlesztővel rövidebb futamidő is kijön. A kiváltás egyszeri költségét előre kiszámoljuk, hogy lásd, mennyi idő alatt térül meg."
+: a.debtgoal === "cheaper"
+? "20 éven és 30 millión már 1% kamatkülönbség is milliós tétel a teljes visszafizetésben. Ezt konkrét számokkal nézzük meg — ha nem jön ki, azt mondom meg."
+: "Egy néhány éve felvett lakáshitel gyakran cserélhető kedvezőbbre. A kiváltás költségeit (végtörlesztés, értékbecslés, közjegyző) előre kiszámoljuk — ha nem jön ki, azt mondom meg."
+: f.buying
+? "Ha nem férsz bele az Otthon Start feltételeibe vagy nagyobb összeg kell, itt a bankok közti szórás milliós tétel a futamidő végére."
+: "Saját ingatlan fedezetként felújításra vagy nagyobb célra jóval olcsóbb pénzt jelent, mint a fedezetlen hitel.",
+"tamogatott-hitelek": (a, f) =>
+"Az Otthon Start fix 3%-a nem akció, hanem jogszabály — és első lakás szerzésére szól, ami rád illik. A kérdés csak a jogosultság: TB-jogviszony, ingatlanárak, saját erő.",
+"kgfb-casco": (a, f) =>
+a.car === "buy"
+? "Új autónál a KGFB és a casco egyszerre dől el — most lehet a legolcsóbban jól választani, később csak évfordulón."
+: "Az évfordulós értesítőben szereplő új díj szinte mindig magasabb, mint amit ma új szerződésként kapnál. A felmondásnak az évforduló előtti 30. napig be kell érkeznie.",
+"elet-biztositas": (a, f) =>
+f.mortgage || f.buying
+? "A lakáshitel akkor is fizetendő, ha te nem vagy. Ez a szerződés pontosan ezt a lyukat fedi le — a fedezet a hitel és a hátralévő évek alapján számolható."
+: "Van, aki anyagilag rád van utalva. A kérdés nem az, hogy szükség van-e rá, hanem hogy mekkora összegre és meddig.",
+"egeszsegbiztositas": (a, f) =>
+a.health === "waited"
+? "Azt írtad, hónapokat vártál. Az előfizetéses forma pont ezt váltja ki: napok a hónapok helyett, a TB mellett, nem helyette."
+: a.health === "private"
+? "Ha amúgy is zsebből fizeted a magánellátást, az előfizetés jellemzően olcsóbb ugyanazért — és a pénztári elszámolással adóelőnyt is hoz."
+: "Nem a betegség a kérdés, hanem hogy mikor kerülsz sorra. Ez az a terület, ahol a legnagyobb az életszínvonal-nyereség forintra vetítve.",
+"baleset-biztositas": (a, f) =>
+"Egy csonttörés nem tragédia — a kieső jövedelem viszont az. A táppénz nem a teljes béred, és ezt a rést olcsón be lehet zárni.",
+"gyerek-megtakaritas": (a, f) =>
+"18 év alatt a havi húszezerből is komoly induló vagyon lesz. A kérdés nem az, hogy megéri-e, hanem hogy mikor kezded — a korai évek hozzák a legtöbbet.",
+"szabad-felhasznalasu-megtakaritas": (a, f) =>
+a.pain === "nosave"
+? "Először azt nézzük meg, honnan szabadul fel a havi keret — utána jöhet a rendszeres félretétel. Kis összeggel is működik, a folytonosság hozza."
+: f.consumerDebt
+? "A tartozás rendezése mellett is kell egy vésztartalék, különben a következő váratlan kiadás megint hitellel végződik."
+: "Nem minden cél a nyugdíj. Ehhez olyan megtakarítás kell, amihez hozzáférsz, amikor tényleg kell — a táv dönti el, milyen eszközzel.",
+"dijmentes-bankszamla": (a, f) =>
+"A bankköltség az a kiadás, amiért semmit nem kapsz. Van olyan számla, ahol feltétel nélkül 0 Ft a vezetés — ez a leggyorsabban meghozható döntés a listán.",
+};
+function buildNotes(a, f) {
+const out = [];
+if (!f.taxpayer)
+out.push(
+"Mivel most nem fizetsz szja-t, a 20%-os állami jóváírásokat (nyugdíj, egészségpénztár, lakáshitel-törlesztés) kihagytam a listáról — ezek szja nélkül nem érvényesíthetők. Ha a párod fizet szja-t, nála viszont működhetnek: ezt átnézzük."
+);
+if (a.pain === "notax" && !f.taxpayer)
+out.push(
+"Azt jelölted, hogy sok az adód, de azt is, hogy nem fizetsz szja-t. Ez a kettő kizárja egymást — beszéljük meg, pontosan melyik a helyzet, mert ettől függ a fél lista."
+);
+if (f.property && !f.firstHome && a.pain === "money")
+out.push(
+"Az Otthon Start első lakás szerzésére szól, ezért nálad nem szerepel. Piaci hitelnél viszont a bankok közti különbség milliós tétel — ott van mit nézni."
+);
+if (a.pain === "nosave" && f.anyDebt)
+out.push(
+"Azt írtad, nem marad félretenni való, és hitel is fut. Ilyenkor a sorrend számít: előbb a legdrágább tartozás és a fix költségek, csak utána a megtakarítás — fordítva nem működik."
+);
+if (f.expensiveDebt && a.debtgoal === "lower")
+out.push(
+"A hosszabb futamidő kisebb törlesztőt ad, de összesen többet fizetsz. Ez legitim döntés, ha most a havi mozgástér a fontos — csak tudni kell, mi az ára. A kalkulátorban mindkét irány kijön."
+);
+if (a.car === "none")
+out.push("Autó nélkül a KGFB és a casco téma kimarad — ezt a kérdést emiatt nem is számoltam bele.");
+return out.slice(0, 3);
+}
 const QUIZ = {
 title: "Pénzügyi Térkép",
 lead:
-"Hat kérdés, kb. egy perc. A végén megmutatom, melyik három téma hozza neked most a legtöbb pénzt vagy a legnagyobb biztonságot — és mennyi az a szám.",
+"Hét gyors kérdés, kb. egy perc. A végén megmutatom, melyik három téma hozza neked most a legtöbb pénzt vagy a legnagyobb biztonságot — és azt is, mit miért hagytam ki.",
 steps: [
 {
 id: "life",
@@ -2147,13 +2299,13 @@ opts: [
 v: "single",
 label: "Egyedül, még építem",
 note: "Karrier kezdet, első komolyabb megtakarítások",
-w: { "nyugdij-megtakaritas": 3, "szabad-felhasznalasu-megtakaritas": 3, "dijmentes-bankszamla": 2, "baleset-biztositas": 1 },
+w: { "nyugdij-megtakaritas": 3, "szabad-felhasznalasu-megtakaritas": 3, "dijmentes-bankszamla": 2, "baleset-biztositas": 2 },
 },
 {
 v: "couple",
 label: "Párban, gyerek még nincs",
 note: "Közös célok, lakás, tartalék",
-w: { "tamogatott-hitelek": 3, "szabad-felhasznalasu-megtakaritas": 2, "nyugdij-megtakaritas": 2, "egeszsegbiztositas": 1 },
+w: { "tamogatott-hitelek": 3, "szabad-felhasznalasu-megtakaritas": 2, "nyugdij-megtakaritas": 2, "elet-biztositas": 1, "egeszsegbiztositas": 1 },
 },
 {
 v: "smallkids",
@@ -2163,7 +2315,7 @@ w: { "adokedvezmeny-gyerek-no": 4, "gyerek-megtakaritas": 3, "elet-biztositas": 
 },
 {
 v: "schoolkids",
-label: "Iskolás/nagyobb gyerekek",
+label: "Iskolás vagy nagyobb gyerekek",
 note: "Tanszer, sport, jövőtervezés",
 w: { "adokedvezmeny-gyerek-no": 4, "gyerek-megtakaritas": 3, "baleset-biztositas": 2, "nyugdij-megtakaritas": 2 },
 },
@@ -2181,16 +2333,22 @@ kicker: "Lakhatás",
 q: "Hogy állsz a lakhatással?",
 opts: [
 {
+v: "withparents",
+label: "Családnál lakom",
+note: "Nincs lakhatási költség — most lehet a legtöbbet félretenni",
+w: { "szabad-felhasznalasu-megtakaritas": 4, "tamogatott-hitelek": 3, "nyugdij-megtakaritas": 2 },
+},
+{
 v: "rent",
 label: "Bérlek",
 note: "A saját lakás a cél",
-w: { "tamogatott-hitelek": 4, "szabad-felhasznalasu-megtakaritas": 3 },
+w: { "tamogatott-hitelek": 4, "szabad-felhasznalasu-megtakaritas": 3, "dijmentes-bankszamla": 1 },
 },
 {
 v: "plan",
 label: "Most vásárolnék elsőként",
 note: "Otthon Start-terület",
-w: { "tamogatott-hitelek": 5, "piaci-hitelek": 2, "szabad-felhasznalasu-megtakaritas": 2 },
+w: { "tamogatott-hitelek": 5, "piaci-hitelek": 2, "szabad-felhasznalasu-megtakaritas": 2, "elet-biztositas": 1 },
 },
 {
 v: "loan",
@@ -2228,7 +2386,80 @@ w: { "kgfb-casco": 3, "baleset-biztositas": 1 },
 v: "buy",
 label: "Most veszek autót",
 note: "Hitel + biztosítás egyszerre",
-w: { "kgfb-casco": 4, "szemelyi-kolcson": 2 },
+w: { "kgfb-casco": 4, "szemelyi-kolcson": 3 },
+},
+],
+},
+{
+id: "debt",
+kicker: "Hitelek",
+q: "A lakhatáson kívül van futó hiteled?",
+help: "Több választ is megjelölhetsz. A kiváltás itt szokta hozni a legtöbbet.",
+multi: true,
+opts: [
+{
+v: "none",
+label: "Nincs futó hitelem",
+note: "A szabad kapacitás mehet megtakarításra",
+exclusive: true,
+w: { "szabad-felhasznalasu-megtakaritas": 2, "nyugdij-megtakaritas": 1 },
+},
+{
+v: "personal",
+label: "Személyi kölcsön",
+note: "Kiváltással gyakran csökkenthető a THM",
+w: { "szemelyi-kolcson": 5 },
+},
+{
+v: "card",
+label: "Hitelkártya, áruhitel, folyószámlahitel",
+note: "Itt a legmagasabb a THM — ez a legdrágább pénz",
+w: { "szemelyi-kolcson": 5, "dijmentes-bankszamla": 2 },
+},
+{
+v: "carloan",
+label: "Autóhitel vagy lízing",
+note: "A biztosítással együtt érdemes nézni",
+w: { "szemelyi-kolcson": 3, "kgfb-casco": 1 },
+},
+{
+v: "other",
+label: "Egyéb tartozás, részletfizetés",
+note: "Több kis részlet együtt is sokat visz el",
+w: { "szemelyi-kolcson": 3, "dijmentes-bankszamla": 1 },
+},
+],
+},
+{
+id: "debtgoal",
+kicker: "Cél a hitelekkel",
+q: "Mi lenne most a legjobb megoldás a futó hiteleidre?",
+help: "A lakáshitelre és a fedezetlen hitelekre egyaránt vonatkozik. Kiváltásnál mindhárom irány létezik — csak nem ugyanaz az áruk.",
+when: (a) => facts(a).anyDebt,
+opts: [
+{
+v: "lower",
+label: "Legyen kisebb a havi törlesztő",
+note: "Akár hosszabb futamidővel — most a mozgástér a fontos",
+w: { "szemelyi-kolcson": 4, "piaci-hitelek": 3, "dijmentes-bankszamla": 1 },
+},
+{
+v: "faster",
+label: "Legyen hamarabb vége",
+note: "Ugyanennyi törlesztő, rövidebb futamidő, kevesebb kamat",
+w: { "szemelyi-kolcson": 4, "piaci-hitelek": 3, "szabad-felhasznalasu-megtakaritas": 1 },
+},
+{
+v: "cheaper",
+label: "Összesen fizessek kevesebbet",
+note: "A teljes visszafizetés a mérce, nem a törlesztő",
+w: { "szemelyi-kolcson": 5, "piaci-hitelek": 4 },
+},
+{
+v: "fine",
+label: "Elbírom, nem ez a fő gondom",
+note: "Akkor másra koncentrálunk",
+w: {},
 },
 ],
 },
@@ -2259,7 +2490,7 @@ w: { "elet-biztositas": 4, "baleset-biztositas": 4, "egeszsegbiztositas": 2 },
 v: "money",
 label: "Most kell pénz egy célra",
 note: "Finanszírozás",
-w: { "szemelyi-kolcson": 4, "piaci-hitelek": 3, "tamogatott-hitelek": 2 },
+w: { "szemelyi-kolcson": 4, "piaci-hitelek": 3 },
 },
 {
 v: "future",
@@ -2284,7 +2515,7 @@ w: { "egeszsegbiztositas": 4, "adokedvezmeny-gyerek-no": 3 },
 v: "waited",
 label: "Hónapokat vártam",
 note: "Itt van a legnagyobb életszínvonal-nyereség",
-w: { "egeszsegbiztositas": 4 },
+w: { "egeszsegbiztositas": 4, "adokedvezmeny-gyerek-no": 1 },
 },
 {
 v: "rare",
@@ -2327,20 +2558,51 @@ w: { "nyugdij-megtakaritas": 1, "adokedvezmeny-gyerek-no": 1, "dijmentes-banksza
 ],
 },
 ],
+visibleSteps(answers) {
+return this.steps.filter((s) => typeof s.when !== "function" || s.when(answers || {}));
+},
 score(answers) {
+const a = answers || {};
+const f = facts(a);
 const totals = {};
-this.steps.forEach((step) => {
-const picked = answers[step.id];
-if (!picked) return;
-const opt = step.opts.find((o) => o.v === picked);
+this.visibleSteps(a).forEach((step) => {
+const picked = a[step.id];
+asList(picked).forEach((v) => {
+const opt = step.opts.find((o) => String(o.v) === String(v));
 if (!opt) return;
 Object.entries(opt.w || {}).forEach(([slug, w]) => {
 totals[slug] = (totals[slug] || 0) + w;
 });
 });
+});
+const rank = (slug) => {
+const i = TIEBREAK.indexOf(slug);
+return i < 0 ? TIEBREAK.length : i;
+};
 return Object.entries(totals)
-.sort((a, b) => b[1] - a[1])
-.map(([slug, score]) => ({ slug, score }));
+.filter(([slug]) => {
+const gate = ELIGIBLE[slug];
+return typeof gate !== "function" || gate(a, f);
+})
+.map(([slug, score]) => ({ slug, score }))
+.sort((x, y) => y.score - x.score || rank(x.slug) - rank(y.slug));
+},
+top(answers, n) {
+const a = answers || {};
+const f = facts(a);
+const list = this.score(a).slice(0, n || 3);
+for (const slug of FALLBACK) {
+if (list.length >= (n || 3)) break;
+if (!list.some((r) => r.slug === slug)) list.push({ slug, score: 0 });
+}
+return list.map((r) => ({
+...r,
+reason: typeof REASON[r.slug] === "function" ? REASON[r.slug](a, f) : "",
+}));
+},
+notes(answers) {
+const a = answers || {};
+return buildNotes(a, facts(a));
 },
 };
 Object.assign(window.EP, { QUIZ });
@@ -3025,17 +3287,15 @@ this.build();
 
  
 get steps() {
-if (this._steps) return this._steps;
 const list = [];
 if (this.type === "map") {
-window.EP.QUIZ.steps.forEach((s) => list.push({ kind: "choice", data: s }));
+window.EP.QUIZ.visibleSteps(this.answers).forEach((s) => list.push({ kind: "choice", data: s }));
 } else {
 (this.svc.funnel.steps || []).forEach((s) => list.push({ kind: "choice", data: s }));
 if (this.svc.funnel.calc) list.push({ kind: "calc", data: this.svc.funnel.calc });
 }
 list.push({ kind: "result" });
 list.push({ kind: "thanks" });
-this._steps = list;
 return list;
 }
 
@@ -3176,12 +3436,20 @@ const raw = btn.dataset.v;
 const opt = q.opts.find((o) => String(o.v) === raw);
 const val = opt ? opt.v : raw;
 if (multi) {
-const arr = Array.isArray(this.answers[q.id]) ? this.answers[q.id].slice() : [];
+let arr = Array.isArray(this.answers[q.id]) ? this.answers[q.id].slice() : [];
 const i = arr.indexOf(val);
 if (i >= 0) arr.splice(i, 1);
 else arr.push(val);
+ 
+if (opt && opt.exclusive && arr.includes(val)) arr = [val];
+else if (opt && !opt.exclusive) {
+const excl = q.opts.filter((o) => o.exclusive).map((o) => o.v);
+arr = arr.filter((x) => !excl.includes(x));
+}
 this.answers[q.id] = arr;
-btn.classList.toggle("is-picked");
+$$(".opt", this.body).forEach((b) =>
+b.classList.toggle("is-picked", arr.map(String).includes(String(b.dataset.v)))
+);
 this.hint.textContent = arr.length
 ? arr.length + " kiválasztva"
 : "Több választ is megjelölhetsz";
@@ -3363,7 +3631,8 @@ let headline = "";
 let sub = "";
 
 if (isMap) {
-const ranked = window.EP.QUIZ.score(this.answers).slice(0, 3);
+const ranked = window.EP.QUIZ.top(this.answers, 3);
+const notes = window.EP.QUIZ.notes(this.answers);
 this.reco = ranked.map((r) => r.slug);
 headline = "Ez a három téma hozza neked most a legtöbbet";
 sub =
@@ -3377,13 +3646,19 @@ return `<a class="reco__item" href="${this.hrefTo(s.slug)}">
                 <span class="reco__rank">0${i + 1}</span>
                 <span class="reco__body">
                   <strong>${esc(s.title)}</strong>
-                  <span>${esc(s.metric)} — ${esc(s.hook.slice(0, 92))}…</span>
+                  <span>${esc(s.metric)} — ${esc(r.reason || s.hook)}</span>
                 </span>
                 ${ICON_ARROW}
               </a>`;
 })
 .join("")}
-        </div>`;
+        </div>
+        ${notes.length
+? `<div class="map-notes">
+                 <span class="label">Amit szándékosan kihagytam</span>
+                 ${notes.map((t) => `<p>${esc(t)}</p>`).join("")}
+               </div>`
+: ""}`;
 } else {
 headline = "Kész a helyzetkép";
 sub =
