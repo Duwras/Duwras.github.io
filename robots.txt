@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /*.md$
+Disallow: /docs/
+Disallow: /build/
 
 Sitemap: https://ertekpontpenzugyek.hu/sitemap.xml

@@ -19,3 +19,6 @@ desktop.ini
 # Node (ha később lesz csomagkezelés)
 node_modules/
 npm-debug.log*
+
+# Playwright MCP munkafájlok (képernyőképek, snapshotok)
+.playwright-mcp/

@@ -706,7 +706,7 @@ const SERVICES = [
     metric: "max. 150 000 Ft / év",
     hook: "Szemüveg, tanszer, iskolakezdés, babaápolási termékek, nőgyógyászat, gyógyszer. Ezeket a család amúgy is kifizeti — a különbség csak az, hogy honnan.",
     seo: {
-      title: "20% adókedvezmény gyerek- és női kiadásokra 2026 — egészség- és önsegélyező pénztár",
+      title: "20% adókedvezmény egészségpénztárral 2026 — gyerek és női kiadások",
       desc: "Egészség- és önsegélyező pénztár 2026: 20% adójóváírás max. 150 000 Ft-ig, iskolakezdési támogatás gyermekenként, gyógyszer, szemüveg, nőgyógyászat. Számold ki.",
     },
     facts: [
@@ -1125,7 +1125,7 @@ const SERVICES = [
     metric: "a táppénz nem a teljes bér",
     hook: "Egy csonttörés nem tragédia — a három hónap kiesett jövedelem viszont az. A baleset-biztosítás pont ezt a rést fedi le.",
     seo: {
-      title: "Baleset-biztosítás 2026 — mit fedez, mennyibe kerül, mennyi térítés kell",
+      title: "Baleset-biztosítás 2026 — mit fedez, mennyi térítés kell?",
       desc: "Csonttörés, műtét, kórházi napi térítés, keresőképtelenség, maradandó egészségkárosodás. Nézzük meg, mekkora fedezet indokolt nálad.",
     },
     facts: [
@@ -1387,7 +1387,7 @@ const SERVICES = [
     metric: "TB mellé, nem helyette",
     hook: "Nem a betegség a kérdés, hanem hogy mikor kerülsz sorra. Az előfizetéses egészségbiztosítás napokat ad hónapok helyett.",
     seo: {
-      title: "Magán egészségbiztosítás 2026 — magánkórházi előfizetés, várólista nélkül",
+      title: "Magán egészségbiztosítás 2026 — magánkórházi előfizetés",
       desc: "Járóbeteg-ellátás, labor, diagnosztika, magánkórházi hátterű előfizetés 2026-ban. Mit fedez, mennyibe kerül, mikor éri meg a zsebből fizetés helyett.",
     },
     facts: [

@@ -36,8 +36,10 @@
     $$("[data-cfg-src]").forEach((el) => {
       const v = get(el.dataset.cfgSrc);
       if (!isTodo(v)) {
-        const inSub = /\/szolgaltatas\//.test(location.pathname);
-        el.src = (inSub ? "../" : "") + v;
+        /* A gyökér-előtagot a generátor írja ki (<html data-up>), így a kép
+           bármilyen mélységű oldalon (rolam/, városi oldal) is betöltődik. */
+        const up = document.documentElement.getAttribute("data-up") || "";
+        el.src = up + v;
       } else {
         el.closest("[data-photo-wrap]")?.classList.add("no-photo");
       }
@@ -51,7 +53,10 @@
   /* --- 2. Stat blokk --------------------------------------------------- */
   function renderStats() {
     const host = $("[data-render='stats']");
-    if (!host) return;
+    /* A generátor a számokat már a HTML-be írja (kereső és JS nélküli
+       olvasó is látja) — ilyenkor itt nincs dolgunk, a számláló-animációt
+       az ui.js initCounters() indítja. */
+    if (!host || host.children.length) return;
     const items = (CFG.stats || []).filter((s) => Number(s.value) > 0);
     if (!items.length) {
       // valós adat nélkül a szakmai tartalomra váltunk, nem találunk ki számokat

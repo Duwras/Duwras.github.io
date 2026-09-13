@@ -2,7 +2,10 @@
    OLDALGENERÁTOR — statikus HTML-t ír a js/data/services.js tartalomból
    Futtatás:  node build/generate.mjs
    Kimenet:   index.html, szolgaltatas/<slug>.html (13 db), impresszum.html,
-              adatkezeles.html, 404.html, sitemap.xml, robots.txt, .nojekyll
+              adatkezeles.html, 404.html, sitemap.xml, robots.txt, .nojekyll,
+              valamint a tartalmi oldalak (build/content/*.mjs): pillar,
+              tervezés, 8 városi oldal + hub, rólam, kapcsolat, tudástár
+   QA:        node build/seo-check.mjs
    A kimenet tiszta statikus HTML — nem kell futtatókörnyezet a hostingon.
    ========================================================================== */
 
@@ -10,6 +13,10 @@ import fs from "node:fs";
 import crypto from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { CITIES } from "./content/cities.mjs";
+import { pillarPage, planningPage, hubPage, UPDATED } from "./content/pages.mjs";
+import { aboutPage, contactPage } from "./content/about.mjs";
+import { ARTICLES } from "./content/articles.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -49,7 +56,22 @@ const NOINDEX = CFG.noindex === true;
    ezért ott gyökértől számított útvonal kell, különben törik a CSS és a JS. */
 function upOf(depth) {
   if (depth === "root") return `${BASE}/`;
-  return depth ? "../" : "";
+  return "../".repeat(Number(depth) || 0);
+}
+
+/* A főoldalra mutató link. NEM "index.html": az /index.html ugyanazt a
+   tartalmat adja, mint a /, és ha a belső linkek oda mutatnak, a kereső két
+   URL-t lát ugyanarra (a canonical rendbe teszi, de a linkjel szétforgácsolódik).
+   Mélyebb oldalon "../", a gyökérben "./", a 404-en "/". */
+const homeOf = (up) => up || "./";
+
+/* A tartalmi szövegekben a belső linkeket gyökértől írjuk (href="/rolam/"),
+   ez itt alakul át az oldal mélységének megfelelő relatív címmé — így a
+   szöveget nem kell a mélységhez igazítani, és a basePath is működik. */
+function relLinks(html, up) {
+  return html.replace(/href="\/(?!\/)([^"]*)"/g, (_, rest) =>
+    `href="${!rest || rest.startsWith("#") ? homeOf(up) + rest : up + rest}"`
+  );
 }
 
 const icon = (paths, size = 22, sw = 1.6) =>
@@ -110,8 +132,30 @@ function cspMeta(inlineHashes = []) {
 
 const sha256 = (s) => "sha256-" + crypto.createHash("sha256").update(s, "utf8").digest("base64");
 
-function head({ title, desc, url, depth = 0, schema = "", preloadLcp = "", hero3d = false }) {
+function head({
+  title,
+  desc,
+  url,
+  depth = 0,
+  schema = "",
+  preloadLcp = "",
+  hero3d = false,
+  robots = "",
+  ogType = "website",
+  article = null,
+}) {
   const up = upOf(depth);
+  /* A 404 és a hasonló segédoldalak NEM kerülhetnek az indexbe (és canonical
+     sem kell nekik: bármilyen URL-en kiszolgálódhatnak). */
+  const robotsVal = NOINDEX
+    ? "noindex,nofollow"
+    : robots || "index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1";
+  const canonical = url && !/noindex/.test(robotsVal) ? `<link rel="canonical" href="${url}">\n` : "";
+  const articleMeta = article
+    ? `<meta property="article:published_time" content="${article.published}">\n` +
+      `<meta property="article:modified_time" content="${article.modified}">\n` +
+      `<meta property="article:author" content="${SITE}/rolam/">\n`
+    : "";
   /* Csak a főoldalon van beágyazott script (a 3D-betöltő) — a lenyomata
      pontosan azt a szöveget fedi, amit a scripts() kiír. */
   const inlineHashes = hero3d ? [sha256(loader3dSrc(up))] : [];
@@ -126,28 +170,26 @@ function head({ title, desc, url, depth = 0, schema = "", preloadLcp = "", hero3
       (lcp.media ? ` media="${lcp.media}"` : "") +
       ` fetchpriority="high">\n`
     : "";
+  /* data-up: a gyökérhez vezető relatív előtag. A JS (funnel, config-kötés)
+     ebből építi a linkeket, így bármilyen mélységű oldalon működik. */
   return `<!doctype html>
-<html lang="hu">
+<html lang="hu" data-up="${up}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 ${cspMeta(inlineHashes)}
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
-<link rel="canonical" href="${url}">
-<meta name="theme-color" content="#0a0b09">
-<meta name="robots" content="${NOINDEX ? "noindex,nofollow" : "index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1"}">
+${canonical}<meta name="theme-color" content="#0a0b09">
+<meta name="robots" content="${robotsVal}">
 <meta name="author" content="${esc(CFG.advisor.name)}">
-<meta name="geo.region" content="HU">
-<meta name="geo.placename" content="Budapest">
 
-<meta property="og:type" content="website">
+<meta property="og:type" content="${ogType}">
 <meta property="og:locale" content="hu_HU">
 <meta property="og:site_name" content="${esc(BRAND)}">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}">
-<meta property="og:url" content="${url}">
-<meta property="og:image" content="${SITE}/assets/img/arrow-hero.png">
+${url ? `<meta property="og:url" content="${url}">\n` : ""}${articleMeta}<meta property="og:image" content="${SITE}/assets/img/arrow-hero.png">
 <meta property="og:image:width" content="900">
 <meta property="og:image:height" content="900">
 <meta property="og:image:alt" content="${esc(BRAND)} — pénzügyi tanácsadás">
@@ -166,6 +208,9 @@ ${PRELOAD_FONTS.map((f) => `<link rel="preload" as="font" type="font/woff2" href
 <!-- EGY stíluslap: a hét forrásfájlból a generátor fűzi össze (css/site.css).
      Hét blokkoló kérés helyett egy. Szerkeszteni továbbra is a css/*.css-t kell. -->
 <link rel="stylesheet" href="${up}css/site.css?v=${V}">
+<!-- JS nélkül a reveal-animáció sosem indulna el, és a tartalom átlátszó
+     maradna — ez a biztosíték, hogy szöveg mindig látható legyen. -->
+<noscript><style>[data-reveal],.split-words .w{opacity:1!important;transform:none!important;clip-path:none!important}</style></noscript>
 ${lcpTag}
 ${schema}
 </head>
@@ -178,9 +223,14 @@ function nav(depth = 0, current = "") {
   const up = upOf(depth);
   const link = (href, label, key) =>
     `<a class="nav__link" href="${href}"${current === key ? ' aria-current="page"' : ""}>${label}</a>`;
+  const home = homeOf(up);
+  /* A fő navigáció a hub-oldalakra visz (tanácsadás, tervezés, rólam,
+     kapcsolat): ezek gyűjtik a belső linkjelet, és innen ágazik tovább a
+     városi és a szolgáltatás-oldalakra. A rövid címke a sáv szélessége
+     miatt kell — a szövegtörzsben a teljes kifejezés a link szövege. */
   return `
 <header class="nav">
-  <a class="brand" href="${up}index.html" aria-label="${esc(BRAND)} — főoldal">
+  <a class="brand" href="${home}" aria-label="${esc(BRAND)} — főoldal">
     <img class="brand__mark" src="${up}assets/brand/logo-mark.svg" alt="" width="38" height="38">
     <span>
       <span class="brand__name">Érték Pont</span>
@@ -188,14 +238,14 @@ function nav(depth = 0, current = "") {
     </span>
   </a>
   <nav class="nav__links" aria-label="Fő navigáció">
-    ${link(`${up}index.html#terkep`, "Pénzügyi Térkép", "terkep")}
-    ${link(`${up}index.html#szolgaltatasok`, "Szolgáltatások", "szolg")}
-    ${link(`${up}index.html#folyamat`, "Hogyan dolgozom", "folyamat")}
-    ${link(`${up}index.html#rolam`, "Rólam", "rolam")}
-    ${link(`${up}index.html#gyik`, "GYIK", "gyik")}
+    ${link(`${up}penzugyi-tanacsadas/`, "Tanácsadás", "tanacsadas")}
+    ${link(`${up}penzugyi-tervezes/`, "Tervezés", "tervezes")}
+    ${link(`${home}#szolgaltatasok`, "Szolgáltatások", "szolg")}
+    ${link(`${up}rolam/`, "Rólam", "rolam")}
+    ${link(`${up}kapcsolat/`, "Kapcsolat", "kapcsolat")}
   </nav>
   <div class="nav__actions">
-    <a class="btn hide-mobile" href="${up}index.html#terkep">
+    <a class="btn hide-mobile" href="${home}#terkep">
       <span class="btn__label">Indítsuk el</span><span class="btn__arrow">${ARROW}</span>
     </a>
     <button class="burger" aria-expanded="false" aria-label="Menü" aria-controls="menu"><span></span></button>
@@ -205,8 +255,13 @@ function nav(depth = 0, current = "") {
 <div class="menu" id="menu">
   <div class="menu__group">
     <p class="footer__title">Kezdd itt</p>
-    <a class="menu__item" href="${up}index.html#terkep"><span>Pénzügyi Térkép</span><small>1 perc</small></a>
-    <a class="menu__item" href="${up}index.html#rolam"><span>Rólam</span><small>bemutatkozás</small></a>
+    <a class="menu__item" href="${home}#terkep"><span>Pénzügyi Térkép</span><small>1 perc</small></a>
+    <a class="menu__item" href="${up}penzugyi-tanacsadas/"><span>Pénzügyi tanácsadás</span><small>hogyan működik</small></a>
+    <a class="menu__item" href="${up}penzugyi-tervezes/"><span>Pénzügyi tervezés</span><small>6 lépés</small></a>
+    <a class="menu__item" href="${up}penzugyi-tanacsadas/varosok/"><span>Tanácsadás városonként</span><small>online, országosan</small></a>
+    <a class="menu__item" href="${up}tudastar/"><span>Tudástár</span><small>útmutatók</small></a>
+    <a class="menu__item" href="${up}rolam/"><span>Rólam</span><small>bemutatkozás</small></a>
+    <a class="menu__item" href="${up}kapcsolat/"><span>Kapcsolat</span><small>telefon, e-mail</small></a>
   </div>
   ${Object.values(CATEGORIES)
     .map(
@@ -225,11 +280,13 @@ function nav(depth = 0, current = "") {
 </div>`;
 }
 
-function stickyCta(depth = 0) {
+/* localMap: ha az oldalon van saját Pénzügyi Térkép (#terkep), a ragadós
+   gomb oda görget, nem visz át a főoldalra. */
+function stickyCta(depth = 0, localMap = false) {
   const up = upOf(depth);
   return `
 <div class="sticky-cta">
-  <a class="btn btn--block" href="${up}index.html#terkep"><span class="btn__label">Pénzügyi Térkép</span></a>
+  <a class="btn btn--block" href="${localMap ? "" : homeOf(up)}#terkep"><span class="btn__label">Pénzügyi Térkép</span></a>
   <a class="btn btn--ghost btn--icon" data-cfg-href="contact.phoneHref|tel:" href="#" aria-label="Telefonhívás">
     ${icon('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>', 18, 1.8)}
   </a>
@@ -252,7 +309,7 @@ function siteCredit(up = "") {
   const own = new RegExp(`^https?://(www\\.)?${CFG.domain.replace(/\./g, "\\.")}(${BASE}|)/?`, "i");
   const internal = own.test(url);
   const href = internal
-    ? up + (url.replace(own, "").replace(/^\/+/, "") || "index.html")
+    ? up + url.replace(own, "").replace(/^\/+/, "") || homeOf(up)
     : url;
   const attrs = internal ? "" : ' target="_blank" rel="noopener"';
   return `<p class="footer__credit">Az oldalt készítette: <a href="${esc(href)}"${attrs}>${esc(name)}</a></p>`;
@@ -275,7 +332,7 @@ function footer(depth = 0) {
   <div class="wrap">
     <div class="footer__grid">
       <div>
-        <a class="brand" href="${up}index.html">
+        <a class="brand" href="${homeOf(up)}">
           <img class="brand__mark" src="${up}assets/brand/logo-mark.svg" alt="" width="38" height="38">
           <span><span class="brand__name">Érték Pont</span><span class="brand__sub">Pénzügyek</span></span>
         </a>
@@ -292,6 +349,17 @@ function footer(depth = 0) {
               ? `<li><a href="${esc(CFG.contact.linkedin)}" target="_blank" rel="noopener">LinkedIn</a></li>`
               : ""
           }
+        </ul>
+      </div>
+      <div>
+        <p class="footer__title">Tanácsadás</p>
+        <ul class="footer__list">
+          <li><a href="${up}penzugyi-tanacsadas/">Pénzügyi tanácsadás</a></li>
+          <li><a href="${up}penzugyi-tervezes/">Pénzügyi tervezés</a></li>
+          <li><a href="${up}penzugyi-tanacsadas/varosok/">Tanácsadás városonként</a></li>
+          <li><a href="${up}tudastar/">Tudástár</a></li>
+          <li><a href="${up}rolam/">Rólam</a></li>
+          <li><a href="${up}kapcsolat/">Kapcsolat</a></li>
         </ul>
       </div>
       ${Object.values(CATEGORIES).map(catBlock).join("")}
@@ -454,9 +522,17 @@ const PERSON_ID = `${SITE}/#tanacsado`;
    melyik. */
 const PARTNER_ID = `${SITE}/#kozvetito-tarsasag`;
 
+/* Organization, NEM FinancialService / LocalBusiness: a LocalBusiness-
+   típusok a Google-nek fizikai, látogatható ügyfélhelyet jelentenek. Ilyen
+   (nyilvános iroda) nincs; a tanácsadás online és egyeztetett helyen megy.
+   A cím a látható impresszummal egyező székhely — korábban itt „Budapest”
+   szerepelt, ami nem egyezett az oldalon közölt adattal. Ha lesz ellenőrzött
+   Google Cégprofil valós ügyfélfogadó címmel, ez FinancialService-re
+   váltható PONTOSAN azzal a címmel (lásd LOCAL-SEO-CHECKLIST.md). */
 function businessSchema() {
+  const [postalCode, locality, ...street] = String(CFG.business.address).split(/[\s,]+/);
   return {
-    "@type": "FinancialService",
+    "@type": "Organization",
     "@id": ORG_ID,
     name: BRAND,
     /* A márkanév mögötti valódi jogalany. */
@@ -466,29 +542,31 @@ function businessSchema() {
       `Az „${BRAND}” ${CFG.business.legalName} márkaneve, nem önálló cég. ` +
       `A pénzügyi közvetítés az ${CFG.legal.companyName} (többes ügynök) nevében és javára történik.`,
     url: SITE + "/",
+    logo: `${SITE}/assets/brand/logo-mark.svg`,
     image: `${SITE}/assets/img/arrow-hero.png`,
     description:
-      "Pénzügyi tanácsadás egy helyen: nyugdíj- és gyerekmegtakarítás, 20% adókedvezmények, " +
-      "élet-, egészség- és vagyonbiztosítás, KGFB, Otthon Start és piaci lakáshitel, " +
-      "személyi kölcsön, díjmentes bankszámla.",
+      "Pénzügyi tanácsadás és pénzügyi tervezés egy helyen, online az egész országban: " +
+      "nyugdíj- és gyerekmegtakarítás, 20% adókedvezmények, élet-, egészség- és vagyonbiztosítás, " +
+      "KGFB, Otthon Start és piaci lakáshitel, személyi kölcsön, díjmentes bankszámla.",
     telephone: CFG.contact.phone,
     email: CFG.contact.email,
-    priceRange: "0 Ft",
-    currenciesAccepted: "HUF",
     address: {
       "@type": "PostalAddress",
-      addressLocality: "Budapest",
+      postalCode,
+      addressLocality: locality,
+      streetAddress: street.join(" "),
       addressCountry: "HU",
     },
     areaServed: { "@type": "Country", name: "Magyarország" },
-    /* A tanácsadás díjmentes és távolról is megy — ezt a keresők a
-       serviceArea + availableChannel párosból olvassák ki. */
-    availableChannel: {
-      "@type": "ServiceChannel",
-      serviceUrl: SITE + "/#terkep",
-      availableLanguage: { "@type": "Language", name: "Hungarian", alternateName: "hu" },
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      telephone: CFG.contact.phone,
+      email: CFG.contact.email,
+      areaServed: "HU",
+      availableLanguage: "hu",
     },
-    knowsAbout: SERVICES.map((s) => s.title),
+    knowsAbout: ["Pénzügyi tanácsadás", "Pénzügyi tervezés", ...SERVICES.map((s) => s.title)],
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "Pénzügyi szolgáltatások",
@@ -530,6 +608,8 @@ function personSchema() {
     "@type": "Person",
     "@id": PERSON_ID,
     name: CFG.advisor.name,
+    /* A szerzői profil: minden cikk és tartalmi oldal bylinja ide mutat. */
+    url: `${SITE}/rolam/`,
     jobTitle: CFG.advisor.role,
     description: CFG.advisor.bio,
     image: `${SITE}/assets/brand/portre.webp`,
@@ -543,6 +623,22 @@ function personSchema() {
     knowsLanguage: "hu",
     sameAs: [CFG.contact.facebook, CFG.contact.linkedin].filter(Boolean),
   };
+}
+
+/* A stat blokk build-időben kerül a HTML-be (korábban csak JS rajzolta ki,
+   így a kereső és a JS nélküli olvasó üres dobozt látott). A data-count
+   miatt a számláló-animáció ugyanúgy lefut; a végérték már a HTML-ben van. */
+function statsHtml() {
+  const items = (CFG.stats || []).filter((s) => Number(s.value) > 0);
+  return items
+    .map(
+      (s, i) => `
+        <div class="stat" data-reveal style="--reveal-delay:${i * 80}ms">
+          <div class="stat__value"><span data-count="${s.value}" data-count-suffix="">${new Intl.NumberFormat("hu-HU").format(s.value)}</span><span class="stat__unit">${esc(s.suffix || "")}</span></div>
+          <p class="stat__label">${esc(s.label)}</p>
+        </div>`
+    )
+    .join("");
 }
 
 function homePage() {
@@ -575,16 +671,16 @@ function homePage() {
     (s) => `<span class="marquee__item"><span class="dot"></span>${esc(s.navTitle)}</span>`
   ).join("\n        ");
 
-  /* A cím elején a KERESETT kifejezés áll, nem a márkanév: „pénzügyi
-     tanácsadó” + a három legnagyobb keresési téma. A márka a végére kerül,
-     mert arra amúgy is rangsorolunk. Hossza ~60 karakter, hogy a találati
-     listában ne vágja el a Google. */
+  /* A főoldal a MÁRKA és a tanácsadó oldala (navigációs + entitás-szándék).
+     A generikus „pénzügyi tanácsadás / tanácsadó” kifejezés elsődleges
+     céloldala a /penzugyi-tanacsadas/ pillar — ha a főoldal címe is azzal
+     kezdődne, a két oldal egymás elől venné el a helyet (kannibalizáció).
+     Lásd SEO-KEYWORD-MAP.md. */
   return `${head({
-    title: "Pénzügyi tanácsadó — nyugdíj, lakáshitel, biztosítás | Érték Pont",
+    title: `${BRAND} | ${CFG.advisor.name} pénzügyi tanácsadó`,
     desc:
-      "Díjmentes pénzügyi tanácsadás az egész országban, online is. Nyugdíj-megtakarítás 280 000 Ft " +
-      "adójóváírásig, Otthon Start és piaci lakáshitel, KGFB, élet- és egészségbiztosítás, " +
-      "gyerek-megtakarítás, díjmentes bankszámla. Töltsd ki a Pénzügyi Térképet — 1 perc.",
+      "Nyugdíj, lakáshitel, biztosítás, 20% adókedvezmények egy helyen — díjmentes pénzügyi " +
+      "tanácsadás online, országosan. A Pénzügyi Térkép 1 perc alatt megmutatja, hol kezdd.",
     url: SITE + "/",
     depth: 0,
     schema,
@@ -606,6 +702,7 @@ ${nav(0)}
   <section class="hero">
     <div class="wrap hero__inner">
       <div>
+        <p class="label" style="margin-bottom:1.1rem">Pénzügyi tanácsadás · ${esc(CFG.advisor.name)}</p>
         <h1 class="hero__title" data-lines>
           Az állam évente <em>több százezer forintot</em> ad vissza
         </h1>
@@ -672,7 +769,7 @@ ${nav(0)}
   <!-- ============ SZÁMOK (világos sáv) ============ -->
   <section class="section-sm on-paper">
     <div class="wrap">
-      <div class="stats" data-render="stats"></div>
+      <div class="stats" data-render="stats">${statsHtml()}</div>
     </div>
   </section>
 
@@ -762,7 +859,8 @@ ${nav(0)}
         <p class="tiny mute" style="margin-top:.6rem">
           Az <strong>${esc(BRAND)}</strong> a saját márkanevem: ${esc(cfg("business.legalName"))}ként
           dolgozom, a közvetítést az ${esc(cfg("legal.companyName"))} nevében és javára végzem.
-          <a href="impresszum.html" style="color:var(--lime)">Cégadatok az impresszumban</a>
+          <a href="impresszum.html" style="color:var(--lime)">Cégadatok az impresszumban</a> ·
+          <a href="rolam/" style="color:var(--lime)">Bővebben rólam</a>
         </p>
         <div class="prose" style="margin-top:1.5rem">
           <p data-cfg="advisor.bio">Ide kerül a bemutatkozás.</p>
@@ -801,6 +899,28 @@ ${nav(0)}
           jellemzően egyetlen alkalommal van szükség.
         </p>
       </div>
+
+      <h3 class="h4" style="margin-bottom:1rem">Mielőtt témát választasz</h3>
+      <ul class="seo-links" style="margin-bottom:2.5rem">
+        <li>
+          <a href="penzugyi-tanacsadas/">
+            <span class="seo-links__t">Hogyan működik a pénzügyi tanácsadás</span>
+            <span class="seo-links__n">kinek hasznos, mennyibe kerül, hogyan ellenőrizd a tanácsadót</span>
+          </a>
+        </li>
+        <li>
+          <a href="penzugyi-tervezes/">
+            <span class="seo-links__t">Pénzügyi tervezés lépésről lépésre</span>
+            <span class="seo-links__n">költségvetés, tartalék, védelem, hitelek, célok — ebben a sorrendben</span>
+          </a>
+        </li>
+        <li>
+          <a href="penzugyi-tanacsadas/varosok/">
+            <span class="seo-links__t">Tanácsadás a nagyvárosokban</span>
+            <span class="seo-links__n">Budapesttől Kecskemétig — mi működik online, és mi helyben</span>
+          </a>
+        </li>
+      </ul>
 
       <h3 class="h4" style="margin-bottom:1rem">A legtöbbet keresett témák 2026-ban</h3>
       <ul class="seo-links">
@@ -881,7 +1001,7 @@ ${nav(0)}
   <section class="section-sm">
     <div class="wrap">
       <div class="cta-band" data-reveal="scale">
-        <img class="cta-band__glyph" src="assets/img/arrow-hero.webp" alt="" aria-hidden="true">
+        <img class="cta-band__glyph" src="assets/img/arrow-hero.webp" alt="" aria-hidden="true" width="900" height="900" loading="lazy" decoding="async">
         <span class="label" style="color:var(--lime-ink);opacity:.7">Kezdjük el</span>
         <h2 class="h2" style="margin-top:.75rem;max-width:24ch">Egy perc most, több százezer forint évente.</h2>
         <p style="margin-top:1rem;max-width:52ch;opacity:.8">
@@ -976,8 +1096,8 @@ ${nav(1)}
     <div class="wrap svc-hero__grid">
       <div>
         <nav class="crumb" aria-label="Morzsamenü">
-          <a href="../index.html">Főoldal</a> <span>/</span>
-          <a href="../index.html#szolgaltatasok">${esc(CATEGORIES[s.cat].label)}</a> <span>/</span>
+          <a href="../">Főoldal</a> <span>/</span>
+          <a href="../#szolgaltatasok">${esc(CATEGORIES[s.cat].label)}</a> <span>/</span>
           <span class="lime">${esc(s.navTitle)}</span>
         </nav>
         <div class="row" style="gap:1rem;align-items:center">
@@ -1083,6 +1203,20 @@ ${nav(1)}
   <section class="section-sm">
     <div class="wrap">
       <p class="tiny mute" style="max-width:80ch"><strong>Jogi megjegyzés.</strong> ${esc(s.legal)}</p>
+      <!-- Vissza a hub-oldalakra: a témaoldal a pillar és a tervezés
+           „küllője”, és ha van hozzá cikk, arra is mutat. -->
+      <p class="soft" style="max-width:80ch;margin-top:1.25rem;font-size:var(--fs-sm)">
+        Nem biztos, hogy ezzel kell kezdened? A <a href="../penzugyi-tervezes/" style="color:var(--lime-text)">pénzügyi
+        tervezés hat lépése</a> megmutatja a sorrendet, a <a href="../penzugyi-tanacsadas/" style="color:var(--lime-text)">pénzügyi
+        tanácsadásról szóló összefoglaló</a> pedig azt, hogyan dolgozom és mennyibe kerül.${ARTICLES.filter((a) =>
+          (a.services || []).includes(s.slug)
+        )
+          .map(
+            (a) =>
+              ` Kapcsolódó útmutató: <a href="../tudastar/${a.slug}/" style="color:var(--lime-text)">${esc(a.h1.replace(/:.*$/, ""))}</a>.`
+          )
+          .join("")}
+      </p>
     </div>
   </section>
 
@@ -1121,14 +1255,14 @@ ${nav(1)}
   <section class="section-sm">
     <div class="wrap">
       <div class="cta-band" data-reveal="scale">
-        <img class="cta-band__glyph" src="../assets/img/arrow-hero.webp" alt="" aria-hidden="true">
+        <img class="cta-band__glyph" src="../assets/img/arrow-hero.webp" alt="" aria-hidden="true" width="900" height="900" loading="lazy" decoding="async">
         <span class="label" style="color:var(--lime-ink);opacity:.7">Nem vagy biztos, hogy ez a téma a tiéd?</span>
         <h2 class="h2" style="margin-top:.75rem;max-width:26ch">Töltsd ki a Pénzügyi Térképet — 1 perc.</h2>
         <p style="margin-top:1rem;max-width:52ch;opacity:.8">
           Hét gyors kérdés alapján megmutatom, melyik három terület hozza neked most a legtöbbet.
         </p>
         <div class="hero__actions">
-          <a class="btn btn--dark btn--lg" href="../index.html#terkep"><span class="btn__label">Pénzügyi Térkép</span><span class="btn__arrow">${ARROW}</span></a>
+          <a class="btn btn--dark btn--lg" href="../#terkep"><span class="btn__label">Pénzügyi Térkép</span><span class="btn__arrow">${ARROW}</span></a>
         </div>
       </div>
     </div>
@@ -1427,7 +1561,10 @@ function notFoundPage() {
   return `${head({
     title: `Ez az oldal nincs meg — ${BRAND}`,
     desc: "A keresett oldal nem található. Válassz a 13 pénzügyi téma közül, vagy indítsd el a Pénzügyi Térképet.",
-    url: SITE + "/404.html",
+    /* Nincs canonical és nincs index: a 404 bármilyen URL-en megjelenhet,
+       és nem szabad, hogy a keresőben önálló oldalként szerepeljen. */
+    url: "",
+    robots: "noindex,follow",
     depth: "root",
   })}
 ${nav("root")}
@@ -1440,10 +1577,10 @@ ${nav("root")}
       megvan: itt van mind a 13 téma, és egy perc alatt kiderül, melyik a tiéd.
     </p>
     <div class="hero__actions" style="justify-content:center;margin-top:2rem">
-      <a class="btn btn--lg" href="${BASE}/index.html#terkep">
+      <a class="btn btn--lg" href="${BASE}/#terkep">
         <span class="btn__label">Pénzügyi Térkép — 1 perc</span><span class="btn__arrow">${ARROW}</span>
       </a>
-      <a class="btn btn--ghost btn--lg" href="${BASE}/index.html#szolgaltatasok">
+      <a class="btn btn--ghost btn--lg" href="${BASE}/#szolgaltatasok">
         <span class="btn__label">Mind a 13 téma</span>
       </a>
     </div>
@@ -1454,10 +1591,637 @@ ${scripts("root", false)}`;
 }
 
 /* ====================================================================== */
+/*  Tartalmi oldalak — pillar, tervezés, városi hub és oldalak, tudástár, */
+/*  rólam, kapcsolat. A szöveg a build/content/*.mjs fájlokban van, itt    */
+/*  csak a sablon. Minden komponens a meglévő arculatból jön.              */
+/* ====================================================================== */
+
+const HU_DATE = new Intl.DateTimeFormat("hu-HU", { year: "numeric", month: "long", day: "numeric" });
+const huDate = (iso) => HU_DATE.format(new Date(`${iso}T12:00:00Z`));
+const depthOf = (p) => p.split("/").filter(Boolean).length;
+const svcBySlug = (slug) => SERVICES.find((s) => s.slug === slug);
+const articleBySlug = (slug) => ARTICLES.find((a) => a.slug === slug);
+
+/* A JSON-LD-ben a „<” escape-elve: így egy szövegben lévő "</script>"
+   sem tudja idő előtt lezárni a script-blokkot. */
+const ldScript = (graph) =>
+  `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c")}</script>`;
+
+/* Morzsamenü — a látható és a strukturált változat ugyanabból a listából,
+   így nem tud eltérni egymástól. `path` gyökértől, "" = főoldal. */
+function crumbsHtml(items, up) {
+  return `<nav class="crumb" aria-label="Morzsamenü">${items
+    .map((c, i) =>
+      i < items.length - 1
+        ? `<a href="${c.path ? up + c.path : homeOf(up)}">${esc(c.name)}</a> <span aria-hidden="true">/</span>`
+        : `<span class="lime" aria-current="page">${esc(c.name)}</span>`
+    )
+    .join(" ")}</nav>`;
+}
+const crumbSchema = (items, url) => ({
+  "@type": "BreadcrumbList",
+  "@id": `${url}#morzsa`,
+  itemListElement: items.map((c, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: c.name,
+    item: `${SITE}/${c.path}`,
+  })),
+});
+
+const faqSchema = (faq, url) =>
+  faq && faq.length
+    ? [
+        {
+          "@type": "FAQPage",
+          "@id": `${url}#gyik`,
+          mainEntity: faq.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        },
+      ]
+    : [];
+
+/* Szerző + dátum: YMYL-tartalomnál ez a bizalom egyik alapja. A név a
+   szerzői profilra (/rolam/) mutat. */
+function byline({ published, modified }, up) {
+  return `<p class="byline">
+          <span>Írta: <a href="${up}rolam/" rel="author">${esc(CFG.advisor.name)}</a>, ${esc(CFG.advisor.role)}</span>
+          ${published && published !== modified ? `<span>Megjelent: <time datetime="${published}">${huDate(published)}</time></span>` : ""}
+          <span>Frissítve: <time datetime="${modified}">${huDate(modified)}</time></span>
+        </p>`;
+}
+
+function faqAcc(faq, prefix) {
+  return `<div class="acc">${faq
+    .map(
+      (f, i) => `
+        <div class="acc__item">
+          <button class="acc__btn" aria-expanded="false" aria-controls="${prefix}-${i}" type="button">
+            <span>${esc(f.q)}</span><span class="acc__sign"></span>
+          </button>
+          <div class="acc__panel" id="${prefix}-${i}"><div>${esc(f.a)}</div></div>
+        </div>`
+    )
+    .join("")}
+      </div>`;
+}
+
+function faqSection(faq, title, prefix = "q") {
+  if (!faq || !faq.length) return "";
+  return `
+  <section class="section-sm on-paper" id="gyik">
+    <div class="wrap split">
+      <div>
+        <span class="label">Gyakori kérdések</span>
+        <h2 class="h2" style="margin-top:.75rem">${esc(title)}</h2>
+      </div>
+      ${faqAcc(faq, prefix)}
+    </div>
+  </section>`;
+}
+
+function linkList(items) {
+  return `<ul class="seo-links">
+          ${items
+            .map(
+              (r) =>
+                `<li><a href="${r.href}"><span class="seo-links__t">${esc(r.t)}</span><span class="seo-links__n">${esc(r.n)}</span></a></li>`
+            )
+            .join("\n          ")}
+        </ul>`;
+}
+
+function sourcesList(sources) {
+  if (!sources || !sources.length) return "";
+  return `
+        <h2 class="h4" style="margin:2.5rem 0 .75rem">Források</h2>
+        <ul class="sources">
+          ${sources.map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a></li>`).join("\n          ")}
+        </ul>
+        <p class="tiny mute" style="margin-top:.5rem">A hivatkozások ellenőrizve: ${huDate(UPDATED)}</p>`;
+}
+
+/* A Pénzügyi Térkép funnel ugyanaz a komponens, mint a főoldalon. A lead a
+   beküldő oldal URL-jével érkezik (funnel.js → `oldal`), így a táblázatban
+   látszik, melyik városi vagy tartalmi oldalról jött a jelentkezés. */
+function mapSection(map) {
+  if (!map) return "";
+  return `
+  <section class="section" id="terkep">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <span class="label">Pénzügyi Térkép</span>
+          <h2 class="h2 sec-head__title">${esc(map.h)}</h2>
+        </div>
+        <p class="lead">${esc(map.p)}</p>
+      </div>
+      <div class="funnel-narrow" data-funnel="map">
+        <noscript><p class="lead">A Pénzügyi Térképhez JavaScript szükséges. Hívj közvetlenül:
+        <a href="tel:${esc(CFG.contact.phoneHref)}" style="color:var(--lime-text)">${esc(CFG.contact.phone)}</a>,
+        vagy írj: <a href="mailto:${esc(CFG.contact.email)}" style="color:var(--lime-text)">${esc(CFG.contact.email)}</a>.</p></noscript>
+      </div>
+    </div>
+  </section>`;
+}
+
+const YMYL_NOTE =
+  "Az oldal általános tájékoztatást ad, nem minősül személyre szóló befektetési, adó- vagy jogi " +
+  "tanácsadásnak, és nem ajánlat. A díjakat, kamatokat és feltételeket a bankok, biztosítók és " +
+  "pénztárak határozzák meg; a megtakarítások hozama nem garantált, a hitelfelvétel kockázattal jár.";
+
+/* Kis szolgáltatás-kártya (városi oldal, tudástár) — ugyanaz, mint az
+   aloldalak „Kapcsolódó témák” blokkja. */
+function svcMini(s, up, i = 0) {
+  return `<a class="card card--spot svc" href="${up}szolgaltatas/${s.slug}.html" data-reveal style="--reveal-delay:${i * 70}ms">
+          <div class="svc__top">
+            <span class="svc__icon"><img src="${up}assets/img/icons/${s.slug}.webp" alt="" width="54" height="54" loading="lazy" decoding="async"></span>
+            <span class="svc__badge">${esc(s.badge)}</span>
+          </div>
+          <div>
+            <h3 class="h4">${esc(s.title)}</h3>
+            <p class="svc__hook">${esc(s.hook.slice(0, 110))}…</p>
+          </div>
+          <div class="svc__foot">
+            <span class="svc__metric">${esc(s.metric)}</span>
+            <span class="link-arrow">${ARROW}</span>
+          </div>
+        </a>`;
+}
+
+/* --- Általános tartalmi oldal (hosszú szöveg + tartalomjegyzék) -------- */
+
+function contentPage(p, { crumbs, pageType = "WebPage", article = null, extraGraph = [] }) {
+  const depth = depthOf(p.path);
+  const up = upOf(depth);
+  const url = `${SITE}/${p.path}`;
+  const dates = article
+    ? { published: article.published, modified: article.modified }
+    : { published: UPDATED, modified: UPDATED };
+
+  const pageNode = article
+    ? {
+        "@type": "Article",
+        "@id": `${url}#cikk`,
+        headline: p.h1,
+        description: p.desc,
+        url,
+        mainEntityOfPage: url,
+        inLanguage: "hu-HU",
+        datePublished: dates.published,
+        dateModified: dates.modified,
+        author: { "@id": PERSON_ID },
+        publisher: { "@id": ORG_ID },
+        image: `${SITE}/assets/img/arrow-hero.png`,
+        isPartOf: { "@id": `${SITE}/#weboldal` },
+        /* A források a gráfban is: ellenőrizhető hivatkozások. */
+        citation: (p.sources || []).map((s) => s.url),
+      }
+    : {
+        "@type": pageType,
+        "@id": `${url}#oldal`,
+        name: p.title,
+        description: p.desc,
+        url,
+        inLanguage: "hu-HU",
+        isPartOf: { "@id": `${SITE}/#weboldal` },
+        breadcrumb: { "@id": `${url}#morzsa` },
+        dateModified: dates.modified,
+        author: { "@id": PERSON_ID },
+        publisher: { "@id": ORG_ID },
+        ...(p.profile ? { mainEntity: { "@id": PERSON_ID } } : {}),
+        ...(p.contactPage ? { mainEntity: { "@id": ORG_ID } } : {}),
+      };
+
+  const schema = ldScript([
+    pageNode,
+    ...extraGraph,
+    businessSchema(),
+    personSchema(),
+    partnerSchema(),
+    crumbSchema(crumbs, url),
+    ...faqSchema(p.faq, url),
+  ]);
+
+  const toc =
+    p.sections.length >= 4
+      ? `<aside class="longform__aside" aria-label="Tartalomjegyzék">
+          <nav class="toc">
+            <span class="label">Tartalom</span>
+            <ol>
+              ${p.sections.map((s) => `<li><a href="#${s.id}">${esc(s.title)}</a></li>`).join("\n              ")}
+              ${p.faq && p.faq.length ? `<li><a href="#gyik">Gyakori kérdések</a></li>` : ""}
+            </ol>
+          </nav>
+        </aside>`
+      : "";
+
+  const heroInner = `
+        ${crumbsHtml(crumbs, up)}
+        <span class="label">${esc(p.label)}</span>
+        <h1 class="h1" style="margin-top:.75rem">${esc(p.h1)}</h1>
+        <p class="lead">${esc(p.lead)}</p>
+        ${byline(dates, up)}
+        <div class="hero__actions">
+          ${p.map ? `<a class="btn" href="#terkep"><span class="btn__label">Pénzügyi Térkép — 1 perc</span><span class="btn__arrow">${ARROW}</span></a>` : ""}
+          <a class="btn ${p.map ? "btn--ghost" : ""}" href="tel:${esc(CFG.contact.phoneHref)}"><span class="btn__label">Hívás: ${esc(CFG.contact.phone)}</span></a>
+        </div>`;
+
+  /* A „Rólam” oldalon a portré a fejlécben — ugyanaz a kép és keret, mint a
+     főoldali bemutatkozásnál. */
+  const hero = p.profile
+    ? `<div class="wrap about">
+        <div class="about__photo" data-photo-wrap>
+          <img src="${up}${esc(CFG.advisor.photo)}" width="1400" height="781"
+               alt="${esc(CFG.advisor.name)}, ${esc(CFG.advisor.role)}" loading="eager" decoding="async" fetchpriority="high">
+        </div>
+        <div>${heroInner}</div>
+      </div>`
+    : `<div class="wrap">${heroInner}</div>`;
+
+  const html = `${head({
+    title: p.title,
+    desc: p.desc,
+    url,
+    depth,
+    schema,
+    ogType: article ? "article" : "website",
+    article: article ? { published: dates.published, modified: dates.modified } : null,
+    preloadLcp: p.profile ? CFG.advisor.photo : "",
+  })}
+${nav(depth, p.nav || "")}
+
+<main id="main">
+
+  <section class="page-hero">
+    ${hero}
+  </section>
+
+  ${
+    p.answer
+      ? `<section class="section-sm" style="padding-top:0">
+    <div class="wrap">
+      <div class="answer"><span class="label">${esc(p.answer.label)}</span>${p.answer.html}</div>
+    </div>
+  </section>`
+      : ""
+  }
+
+  <section class="section-sm" style="padding-top:0">
+    <div class="wrap longform">
+      ${toc}
+      <div class="content">
+        ${p.sections
+          .map(
+            (s) => `<section id="${s.id}" aria-labelledby="h-${s.id}">
+          <h2 id="h-${s.id}">${esc(s.title)}</h2>
+          ${s.html}
+        </section>`
+          )
+          .join("\n        ")}
+      </div>
+    </div>
+  </section>
+
+  ${faqSection(p.faq, "Gyakori kérdések", "q")}
+
+  ${mapSection(p.map)}
+
+  <section class="section-sm">
+    <div class="wrap">
+      <div class="content">
+        <h2 class="h4" style="margin-bottom:1rem">Kapcsolódó oldalak</h2>
+        ${linkList(p.related || [])}
+        ${sourcesList(p.sources)}
+        <p class="tiny mute" style="margin-top:2rem"><strong>Fontos tájékoztatás.</strong> ${esc(YMYL_NOTE)}</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+${footer(depth)}
+${stickyCta(depth, !!p.map)}
+${scripts(depth, false)}`;
+  return relLinks(html, up);
+}
+
+/* --- Városi oldal ------------------------------------------------------ */
+
+function cityPage(c) {
+  const path = `penzugyi-tanacsadas/${c.slug}/`;
+  const depth = depthOf(path);
+  const up = upOf(depth);
+  const url = `${SITE}/${path}`;
+  const crumbs = [
+    { name: "Főoldal", path: "" },
+    { name: "Pénzügyi tanácsadás", path: "penzugyi-tanacsadas/" },
+    { name: c.name, path },
+  ];
+
+  /* Service + areaServed: a tanácsadás az adott város lakóinak szól —
+     NEM LocalBusiness, mert a városban nincs ügyfélfogadó hely. */
+  const serviceNode = {
+    "@type": "Service",
+    "@id": `${url}#szolgaltatas`,
+    name: `Pénzügyi tanácsadás — ${c.name}`,
+    serviceType: "Pénzügyi tanácsadás",
+    description: c.seo.desc,
+    url,
+    provider: { "@id": ORG_ID },
+    areaServed: { "@type": "City", name: c.name, sameAs: c.wikidata },
+    availableChannel: {
+      "@type": "ServiceChannel",
+      serviceUrl: `${url}#terkep`,
+      servicePhone: CFG.contact.phone,
+      availableLanguage: { "@type": "Language", name: "Hungarian", alternateName: "hu" },
+    },
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "HUF",
+      description: "A tanácsadás díjmentes; a közvetítői jutalékot a szolgáltató fizeti, ha szerződés jön létre.",
+    },
+  };
+  const pageNode = {
+    "@type": "WebPage",
+    "@id": `${url}#oldal`,
+    name: c.seo.title,
+    description: c.seo.desc,
+    url,
+    inLanguage: "hu-HU",
+    isPartOf: { "@id": `${SITE}/#weboldal` },
+    breadcrumb: { "@id": `${url}#morzsa` },
+    about: { "@id": `${url}#szolgaltatas` },
+    dateModified: UPDATED,
+    author: { "@id": PERSON_ID },
+  };
+  const schema = ldScript([
+    pageNode,
+    serviceNode,
+    businessSchema(),
+    personSchema(),
+    partnerSchema(),
+    crumbSchema(crumbs, url),
+    ...faqSchema(c.faq, url),
+  ]);
+
+  const services = c.services.map(svcBySlug).filter(Boolean);
+  const articles = (c.articles || []).map(articleBySlug).filter(Boolean);
+
+  const meet = c.inPerson
+    ? `Online vagy ${c.loc} személyesen — a helyet és az időpontot a hívásnál egyeztetjük.`
+    : `Videóhíváson vagy telefonon, ${c.from} is. Ha egy szerződéshez személyes aláírás kell, annak módját előre egyeztetjük.`;
+
+  const html = `${head({
+    title: c.seo.title,
+    desc: c.seo.desc,
+    url,
+    depth,
+    schema,
+  })}
+${nav(depth, "tanacsadas")}
+
+<main id="main">
+
+  <section class="page-hero">
+    <div class="wrap">
+      ${crumbsHtml(crumbs, up)}
+      <span class="label">Pénzügyi tanácsadás · ${esc(c.name)}</span>
+      <h1 class="h1" style="margin-top:.75rem">${esc(c.h1)}</h1>
+      <p class="lead">${esc(c.lead)}</p>
+      <div class="hero__meta">
+        <span><b>${c.inPerson ? "Személyesen" : "Online"}</b> ${c.inPerson ? `${esc(c.loc)} is` : "az egész országban"}</span>
+        <span><b>0 Ft</b> tanácsadási díj</span>
+        <span><b>24 órán</b> belül visszahívás</span>
+      </div>
+      <div class="hero__actions">
+        <a class="btn" href="#terkep"><span class="btn__label">Pénzügyi Térkép — 1 perc</span><span class="btn__arrow">${ARROW}</span></a>
+        <a class="btn btn--ghost" href="tel:${esc(CFG.contact.phoneHref)}"><span class="btn__label">Hívás: ${esc(CFG.contact.phone)}</span></a>
+      </div>
+      ${byline({ published: UPDATED, modified: UPDATED }, up)}
+    </div>
+  </section>
+
+  <section class="section-sm" style="padding-top:0">
+    <div class="wrap">
+      <div class="content">
+        <h2>Pénzügyi tanácsadás ${esc(c.inPerson ? c.loc : c.from)} — így működik</h2>
+        ${c.intro.map((t) => `<p>${t}</p>`).join("\n        ")}
+      </div>
+    </div>
+  </section>
+
+  <section class="section on-paper" id="helyi-temak">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <span class="label">Helyi szempontok</span>
+          <h2 class="h2 sec-head__title">${esc(c.topicsTitle)}</h2>
+        </div>
+        <p class="lead">Mind a négy témához tartozik egy részletes oldal, kalkulátorral — onnan tovább is tudsz számolni.</p>
+      </div>
+      <div class="topic-grid">
+        ${c.topics
+          .map(
+            (t, i) => `<div class="card topic" data-reveal style="--reveal-delay:${i * 70}ms">
+          <h3 class="h4">${esc(t.h)}</h3>
+          <p>${esc(t.t)}</p>
+          <a class="link-arrow" href="${t.href}">${esc(t.label)} ${ARROW}</a>
+        </div>`
+          )
+          .join("\n        ")}
+      </div>
+    </div>
+  </section>
+
+  <section class="section-sm" id="folyamat">
+    <div class="wrap split split-sticky">
+      <div>
+        <span class="label">A konzultáció menete</span>
+        <h2 class="h2" style="margin-top:.75rem">Négy lépés, kötelezettség nélkül</h2>
+        <p class="lead" style="margin-top:1.25rem">
+          ${esc(CFG.advisor.name)} vagyok, ${esc(CFG.advisor.role)}. A közvetítést az
+          ${esc(CFG.legal.companyName.split(" ")[0])} (többes ügynök) nevében végzem — ezt és a
+          nyilvántartási számokat az <a href="/impresszum.html" style="color:var(--lime-text)">impresszumban</a>
+          és a <a href="/rolam/" style="color:var(--lime-text)">bemutatkozásomban</a> ellenőrizheted.
+        </p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <h3 class="h3">Jelentkezés</h3>
+          <p class="soft">Pénzügyi Térkép vagy telefon. 24 órán belül hívlak, jellemzően hétköznap 9 és 19 óra között.</p>
+        </div>
+        <div class="step">
+          <h3 class="h3">Helyzetkép, 30–45 perc</h3>
+          <p class="soft">${esc(meet)}</p>
+        </div>
+        <div class="step">
+          <h3 class="h3">Számok és ajánlatok</h3>
+          <p class="soft">Kiszámoljuk, mit hoz vagy visz az egyes döntés, és több partner ajánlatát hasonlítom össze — a költségekkel együtt.</p>
+        </div>
+        <div class="step">
+          <h3 class="h3">Te döntesz</h3>
+          <p class="soft">Ha nincs teendő, azt is megmondom. A tanácsadás díjmentes; jutalékot a szolgáltató fizet, ha szerződés jön létre.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  ${faqSection(c.faq, `Kérdések ${c.from}`, "q")}
+
+  ${mapSection({ h: c.cta.h, p: c.cta.p })}
+
+  <section class="section-sm">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <span class="label">Tovább innen</span>
+          <h2 class="h2 sec-head__title">Részletes útmutatók és kalkulátorok</h2>
+        </div>
+      </div>
+      <div class="related">
+        ${services.map((s, i) => svcMini(s, up, i)).join("\n        ")}
+      </div>
+      <div class="content" style="margin-top:2.5rem">
+        <h3 class="h4" style="margin-bottom:1rem">Olvasd el</h3>
+        ${linkList([
+          ...articles.map((a) => ({ href: `/tudastar/${a.slug}/`, t: a.h1.replace(/:.*$/, ""), n: "tudástár" })),
+          { href: "/penzugyi-tanacsadas/", t: "Pénzügyi tanácsadás — országos áttekintés", n: "költségek, folyamat, tanácsadó-választás" },
+          { href: "/penzugyi-tervezes/", t: "Pénzügyi tervezés 6 lépésben", n: "a sorrend, amit én is követek" },
+          { href: "/penzugyi-tanacsadas/varosok/", t: "Tanácsadás más városokban", n: "online az egész országban" },
+        ])}
+        <p class="tiny mute" style="margin-top:2rem"><strong>Fontos tájékoztatás.</strong> ${esc(YMYL_NOTE)}</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+${footer(depth)}
+${stickyCta(depth, true)}
+${scripts(depth, false)}`;
+  return relLinks(html, up);
+}
+
+/* --- Tudástár (cikklista) --------------------------------------------- */
+
+function knowledgeHubPage() {
+  const path = "tudastar/";
+  const depth = depthOf(path);
+  const up = upOf(depth);
+  const url = `${SITE}/${path}`;
+  const crumbs = [
+    { name: "Főoldal", path: "" },
+    { name: "Tudástár", path },
+  ];
+  const schema = ldScript([
+    {
+      "@type": "CollectionPage",
+      "@id": `${url}#oldal`,
+      name: "Tudástár — pénzügyi útmutatók",
+      url,
+      inLanguage: "hu-HU",
+      isPartOf: { "@id": `${SITE}/#weboldal` },
+      breadcrumb: { "@id": `${url}#morzsa` },
+      hasPart: ARTICLES.map((a) => ({ "@id": `${SITE}/tudastar/${a.slug}/#cikk` })),
+    },
+    businessSchema(),
+    personSchema(),
+    crumbSchema(crumbs, url),
+  ]);
+  const html = `${head({
+    title: "Tudástár — pénzügyi útmutatók, kalkulátorokkal | Érték Pont",
+    desc:
+      "Pénzügyi útmutatók érthetően: tanácsadó ellenőrzése, háztartási költségvetés, vésztartalék, " +
+      "valamint 13 téma kalkulátorral — nyugdíj, hitel, biztosítás, adókedvezmények.",
+    url,
+    depth,
+    schema,
+  })}
+${nav(depth, "")}
+
+<main id="main">
+  <section class="page-hero">
+    <div class="wrap">
+      ${crumbsHtml(crumbs, up)}
+      <span class="label">Tudástár</span>
+      <h1 class="h1" style="margin-top:.75rem">Pénzügyi útmutatók</h1>
+      <p class="lead">Érthető magyarázat apróbetű helyett: hogyan tervezz, mit ellenőrizz, és mikor
+      érdemes számolni. Minden útmutatót ${esc(CFG.advisor.name)} ír és frissít, forrásokkal.</p>
+    </div>
+  </section>
+
+  <section class="section-sm" style="padding-top:0">
+    <div class="wrap">
+      <h2 class="h3" style="margin-bottom:1.25rem">Cikkek</h2>
+      <div class="topic-grid">
+        ${ARTICLES.map(
+          (a) => `<article class="card topic">
+          <h3 class="h4"><a href="/tudastar/${a.slug}/">${esc(a.h1)}</a></h3>
+          <p>${esc(a.desc)}</p>
+          <p class="tiny mute"><time datetime="${a.modified}">Frissítve: ${huDate(a.modified)}</time></p>
+          <a class="link-arrow" href="/tudastar/${a.slug}/">Elolvasom ${ARROW}</a>
+        </article>`
+        ).join("\n        ")}
+      </div>
+    </div>
+  </section>
+
+  <section class="section-sm on-paper">
+    <div class="wrap">
+      <h2 class="h3" style="margin-bottom:.5rem">Útmutatók kalkulátorral</h2>
+      <p class="soft" style="margin-bottom:1.5rem;max-width:62ch">Mind a 13 szolgáltatás-oldal egyben
+      útmutató is: szabályok, 2026-os számok, gyakori kérdések és egy kalkulátor.</p>
+      ${linkList(SERVICES.map((s) => ({ href: `/szolgaltatas/${s.slug}.html`, t: s.h1 || s.title, n: s.metric })))}
+    </div>
+  </section>
+
+  <section class="section-sm">
+    <div class="wrap">
+      <div class="content">
+        <h2 class="h4" style="margin-bottom:1rem">Ha inkább beszélnél</h2>
+        ${linkList([
+          { href: "/penzugyi-tanacsadas/", t: "Pénzügyi tanácsadás", n: "hogyan működik, mennyibe kerül" },
+          { href: "/penzugyi-tervezes/", t: "Pénzügyi tervezés", n: "6 lépés, példával" },
+          { href: "/kapcsolat/", t: "Kapcsolat", n: "telefon, e-mail, Messenger" },
+        ])}
+      </div>
+    </div>
+  </section>
+</main>
+${footer(depth)}
+${stickyCta(depth)}
+${scripts(depth, false)}`;
+  return relLinks(html, up);
+}
+
+/* ====================================================================== */
 /*  Írás                                                                  */
 /* ====================================================================== */
 
+/* A config-kötéseket (data-cfg, data-cfg-href) build-időben is kitöltjük.
+   Korábban a statikus HTML-ben „+36 — — —” és href="#" állt, és csak a JS
+   írta át a valódi telefonszámra, e-mailre, Facebookra — a kereső és a JS
+   nélküli olvasó így nem látta az elérhetőséget (NAP-adat). A js/site.js
+   futásidőben továbbra is frissít, így a config.js módosítása újragenerálás
+   nélkül is érvényesül. */
+const isTodoVal = (v) => v === undefined || v === null || v === "" || /^TODO/i.test(String(v));
+function bakeCfg(html) {
+  return html
+    .replace(/data-cfg-href="([^"|]+)\|([^"]*)"(\s+)href="#"/g, (m, p, pre, sp) => {
+      const v = cfg(p);
+      return isTodoVal(v) ? m : `data-cfg-href="${p}|${pre}"${sp}href="${esc(pre + v)}"`;
+    })
+    .replace(/(<(\w+)\s[^>]*data-cfg="([^"]+)"[^>]*>)([^<]*)(<\/\2>)/g, (m, open, tag, p, inner, close) => {
+      const v = cfg(p);
+      return isTodoVal(v) ? m : open + esc(v) + close;
+    });
+}
+
 function write(rel, content) {
+  if (rel.endsWith(".html")) content = bakeCfg(content);
   const abs = path.join(ROOT, rel);
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   fs.writeFileSync(abs, content, "utf8");
@@ -1481,6 +2245,7 @@ const CSS_FILES = [
   "css/hero.css",
   "css/funnel.css",
   "css/motion.css",
+  "css/content.css",
 ];
 const JS_FILES = [
   "js/config.js",
@@ -1655,51 +2420,79 @@ write("css/site.css", banner("css/site.css") + CSS_FILES.map((f) => minifyCss(re
 write("js/app.js", banner("js/app.js") + JS_FILES.map((f) => minifyJs(read(f))).join("\n;\n"));
 write("js/3d.js", banner("js/3d.js") + JS_3D_FILES.map((f) => minifyJs(read(f))).join("\n;\n"));
 
-write("index.html", homePage());
-SERVICES.forEach((s) => write(`szolgaltatas/${s.slug}.html`, servicePage(s)));
-write("impresszum.html", imprintPage());
-write("adatkezeles.html", privacyPage());
-write("404.html", notFoundPage());
+/* --- Oldalak ------------------------------------------------------------
+   Minden indexelhető oldal a PAGES listába kerül: ebből készül a sitemap,
+   és a QA-szkript (build/seo-check.mjs) is ezt ellenőrzi.
+
+   lastmod: CSAK akkor a mai nap, ha az oldal tartalma tényleg változott.
+   Az összehasonlításból kiesik a cache-busting bélyeg (?v=…) és a CSP-hash,
+   mert azok minden buildnél újak. Korábban minden URL minden buildnél mai
+   dátumot kapott — ettől a keresők a lastmod-ot megbízhatatlannak tekintik. */
+const TODAY = new Date().toISOString().slice(0, 10);
+const OLD_LASTMOD = (() => {
+  const map = {};
+  try {
+    const xml = read("sitemap.xml");
+    for (const m of xml.matchAll(/<loc>([^<]+)<\/loc><lastmod>([^<]+)<\/lastmod>/g)) map[m[1]] = m[2];
+  } catch {}
+  return map;
+})();
+const normalize = (html) => html.replace(/\?v=[0-9a-z]+/g, "").replace(/'sha256-[^']+'/g, "");
+const PAGES = [];
+
+function writePage(rel, html, loc) {
+  html = bakeCfg(html);
+  let prev = null;
+  try { prev = read(rel); } catch {}
+  const changed = prev === null || normalize(prev) !== normalize(html);
+  write(rel, html);
+  if (loc) PAGES.push({ rel, loc, lastmod: changed ? TODAY : OLD_LASTMOD[loc] || TODAY });
+}
+
+writePage("index.html", homePage(), SITE + "/");
+
+/* Hub-oldalak: pillar, tervezés, városi hub, városok, tudástár, rólam, kapcsolat. */
+const CTX = { CFG, BRAND, CITIES, SERVICES, esc };
+const HOME_CRUMB = { name: "Főoldal", path: "" };
+const PILLAR_CRUMB = { name: "Pénzügyi tanácsadás", path: "penzugyi-tanacsadas/" };
+const contentDefs = [
+  [pillarPage(CTX), [HOME_CRUMB, PILLAR_CRUMB], "WebPage"],
+  [planningPage(CTX), [HOME_CRUMB, { name: "Pénzügyi tervezés", path: "penzugyi-tervezes/" }], "WebPage"],
+  [hubPage(CTX), [HOME_CRUMB, PILLAR_CRUMB, { name: "Városok", path: "penzugyi-tanacsadas/varosok/" }], "CollectionPage"],
+  [aboutPage(CTX), [HOME_CRUMB, { name: "Rólam", path: "rolam/" }], "ProfilePage"],
+  [contactPage(CTX), [HOME_CRUMB, { name: "Kapcsolat", path: "kapcsolat/" }], "ContactPage"],
+];
+for (const [p, crumbs, pageType] of contentDefs) {
+  writePage(`${p.path}index.html`, contentPage(p, { crumbs, pageType }), `${SITE}/${p.path}`);
+}
+CITIES.forEach((c) =>
+  writePage(`penzugyi-tanacsadas/${c.slug}/index.html`, cityPage(c), `${SITE}/penzugyi-tanacsadas/${c.slug}/`)
+);
+writePage("tudastar/index.html", knowledgeHubPage(), `${SITE}/tudastar/`);
+ARTICLES.forEach((a) => {
+  const p = { ...a, path: `tudastar/${a.slug}/`, label: "Tudástár", map: null };
+  const crumbs = [HOME_CRUMB, { name: "Tudástár", path: "tudastar/" }, { name: a.title.replace(/ — .*$/, ""), path: p.path }];
+  writePage(`${p.path}index.html`, contentPage(p, { crumbs, article: a }), `${SITE}/${p.path}`);
+});
+
+SERVICES.forEach((s) =>
+  writePage(`szolgaltatas/${s.slug}.html`, servicePage(s), `${SITE}/szolgaltatas/${s.slug}.html`)
+);
+writePage("impresszum.html", imprintPage(), SITE + "/impresszum.html");
+writePage("adatkezeles.html", privacyPage(), SITE + "/adatkezeles.html");
+writePage("404.html", notFoundPage(), null); // noindex — nem kerül a sitemapbe
 
 /* A GitHub Pages alapból Jekyll-en futtatja a repót, ami kihagyja az
    aláhúzással kezdődő fájlokat/mappákat. Ez a fájl kikapcsolja. */
 write(".nojekyll", "");
 
-/* sitemap + robots
-   A prioritás nem rangsorol, de a bejáráshoz jelzés: elöl a legnagyobb
-   keresési volumenű témák (támogatott és piaci hitel, nyugdíj, KGFB,
-   gyerek-megtakarítás, személyi kölcsön, bankszámla), utánuk a többi. */
-const TOP_SLUGS = [
-  "tamogatott-hitelek",
-  "piaci-hitelek",
-  "nyugdij-megtakaritas",
-  "kgfb-casco",
-  "gyerek-megtakaritas",
-  "szemelyi-kolcson",
-  "dijmentes-bankszamla",
-];
-const TODAY = new Date().toISOString().slice(0, 10);
-
-const urls = [
-  { loc: SITE + "/", pri: "1.0", freq: "weekly" },
-  ...SERVICES.map((s) => ({
-    loc: `${SITE}/szolgaltatas/${s.slug}.html`,
-    pri: TOP_SLUGS.includes(s.slug) ? "0.9" : "0.7",
-    freq: "monthly",
-  })),
-  { loc: SITE + "/impresszum.html", pri: "0.3", freq: "yearly" },
-  { loc: SITE + "/adatkezeles.html", pri: "0.3", freq: "yearly" },
-];
+/* sitemap — csak loc + lastmod: a changefreq-et és a priority-t a Google
+   hivatalosan figyelmen kívül hagyja, a pontos lastmod-ot viszont használja. */
 write(
   "sitemap.xml",
   `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls
-  .map(
-    (u) =>
-      `  <url><loc>${u.loc}</loc><lastmod>${TODAY}</lastmod><changefreq>${u.freq}</changefreq><priority>${u.pri}</priority></url>`
-  )
-  .join("\n")}
+${PAGES.map((u) => `  <url><loc>${u.loc}</loc><lastmod>${u.lastmod}</lastmod></url>`).join("\n")}
 </urlset>
 `
 );
@@ -1711,8 +2504,11 @@ write(
     ? `# Ideiglenes cím (${SITE}) — szándékosan nincs indexelve.\n` +
         `# A saját domain élesítésekor: js/config.js → noindex: false, majd node build/generate.mjs\n` +
         `User-agent: *\nDisallow: /\n`
-    : `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`
+    : /* A GitHub Pages a repó minden fájlját kiszolgálja — a belső
+         dokumentáció (README, SEO-*.md, docs/, build/) ne kerüljön a
+         keresőbe. Ez nem titkosítás: közvetlen címen elérhető marad. */
+      `User-agent: *\nAllow: /\nDisallow: /*.md$\nDisallow: /docs/\nDisallow: /build/\n\nSitemap: ${SITE}/sitemap.xml\n`
 );
 
-console.log(`\n${SERVICES.length + 7} fájl kész.`);
+console.log(`\n${PAGES.length} indexelhető oldal + 404, sitemap, robots kész.`);
 console.log(`Cím: ${SITE}/${NOINDEX ? "   (noindex — ideiglenes hosting)" : ""}\n`);

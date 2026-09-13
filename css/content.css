@@ -1,0 +1,204 @@
+/* ==========================================================================
+   TARTALMI OLDALAK — pillar (pénzügyi tanácsadás), pénzügyi tervezés,
+   városi oldalak, tudástár-cikkek, rólam, kapcsolat.
+   Csak a meglévő tokenekre épül (tokens.css), új szín vagy betű nincs.
+   ========================================================================== */
+
+/* --- Oldal-fejléc ------------------------------------------------------ */
+
+.page-hero {
+  padding-top: clamp(7rem, 14vh, 10rem);
+  padding-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+.page-hero .h1 { max-width: 22ch; }
+.page-hero .lead { margin-top: var(--space-5); max-width: 62ch; }
+.page-hero .hero__actions { margin-top: var(--space-6); }
+
+/* A szerző és a frissítés dátuma — YMYL-oldalon látható helyen kell lennie. */
+.byline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  margin-top: var(--space-5);
+  font-size: var(--fs-xs);
+  color: var(--text-mute);
+}
+.byline a { color: var(--lime-text); }
+.byline a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* --- Rövid válasz-doboz (definíció az oldal tetején) ------------------- */
+
+.answer {
+  max-width: var(--maxw-text);
+  padding: var(--space-5);
+  border-left: 3px solid var(--lime-text);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  background: var(--surface);
+  color: var(--text-soft);
+}
+.answer strong { color: var(--text); font-weight: 640; }
+.answer .label { display: block; margin-bottom: var(--space-2); }
+
+/* --- Hosszú szöveg + tartalomjegyzék ----------------------------------- */
+
+.longform {
+  display: grid;
+  gap: clamp(2rem, 5vw, 4.5rem);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 1100px) {
+  .longform { grid-template-columns: minmax(0, 1fr) 260px; }
+  .longform__aside { position: sticky; top: 110px; align-self: start; order: 2; }
+}
+
+.toc {
+  padding: var(--space-5);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  font-size: var(--fs-sm);
+}
+.toc .label { display: block; margin-bottom: var(--space-3); }
+.toc ol { display: grid; gap: 0.45rem; counter-reset: toc; }
+.toc li { counter-increment: toc; display: flex; gap: 0.6rem; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  color: var(--lime-text);
+  padding-top: 0.3em;
+}
+.toc a { color: var(--text-soft); }
+.toc a:hover { color: var(--lime-text); }
+
+.content { max-width: var(--maxw-text); min-width: 0; }
+.content > section + section { margin-top: clamp(3rem, 6vw, 4.5rem); }
+.content h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  font-weight: 750;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  margin-bottom: var(--space-4);
+  scroll-margin-top: 100px;
+}
+.content h3 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h4);
+  font-weight: 650;
+  line-height: 1.3;
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-3);
+}
+.content p,
+.content li { color: var(--text-soft); }
+.content p + p,
+.content p + ul,
+.content ul + p,
+.content p + ol,
+.content ol + p { margin-top: var(--space-4); }
+.content strong { color: var(--text); font-weight: 620; }
+.content a:not(.btn) {
+  color: var(--lime-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.content ul:not(.seo-links):not(.check-list) li,
+.content ol li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.55rem;
+}
+.content ul:not(.seo-links):not(.check-list) li::before {
+  content: "";
+  position: absolute;
+  left: 0.2rem; top: 0.72em;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--lime-text);
+}
+.content ol { counter-reset: ol; }
+.content ol li { counter-increment: ol; padding-left: 2rem; }
+.content ol li::before {
+  content: counter(ol) ".";
+  position: absolute;
+  left: 0; top: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--lime-text);
+}
+.content .check-list { margin-block: var(--space-4); }
+.content .warn-box,
+.content .answer { margin-block: var(--space-5); }
+
+/* --- Táblázat (vízszintesen görgethető, a body sosem) ------------------ */
+
+.table-wrap {
+  margin-block: var(--space-5);
+  overflow-x: auto;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+}
+.table-wrap table {
+  width: 100%;
+  min-width: 540px;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+.table-wrap th,
+.table-wrap td {
+  padding: 0.8rem 1rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--text-soft);
+}
+.table-wrap th {
+  color: var(--text);
+  font-weight: 640;
+  background: var(--surface);
+}
+.table-wrap tr:last-child td { border-bottom: 0; }
+.table-wrap caption {
+  caption-side: bottom;
+  padding: 0.6rem 1rem;
+  text-align: left;
+  font-size: var(--fs-xs);
+  color: var(--text-mute);
+}
+
+/* --- Témakártyák (városi helyzetek, tervezési lépések) ----------------- */
+
+.topic-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+}
+.topic {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.topic .h4 { color: var(--text); }
+.topic p { color: var(--text-soft); font-size: var(--fs-sm); }
+.topic .link-arrow { margin-top: auto; padding-top: var(--space-2); }
+
+/* --- Források ---------------------------------------------------------- */
+
+.sources { font-size: var(--fs-xs); color: var(--text-mute); }
+.sources li { margin-bottom: 0.4rem; }
+.sources a { color: var(--lime-text); word-break: break-word; }
+
+/* --- Elérhetőségi kártyák (kapcsolat, rólam) --------------------------- */
+
+.contact-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+}
+.contact-card .label { display: block; margin-bottom: var(--space-2); }
+.contact-card .fact__v { font-size: clamp(1.05rem, 2.2vw, 1.3rem); word-break: break-word; }
+
+/* Funnel a tartalmi oldalakon: ugyanaz a komponens, mint a főoldalon. */
+.page-funnel { max-width: 760px; }

@@ -49,6 +49,10 @@ Opcionális: `contact.calendar` (Calendly link — üresen a gomb eltűnik), `te
 ```
 index.html                  ← generált főoldal
 szolgaltatas/*.html         ← generált 13 szolgáltatás-oldal
+penzugyi-tanacsadas/        ← generált: országos pillar + /varosok/ hub + 8 városi oldal
+penzugyi-tervezes/          ← generált: pénzügyi tervezés céloldal
+rolam/, kapcsolat/          ← generált: szerzői profil, kapcsolat
+tudastar/                   ← generált: cikklista + cikkek
 impresszum.html             ← generált
 adatkezeles.html            ← generált (GDPR)
 404.html                    ← generált hibaoldal (a hosting szolgálja ki)
@@ -95,6 +99,11 @@ assets/img/arrow-hero.webp  ← statikus hero-fallback (16 kB); a .png marad OG/
 assets/img/icons/*.webp     ← 13 kirenderelt téma-ikon (256px, átlátszó, 2–4 kB); .png megvan
 
 build/generate.mjs          ← oldalgenerátor
+build/content/*.mjs         ← A TARTALMI OLDALAK SZÖVEGE: cities.mjs (8 város), pages.mjs
+                              (pillar, tervezés, hub, források), about.mjs, articles.mjs
+build/seo-check.mjs         ← SEO QA: title/H1/canonical/JSON-LD/linkek/doorway-hasonlóság
+css/content.css             ← hosszú szöveg, tartalomjegyzék, táblázat, témakártya
+SEO-*.md, LOCAL-SEO-*.md    ← kulcsszótérkép, tartalmi roadmap, audit, Cégprofil-lista
 docs/github-pages.md        ← ingyenes hosting: feltöltés, frissítés, saját domain
 docs/google-sheets-setup.md ← lead-fogadás: mi kész, mi van hátra (4 perc)
 docs/apps-script.gs         ← a Google Sheets webhook kódja (bemásolásra kész)
@@ -110,9 +119,16 @@ A szolgáltatások szövege, számai, funnel-kérdései és kalkulátorai **egy 
 
 ```bash
 node build/generate.mjs
+node build/seo-check.mjs
 ```
 
-Ez újragenerálja a főoldalt, a 13 aloldalt, a jogi oldalakat és a sitemap-et.
+Ez újragenerálja az összes oldalt és a sitemap-et, majd a második parancs ellenőrzi
+(title, H1, canonical, JSON-LD, törött linkek, városi oldalak hasonlósága). Hiba esetén
+nem-nulla kóddal lép ki — push előtt futtasd.
+
+A városi, pillar-, tervezés-, rólam-, kapcsolat- és tudástár-oldalak szövege a
+`build/content/` mappában van. Új cikk: új elem az `ARTICLES` tömbben (`articles.mjs`).
+Városi oldalon személyes találkozó csak akkor szerepelhet, ha valós: `cities.mjs → inPerson`.
 
 Új szolgáltatás felvétele: adj egy új objektumot a `SERVICES` tömbhöz (a meglévők a minta),
 és futtasd újra a generátort — a navigáció, a footer, a bento grid és a sitemap magától követi.
@@ -212,6 +228,13 @@ tokeneket ír felül (`--text`, `--line`, `--surface`, és a szöveg-lime helyet
 ---
 
 ## SEO — mire van optimalizálva
+
+> **2026-09 óta:** országos pillar (`/penzugyi-tanacsadas/`), pénzügyi tervezés, 8 városi
+> oldal + hub, rólam/kapcsolat, tudástár. A részletek, a kulcsszó-hozzárendelés és a
+> kannibalizáció-kezelés: `SEO-KEYWORD-MAP.md`; mit kell még kézzel megtenni:
+> `SEO-AUDIT-AFTER.md`; Google Cégprofil: `LOCAL-SEO-CHECKLIST.md`. A lenti lista az eredeti
+> (szolgáltatás-oldalakra vonatkozó) elvek — a strukturált adat azóta `Organization`, nem
+> `FinancialService` (nincs látogatható ügyfélhely).
 
 Országos, természetes keresésre. A rangsor nem vásárolható és nem garantálható, de ami
 technikailag elvégezhető, az készen van:

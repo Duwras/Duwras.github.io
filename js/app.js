@@ -728,7 +728,7 @@ badge: "20% állami",
 metric: "max. 150 000 Ft / év",
 hook: "Szemüveg, tanszer, iskolakezdés, babaápolási termékek, nőgyógyászat, gyógyszer. Ezeket a család amúgy is kifizeti — a különbség csak az, hogy honnan.",
 seo: {
-title: "20% adókedvezmény gyerek- és női kiadásokra 2026 — egészség- és önsegélyező pénztár",
+title: "20% adókedvezmény egészségpénztárral 2026 — gyerek és női kiadások",
 desc: "Egészség- és önsegélyező pénztár 2026: 20% adójóváírás max. 150 000 Ft-ig, iskolakezdési támogatás gyermekenként, gyógyszer, szemüveg, nőgyógyászat. Számold ki.",
 },
 facts: [
@@ -1146,7 +1146,7 @@ badge: "Napi kockázat",
 metric: "a táppénz nem a teljes bér",
 hook: "Egy csonttörés nem tragédia — a három hónap kiesett jövedelem viszont az. A baleset-biztosítás pont ezt a rést fedi le.",
 seo: {
-title: "Baleset-biztosítás 2026 — mit fedez, mennyibe kerül, mennyi térítés kell",
+title: "Baleset-biztosítás 2026 — mit fedez, mennyi térítés kell?",
 desc: "Csonttörés, műtét, kórházi napi térítés, keresőképtelenség, maradandó egészségkárosodás. Nézzük meg, mekkora fedezet indokolt nálad.",
 },
 facts: [
@@ -1408,7 +1408,7 @@ badge: "Várólista nélkül",
 metric: "TB mellé, nem helyette",
 hook: "Nem a betegség a kérdés, hanem hogy mikor kerülsz sorra. Az előfizetéses egészségbiztosítás napokat ad hónapok helyett.",
 seo: {
-title: "Magán egészségbiztosítás 2026 — magánkórházi előfizetés, várólista nélkül",
+title: "Magán egészségbiztosítás 2026 — magánkórházi előfizetés",
 desc: "Járóbeteg-ellátás, labor, diagnosztika, magánkórházi hátterű előfizetés 2026-ban. Mit fedez, mennyibe kerül, mikor éri meg a zsebből fizetés helyett.",
 },
 facts: [
@@ -3338,6 +3338,7 @@ this.render();
 }
 
 go(dir) {
+if (this.steps[this.index].kind === "thanks") return;
 const next = this.index + dir;
 if (next < 0 || next >= this.steps.length) return;
 if (dir > 0 && !this.valid()) {
@@ -3384,7 +3385,9 @@ render() {
 const step = this.steps[this.index];
 this.progress();
 this.hint.style.color = "";
-this.btnBack.style.visibility = this.index === 0 ? "hidden" : "visible";
+ 
+this.btnBack.style.visibility =
+this.index === 0 || step.kind === "thanks" ? "hidden" : "visible";
 
 const isLastInput = step.kind === "result";
 this.btnNext.style.display =
@@ -3739,13 +3742,14 @@ this.body.innerHTML = `
 }
 
  
+ 
 hrefTo(target, isRoot) {
-const inSub = /\/szolgaltatas\//.test(location.pathname);
+const up = document.documentElement.getAttribute("data-up") || "";
 if (isRoot) {
-if (target === "adatkezeles") return inSub ? "../adatkezeles.html" : "adatkezeles.html";
-return inSub ? "../index.html" : "index.html";
+if (target === "adatkezeles") return `${up}adatkezeles.html`;
+return up || "./";
 }
-return inSub ? `${target}.html` : `szolgaltatas/${target}.html`;
+return `${up}szolgaltatas/${target}.html`;
 }
 
  
@@ -3865,8 +3869,8 @@ el.href = (prefix || "") + v;
 $$("[data-cfg-src]").forEach((el) => {
 const v = get(el.dataset.cfgSrc);
 if (!isTodo(v)) {
-const inSub = /\/szolgaltatas\//.test(location.pathname);
-el.src = (inSub ? "../" : "") + v;
+const up = document.documentElement.getAttribute("data-up") || "";
+el.src = up + v;
 } else {
 el.closest("[data-photo-wrap]")?.classList.add("no-photo");
 }
@@ -3877,7 +3881,7 @@ if (isTodo(get(el.dataset.cfgIf))) el.hidden = true;
 }
 function renderStats() {
 const host = $("[data-render='stats']");
-if (!host) return;
+if (!host || host.children.length) return;
 const items = (CFG.stats || []).filter((s) => Number(s.value) > 0);
 if (!items.length) {
 host.innerHTML = `

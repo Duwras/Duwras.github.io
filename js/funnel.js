@@ -90,6 +90,7 @@
     }
 
     go(dir) {
+      if (this.steps[this.index].kind === "thanks") return; // beküldés után lezárva
       const next = this.index + dir;
       if (next < 0 || next >= this.steps.length) return;
       if (dir > 0 && !this.valid()) {
@@ -138,7 +139,10 @@
       const step = this.steps[this.index];
       this.progress();
       this.hint.style.color = "";
-      this.btnBack.style.visibility = this.index === 0 ? "hidden" : "visible";
+      /* A köszönő képernyőről nincs visszaút: onnan visszalépve újra
+         megjelenne az űrlap, és ugyanaz a jelentkezés többször is bemenne. */
+      this.btnBack.style.visibility =
+        this.index === 0 || step.kind === "thanks" ? "hidden" : "visible";
 
       const isLastInput = step.kind === "result";
       this.btnNext.style.display =
@@ -507,13 +511,17 @@
     }
 
     /* --- útvonalak (aloldal / főoldal kontextus) ---------------------- */
+    /* A gyökérhez vezető relatív előtagot a generátor írja a <html data-up>
+       attribútumba ("", "../", "../../" vagy a 404-en "/"). Így a funnel
+       bármilyen mélységű oldalon — szolgáltatás, városi oldal, cikk — jó
+       címre linkel, és nem az URL-ből kell kitalálni, hol vagyunk. */
     hrefTo(target, isRoot) {
-      const inSub = /\/szolgaltatas\//.test(location.pathname);
+      const up = document.documentElement.getAttribute("data-up") || "";
       if (isRoot) {
-        if (target === "adatkezeles") return inSub ? "../adatkezeles.html" : "adatkezeles.html";
-        return inSub ? "../index.html" : "index.html";
+        if (target === "adatkezeles") return `${up}adatkezeles.html`;
+        return up || "./";
       }
-      return inSub ? `${target}.html` : `szolgaltatas/${target}.html`;
+      return `${up}szolgaltatas/${target}.html`;
     }
 
     /* --- beküldés ----------------------------------------------------- */
