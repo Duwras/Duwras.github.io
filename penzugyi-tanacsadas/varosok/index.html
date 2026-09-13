@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="hu" data-up="../../">
+<html lang="hu" data-up="../../" data-page-type="city_hub">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
 <title>Pénzügyi tanácsadás városonként — 8 nagyváros | Érték Pont</title>
 <meta name="description" content="Pénzügyi tanácsadás Budapesten személyesen, Debrecenben, Szegeden, Miskolcon, Pécsett, Győrben, Nyíregyházán és Kecskeméten online. Városonként a helyi pénzügyi kérdések.">
@@ -36,7 +36,7 @@
 
 <!-- EGY stíluslap: a hét forrásfájlból a generátor fűzi össze (css/site.css).
      Hét blokkoló kérés helyett egy. Szerkeszteni továbbra is a css/*.css-t kell. -->
-<link rel="stylesheet" href="../../css/site.css?v=mu0c4p28">
+<link rel="stylesheet" href="../../css/site.css?v=mu0ejk2v">
 <!-- JS nélkül a reveal-animáció sosem indulna el, és a tartalom átlátszó
      maradna — ez a biztosíték, hogy szöveg mindig látható legyen. -->
 <noscript><style>[data-reveal],.split-words .w{opacity:1!important;transform:none!important;clip-path:none!important}</style></noscript>
@@ -62,15 +62,25 @@
     <a class="nav__link" href="../../rolam/">Rólam</a>
     <a class="nav__link" href="../../kapcsolat/">Kapcsolat</a>
   </nav>
-  <div class="nav__actions">
-    <a class="btn hide-mobile" href="../../#terkep">
-      <span class="btn__label">Indítsuk el</span><span class="btn__arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+  <!-- Konverziós út a fejlécben: telefon (tel:) + visszahívás (modál).
+       A telefonszám 1280 px felett kiírva, alatta ikon; 860 px alatt a
+       mobil konverziós sáv (.mbar) veszi át. -->
+  <div class="nav__actions" data-cta-location="header">
+    <a class="nav__phone" href="tel:+36203695312" aria-label="Hívás: +36 20 369 5312">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg><span class="nav__phone-num">+36 20 369 5312</span>
+    </a>
+    <a class="btn nav__cta hide-mobile" href="../../kapcsolat/#visszahivas" data-callback>
+      <span class="btn__label">Visszahívást kérek</span>
     </a>
     <button class="burger" aria-expanded="false" aria-label="Menü" aria-controls="menu"><span></span></button>
   </div>
 </header>
 
 <div class="menu" id="menu">
+  <div class="menu__cta" data-cta-location="menu">
+    <a class="btn btn--lg btn--block" href="../../kapcsolat/#visszahivas" data-callback><span class="btn__label">Visszahívást kérek</span></a>
+    <a class="btn btn--ghost btn--lg btn--block" href="tel:+36203695312"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg><span class="btn__label">Hívás: +36 20 369 5312</span></a>
+  </div>
   <div class="menu__group">
     <p class="footer__title">Kezdd itt</p>
     <a class="menu__item" href="../../#terkep"><span>Pénzügyi Térkép</span><small>1 perc</small></a>
@@ -125,17 +135,23 @@
           
           <span>Frissítve: <time datetime="2026-09-13">2026. szeptember 13.</time></span>
         </p>
-        <div class="hero__actions">
-          <a class="btn" href="#terkep"><span class="btn__label">Pénzügyi Térkép — 1 perc</span><span class="btn__arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-          <a class="btn btn--ghost" href="tel:+36203695312"><span class="btn__label">Hívás: +36 20 369 5312</span></a>
-        </div></div>
+        <div class="hero__actions cta-group" data-cta-location="hero" data-hero-cta>
+          <a class="btn btn--lg" href="../../kapcsolat/#visszahivas" data-callback>
+            <span class="btn__label">Visszahívást kérek</span><span class="btn__arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </a>
+          <a class="btn btn--ghost btn--lg" href="tel:+36203695312">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg><span class="btn__label"><span class="only-mobile">Hívás most</span><span class="hide-mobile">Hívás: +36 20 369 5312</span></span>
+          </a>
+        </div>
+        <p class="cta-alt">Előbb számolnál? <a href="#terkep">Pénzügyi Térkép — 7 kérdés, 1 perc</a></p></div>
   </section>
+
 
   <section class="section-sm" style="padding-top:0">
     <div class="wrap">
       <div class="answer"><span class="label">Röviden</span>A tanácsadás <strong>online az egész országban</strong> működik (videóhívás, telefon,
       e-mail), <strong>Budapesten személyesen is</strong>. Az első beszélgetés díjmentes, 30–45 perc,
-      és jelentkezés után 24 órán belül keresem. Irodát vagy telephelyet a lenti városokban nem
+      és jelentkezés után én hívlak vissza. Irodát vagy telephelyet a lenti városokban nem
       állítok — a városi oldalak a helyi pénzügyi helyzetekről szólnak.</div>
     </div>
   </section>
@@ -165,8 +181,8 @@
           <h2 id="h-online">Hogyan működik a tanácsadás, ha nem Budapesten élsz?</h2>
           
         <ol>
-          <li><strong>Jelentkezés:</strong> kitöltöd a Pénzügyi Térképet vagy felhívsz. 24 órán belül
-          keresem a megadott számot.</li>
+          <li><strong>Jelentkezés:</strong> visszahívást kérsz, kitöltöd a Pénzügyi Térképet vagy felhívsz.
+          A megadott számon keresem, jellemzően hétköznap 9 és 19 óra között.</li>
           <li><strong>Első beszélgetés:</strong> 30–45 perc videóhíváson vagy telefonon. Elég, ha kéznél
           vannak a meglévő szerződéseid.</li>
           <li><strong>Összehasonlítás:</strong> az ajánlatokat e-mailben küldöm, és képernyőn együtt
@@ -214,7 +230,7 @@
           <span class="label">Pénzügyi Térkép</span>
           <h2 class="h2 sec-head__title">Bárhonnan az országból — egy perccel kezdődik</h2>
         </div>
-        <p class="lead">Töltsd ki a Pénzügyi Térképet, és 24 órán belül keresek a konkrét számokkal.</p>
+        <p class="lead">Töltsd ki a Pénzügyi Térképet, és a konkrét számokkal hívlak vissza.</p>
       </div>
       <div class="funnel-narrow" data-funnel="map">
         <noscript><p class="lead">A Pénzügyi Térképhez JavaScript szükséges. Hívj közvetlenül:
@@ -239,6 +255,30 @@
     </div>
   </section>
 
+  <section class="section-sm" aria-labelledby="zaro-cta">
+    <div class="wrap">
+      <div class="cta-band" data-reveal="scale">
+        <img class="cta-band__glyph" src="../../assets/img/arrow-hero.webp" alt="" aria-hidden="true" width="900" height="900" loading="lazy" decoding="async">
+        <span class="label" style="color:var(--lime-ink);opacity:.7">Bárhonnan az országból</span>
+        <h2 class="h2" id="zaro-cta" style="margin-top:.75rem;max-width:24ch">Online, az egész országban — kérj visszahívást.</h2>
+        <p style="margin-top:1rem;max-width:54ch;opacity:.85">Telefonon vagy videóhíváson beszélünk, Budapesten személyesen is. A számolás mindenhol ugyanaz.</p>
+        <div class="hero__actions cta-group" data-cta-location="final">
+          <a class="btn btn--lg btn--dark" href="../../kapcsolat/#visszahivas" data-callback>
+            <span class="btn__label">Visszahívást kérek</span><span class="btn__arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </a>
+          <a class="btn btn--ghost btn--lg btn--ghost-ink" href="tel:+36203695312">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg><span class="btn__label"><span class="only-mobile">Hívás most</span><span class="hide-mobile">Hívás: +36 20 369 5312</span></span>
+          </a>
+        </div>
+        
+        <p class="cta-trust">
+          <img src="../../assets/brand/avatar.webp" alt="" width="40" height="40" loading="lazy" decoding="async">
+          <span><strong>Tímár Richárd</strong>, pénzügyi tanácsadó — nem call center, én hívlak vissza.
+          Elérhetőség: <span class="nowrap">hétköznap 9–19 óra</span>.</span>
+        </p>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer class="footer">
@@ -356,14 +396,12 @@
   </div>
 </div>
 
-<div class="sticky-cta">
-  <a class="btn btn--block" href="#terkep"><span class="btn__label">Pénzügyi Térkép</span></a>
-  <a class="btn btn--ghost btn--icon" data-cfg-href="contact.phoneHref|tel:" href="tel:+36203695312" aria-label="Telefonhívás">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>
-  </a>
+<div class="mbar" data-cta-location="mobile_sticky" aria-hidden="true">
+  <a class="btn btn--ghost mbar__call" href="tel:+36203695312" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg><span class="btn__label">Hívás</span></a>
+  <a class="btn mbar__cb" href="../../kapcsolat/#visszahivas" data-callback tabindex="-1"><span class="btn__label"><span class="mbar__long">Visszahívást kérek</span><span class="mbar__short">Visszahívás</span></span></a>
 </div>
 
-<script src="../../js/app.js?v=mu0c4p28" defer></script>
+<script src="../../js/app.js?v=mu0ejk2v" defer></script>
 
 </body>
 </html>

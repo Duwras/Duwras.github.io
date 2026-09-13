@@ -79,6 +79,122 @@ const icon = (paths, size = 22, sw = 1.6) =>
 
 const V = Date.now().toString(36); // cache-busting bélyeg
 const ARROW = icon('<path d="M7 17 17 7M9 7h8v8"/>', 16, 2.2);
+const PHONE_ICON = icon(
+  '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>',
+  18,
+  1.8
+);
+
+/* ====================================================================== */
+/*  Konverziós építőelemek (CTA-rendszer)                                 */
+/*  Két fő cél: 1. VISSZAHÍVÁS-KÉRÉS (elsődleges), 2. HÍVÁS (másodlagos). */
+/*  A telefonszám mindenhol a config.js-ből jön — sehol nincs beégetve.   */
+/*  A JS-oldal: js/quick-lead.js (modál, űrlap, mobil sáv),               */
+/*  js/core/track.js (mérés). Lista és helyek: CONVERSION-FUNNEL.md.      */
+/* ====================================================================== */
+
+const TEL = `tel:${CFG.contact.phoneHref}`;
+
+/* A visszahívás-gomb VALÓDI link a kapcsolat oldal űrlapjára: a JS
+   elfogja és modált nyit, JS nélkül (vagy amíg be nem tölt) a látogató
+   ott is űrlapot talál. */
+const callbackHref = (up) => `${up}kapcsolat/#visszahivas`;
+
+/* Vállalt visszahívási idő — csak ha a tulajdonos megerősítette
+   (config.contact.callbackPromise). Üresen semmilyen időígéret nincs. */
+const PROMISE = String(CFG.contact.callbackPromise || "").trim();
+
+/* Gombpár: elsődleges „Visszahívást kérek” + másodlagos „Hívás most”.
+   A `location` a mérés cta_location értéke (hero, mid_page, final…).
+   dark: lime sávon (záró CTA) sötét gombok. heroCta: a mobil sáv ebből
+   tudja, mikor gördült ki a hero CTA a képből. */
+function ctaGroup(up, { location, dark = false, lg = true, heroCta = false, primary = "Visszahívást kérek", service = "" } = {}) {
+  const size = lg ? " btn--lg" : "";
+  return `<div class="hero__actions cta-group" data-cta-location="${esc(location)}"${heroCta ? " data-hero-cta" : ""}>
+          <a class="btn${size}${dark ? " btn--dark" : ""}" href="${callbackHref(up)}" data-callback${service ? ` data-service="${esc(service)}"` : ""}>
+            <span class="btn__label">${esc(primary)}</span><span class="btn__arrow">${ARROW}</span>
+          </a>
+          <a class="btn btn--ghost${size}${dark ? " btn--ghost-ink" : ""}" href="${TEL}">
+            ${PHONE_ICON}<span class="btn__label"><span class="only-mobile">Hívás most</span><span class="hide-mobile">Hívás: ${esc(CFG.contact.phone)}</span></span>
+          </a>
+        </div>`;
+}
+
+/* Bizalmi sor a CTA alatt: arc + név + ki hív vissza + mikor. Csak
+   igazolt adat: név és szerep (config), elérhetőség (config.contact.hours),
+   „nem call center” (a tanácsadást személyesen végzi — impresszum 2. pont). */
+function trustLine(up, { eager = false } = {}) {
+  return `<p class="cta-trust">
+          <img src="${up}assets/brand/avatar.webp" alt="" width="40" height="40" ${eager ? 'loading="eager"' : 'loading="lazy"'} decoding="async">
+          <span><strong>${esc(CFG.advisor.name)}</strong>, ${esc(CFG.advisor.role)} — nem call center, én hívlak vissza${PROMISE ? `, ${esc(PROMISE)}` : ""}.
+          Elérhetőség: <span class="nowrap">${esc(CFG.contact.hoursShort)}</span>.</span>
+        </p>`;
+}
+
+/* Záró konverziós blokk: egy oldal se érjen véget GYIK → lábléc módon.
+   A lime szalag a meglévő `.cta-band` komponens. */
+function finalCta(up, { label = "Beszéljünk", h, p, location = "final", bridge = "", service = "" }) {
+  return `
+  <section class="section-sm" aria-labelledby="zaro-cta">
+    <div class="wrap">
+      <div class="cta-band" data-reveal="scale">
+        <img class="cta-band__glyph" src="${up}assets/img/arrow-hero.webp" alt="" aria-hidden="true" width="900" height="900" loading="lazy" decoding="async">
+        <span class="label" style="color:var(--lime-ink);opacity:.7">${esc(label)}</span>
+        <h2 class="h2" id="zaro-cta" style="margin-top:.75rem;max-width:24ch">${h}</h2>
+        <p style="margin-top:1rem;max-width:54ch;opacity:.85">${p}</p>
+        ${ctaGroup(up, { location, dark: true, service })}
+        ${bridge ? `<p class="cta-band__bridge">${bridge}</p>` : ""}
+        ${trustLine(up)}
+      </div>
+    </div>
+  </section>`;
+}
+
+/* „Mi történik, ha visszahívást kérsz?” — 3 lépés + bizalmi kártya + CTA.
+   A lépések a kapcsolat oldal „Mi történik, miután jelentkezel?” pontjaiból
+   (build/content/about.mjs), a bizalmi adatok a configból / impresszumból.
+   Kitalált folyamat, képesítés, értékelés nincs benne. */
+function processTrust(up, { location = "process", service = "", intro = "" } = {}) {
+  return `
+  <section class="section-sm" id="menet">
+    <div class="wrap split">
+      <div>
+        <span class="label">Mi történik, ha visszahívást kérsz?</span>
+        <h2 class="h2" style="margin-top:.75rem">Három lépés, és te döntesz</h2>
+        ${intro ? `<p class="lead" style="margin-top:1.25rem">${intro}</p>` : ""}
+        <div class="trust-card">
+          <img src="${up}assets/brand/avatar.webp" alt="" width="64" height="64" loading="lazy" decoding="async">
+          <div>
+            <div class="trust-card__name">${esc(CFG.advisor.name)}</div>
+            <p>${esc(CFG.advisor.role)} · ${esc(CFG.business.shortName)}${/\.$/.test(CFG.business.shortName) ? "" : "."} A közvetítés az
+            ${esc(CFG.legal.companyName.split(" ")[0])} (többes ügynök) nevében történik — a társaság
+            MNB-nyilvántartási száma: ${esc(CFG.legal.mnbNumber)}.
+            <a href="${up}rolam/#ellenorzes">Így ellenőrizheted</a>.</p>
+            <p>A tanácsadás díjmentes: a jutalékot a szolgáltató fizeti, ha a te döntésed alapján szerződés jön létre.</p>
+          </div>
+        </div>
+        ${ctaGroup(up, { location, service })}
+      </div>
+      <div class="steps">
+        <div class="step">
+          <h3 class="h3">Visszahívást kérsz</h3>
+          <p class="soft">Megadod a neved és a számod — ha szeretnéd, azt is, miről beszéljünk.
+          ${PROMISE ? `${esc(PROMISE[0].toUpperCase() + PROMISE.slice(1))} hívlak,` : "Hívlak,"} jellemzően ${esc(CFG.contact.hoursShort)} között.</p>
+        </div>
+        <div class="step">
+          <h3 class="h3">Első beszélgetés, 30–45 perc</h3>
+          <p class="soft">Telefonon, videóhíváson vagy Budapesten személyesen. Megnézzük a helyzeted és a
+          lehetséges lépéseket — egyetlen konkrét témánál gyakran 15 perc is elég.</p>
+        </div>
+        <div class="step">
+          <h3 class="h3">Te döntesz</h3>
+          <p class="soft">Ha kéred, több szolgáltató ajánlatát hasonlítom össze, a költségekkel együtt.
+          Ha nincs teendő, azt is megmondom.</p>
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
 
 /* ====================================================================== */
 /*  Közös részek                                                          */
@@ -112,17 +228,26 @@ const PRELOAD_FONTS = ["assets/fonts/inter-latin.woff2", "assets/fonts/inter-tig
      vannak style="..." attribútumok (pl. --reveal-delay).
    A frame-ancestors / HSTS / COOP fejlécet <meta>-ban nem lehet megadni,
    azokhoz saját szerver vagy Cloudflare kellene. */
+/* Mérés: a Google Tag Manager domainjei CSAK akkor kerülnek a házirendbe,
+   ha a config.analytics.gtmId ki van töltve. Üresen a CSP ugyanolyan szigorú
+   marad, mint eddig — a dataLayer-események ettől még gyűlnek (memóriában). */
+const GTM_ON = /^GTM-[A-Z0-9]{4,}$/.test(String(CFG.analytics?.gtmId || "").trim());
+const GTM_SRC = GTM_ON ? " https://www.googletagmanager.com" : "";
+const GA_CONNECT = GTM_ON
+  ? " https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com"
+  : "";
+
 function cspMeta(inlineHashes = []) {
-  const scriptSrc = ["'self'", ...inlineHashes.map((h) => `'${h}'`)].join(" ");
+  const scriptSrc = ["'self'", ...inlineHashes.map((h) => `'${h}'`)].join(" ") + GTM_SRC;
   const policy = [
     "default-src 'self'",
     "base-uri 'self'",
     "object-src 'none'",
     `script-src ${scriptSrc}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data:",
+    `img-src 'self' data:${GTM_ON ? " https://*.google-analytics.com https://www.googletagmanager.com" : ""}`,
     "font-src 'self'",
-    "connect-src 'self' https://script.google.com https://script.googleusercontent.com",
+    `connect-src 'self' https://script.google.com https://script.googleusercontent.com${GA_CONNECT}`,
     "form-action 'self'",
     "frame-src 'none'",
     "upgrade-insecure-requests",
@@ -143,8 +268,18 @@ function head({
   robots = "",
   ogType = "website",
   article = null,
+  /* Konverziós kontextus: a JS (mérés, visszahívás-űrlap) ebből tudja,
+     milyen oldalon van — oldaltípus, szolgáltatás, város. A lead és a
+     GA4-esemény is ezt kapja (js/core/track.js). */
+  pageType = "other",
+  service = "",
+  city = "",
 }) {
   const up = upOf(depth);
+  const ctxAttrs =
+    ` data-page-type="${esc(pageType)}"` +
+    (service ? ` data-service="${esc(service)}"` : "") +
+    (city ? ` data-city="${esc(city)}"` : "");
   /* A 404 és a hasonló segédoldalak NEM kerülhetnek az indexbe (és canonical
      sem kell nekik: bármilyen URL-en kiszolgálódhatnak). */
   const robotsVal = NOINDEX
@@ -173,10 +308,10 @@ function head({
   /* data-up: a gyökérhez vezető relatív előtag. A JS (funnel, config-kötés)
      ebből építi a linkeket, így bármilyen mélységű oldalon működik. */
   return `<!doctype html>
-<html lang="hu" data-up="${up}">
+<html lang="hu" data-up="${up}"${ctxAttrs}>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 ${cspMeta(inlineHashes)}
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
@@ -244,15 +379,25 @@ function nav(depth = 0, current = "") {
     ${link(`${up}rolam/`, "Rólam", "rolam")}
     ${link(`${up}kapcsolat/`, "Kapcsolat", "kapcsolat")}
   </nav>
-  <div class="nav__actions">
-    <a class="btn hide-mobile" href="${home}#terkep">
-      <span class="btn__label">Indítsuk el</span><span class="btn__arrow">${ARROW}</span>
+  <!-- Konverziós út a fejlécben: telefon (tel:) + visszahívás (modál).
+       A telefonszám 1280 px felett kiírva, alatta ikon; 860 px alatt a
+       mobil konverziós sáv (.mbar) veszi át. -->
+  <div class="nav__actions" data-cta-location="header">
+    <a class="nav__phone" href="${TEL}" aria-label="Hívás: ${esc(CFG.contact.phone)}">
+      ${PHONE_ICON}<span class="nav__phone-num">${esc(CFG.contact.phone)}</span>
+    </a>
+    <a class="btn nav__cta hide-mobile" href="${callbackHref(up)}" data-callback>
+      <span class="btn__label">Visszahívást kérek</span>
     </a>
     <button class="burger" aria-expanded="false" aria-label="Menü" aria-controls="menu"><span></span></button>
   </div>
 </header>
 
 <div class="menu" id="menu">
+  <div class="menu__cta" data-cta-location="menu">
+    <a class="btn btn--lg btn--block" href="${callbackHref(up)}" data-callback><span class="btn__label">Visszahívást kérek</span></a>
+    <a class="btn btn--ghost btn--lg btn--block" href="${TEL}">${PHONE_ICON}<span class="btn__label">Hívás: ${esc(CFG.contact.phone)}</span></a>
+  </div>
   <div class="menu__group">
     <p class="footer__title">Kezdd itt</p>
     <a class="menu__item" href="${home}#terkep"><span>Pénzügyi Térkép</span><small>1 perc</small></a>
@@ -280,16 +425,16 @@ function nav(depth = 0, current = "") {
 </div>`;
 }
 
-/* localMap: ha az oldalon van saját Pénzügyi Térkép (#terkep), a ragadós
-   gomb oda görget, nem visz át a főoldalra. */
-function stickyCta(depth = 0, localMap = false) {
+/* Mobil konverziós sáv (860 px alatt): Hívás (tel:) + Visszahívás (modál).
+   Nem visz el az oldalról — a korábbi „Pénzügyi Térkép” gomb aloldalról a
+   főoldalra navigált. A láthatóságot a js/quick-lead.js vezérli, a helyét
+   a css/cro.css tartja fenn a lábléc alján. */
+function stickyCta(depth = 0) {
   const up = upOf(depth);
   return `
-<div class="sticky-cta">
-  <a class="btn btn--block" href="${localMap ? "" : homeOf(up)}#terkep"><span class="btn__label">Pénzügyi Térkép</span></a>
-  <a class="btn btn--ghost btn--icon" data-cfg-href="contact.phoneHref|tel:" href="#" aria-label="Telefonhívás">
-    ${icon('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>', 18, 1.8)}
-  </a>
+<div class="mbar" data-cta-location="mobile_sticky" aria-hidden="true">
+  <a class="btn btn--ghost mbar__call" href="${TEL}" tabindex="-1">${PHONE_ICON}<span class="btn__label">Hívás</span></a>
+  <a class="btn mbar__cb" href="${callbackHref(up)}" data-callback tabindex="-1"><span class="btn__label"><span class="mbar__long">Visszahívást kérek</span><span class="mbar__short">Visszahívás</span></span></a>
 </div>`;
 }
 
@@ -693,6 +838,7 @@ function homePage() {
       media: "(min-width: 1024px)",
     },
     hero3d: true, // a CSP-hez kell: ezen az oldalon van beágyazott script
+    pageType: "home",
   })}
 ${nav(0)}
 
@@ -709,21 +855,17 @@ ${nav(0)}
         <p class="hero__lead">
           A legtöbb család ezt kihagyja. Nyugdíj, gyerekmegtakarítás, adókedvezmények,
           biztosítás, hitel, bankszámla — 13 terület, ahol pénz áll vagy vész el.
-          Egy perc alatt megmutatom, nálad melyik három hozza a legtöbbet,
-          és mennyi az a szám forintban.
+          Egy beszélgetésben megnézzük, nálad melyik hozza a legtöbbet, forintban.
         </p>
-        <div class="hero__actions">
-          <a class="btn btn--lg" href="#terkep">
-            <span class="btn__label">Pénzügyi Térkép — 1 perc</span><span class="btn__arrow">${ARROW}</span>
-          </a>
-          <a class="btn btn--ghost btn--lg" href="#szolgaltatasok">
-            <span class="btn__label">Mind a 13 téma</span>
-          </a>
-        </div>
+        <!-- Elsődleges: visszahívás (modál), másodlagos: hívás. A Pénzügyi
+             Térkép megmarad harmadlagos útnak annak, aki előbb számolna. -->
+        ${ctaGroup("", { location: "hero", heroCta: true })}
+        <p class="cta-alt">Előbb számolnál? <a href="#terkep">Pénzügyi Térkép — 7 kérdés, 1 perc</a></p>
+        ${trustLine("", { eager: true })}
         <div class="hero__meta">
           <span><b>0 Ft</b> tanácsadási díj</span>
-          <span><b>24 órán</b> belül visszahívás</span>
           <span><b>Több partner</b> biztosító és bank ajánlata</span>
+          <span><b>Online</b>, az egész országban</span>
         </div>
       </div>
 
@@ -813,9 +955,7 @@ ${nav(0)}
           Nem termékkel kezdünk, hanem a te számaiddal. Ha a végén az jön ki, hogy semmit nem
           kell kötni, azt is megmondom — ez a különbség egy közvetítő és egy értékesítő között.
         </p>
-        <div class="hero__actions">
-          <a class="btn" href="#terkep"><span class="btn__label">Kezdjük a térképpel</span><span class="btn__arrow">${ARROW}</span></a>
-        </div>
+        ${ctaGroup("", { location: "process", lg: false })}
       </div>
       <div class="steps">
         <div class="step" data-reveal>
@@ -872,10 +1012,9 @@ ${nav(0)}
           <div><div class="fact__v" style="font-size:1.15rem;word-break:break-all" data-cfg="contact.email">e-mail</div><div class="fact__l">Vagy írj</div></div>
           <div><div class="fact__v" style="font-size:1.15rem" data-cfg="contact.hours">Hétfő–péntek</div><div class="fact__l">Elérhetőség</div></div>
         </div>
-        <div class="hero__actions">
-          <a class="btn" data-cfg-href="contact.phoneHref|tel:" href="#"><span class="btn__label">Telefonhívás</span></a>
-          <a class="btn btn--ghost" data-cfg-href="contact.messenger|" href="#" target="_blank" rel="noopener"><span class="btn__label">Messenger</span></a>
-        </div>
+        ${ctaGroup("", { location: "about", lg: false })}
+        <p class="cta-alt">Írnál inkább? <a data-cfg-href="contact.messenger|" href="#" target="_blank" rel="noopener">Messenger</a> ·
+          <a data-cfg-href="contact.email|mailto:" href="#"><span data-cfg="contact.email">e-mail</span></a></p>
         <!-- Időpontfoglaló gomb szándékosan nincs: a visszahívást a
              telefonszám és az online űrlap viszi, harmadik fél nélkül. -->
       </div>
@@ -997,23 +1136,13 @@ ${nav(0)}
     </div>
   </section>
 
-  <!-- ============ CTA ============ -->
-  <section class="section-sm">
-    <div class="wrap">
-      <div class="cta-band" data-reveal="scale">
-        <img class="cta-band__glyph" src="assets/img/arrow-hero.webp" alt="" aria-hidden="true" width="900" height="900" loading="lazy" decoding="async">
-        <span class="label" style="color:var(--lime-ink);opacity:.7">Kezdjük el</span>
-        <h2 class="h2" style="margin-top:.75rem;max-width:24ch">Egy perc most, több százezer forint évente.</h2>
-        <p style="margin-top:1rem;max-width:52ch;opacity:.8">
-          Töltsd ki a Pénzügyi Térképet, és 24 órán belül keresek a konkrét számokkal.
-          Nem call center, nem hírlevél — egy hívás, egy ember.
-        </p>
-        <div class="hero__actions">
-          <a class="btn btn--dark btn--lg" href="#terkep"><span class="btn__label">Pénzügyi Térkép indítása</span><span class="btn__arrow">${ARROW}</span></a>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- ============ ZÁRÓ CTA ============ -->
+  ${finalCta("", {
+    label: "Kezdjük el",
+    h: "Egy hívás most, több százezer forint évente.",
+    p: "Kérj visszahívást, és a konkrét számaiddal beszélünk. Nem call center, nem hírlevél — egy hívás, egy ember.",
+    bridge: `Előbb magad számolnál? <a href="#terkep">Pénzügyi Térkép — 1 perc</a>`,
+  })}
 
 </main>
 ${footer(0)}
@@ -1087,6 +1216,8 @@ function servicePage(s) {
     depth: 1,
     schema,
     preloadLcp: `assets/img/icons/${s.slug}.webp`,
+    pageType: "service",
+    service: s.slug,
   })}
 ${nav(1)}
 
@@ -1109,6 +1240,12 @@ ${nav(1)}
         <h1 class="h1" style="margin-top:1.25rem" data-lines>${esc(s.h1 || s.title)}</h1>
         <p class="lead" style="margin-top:1.25rem">${esc(s.hook)}</p>
 
+        <!-- Elsődleges: visszahívás a témával előre kijelölve; másodlagos:
+             hívás. A kalkulátoros funnel (jobbra / alatta) harmadlagos út.
+             A tényszámok ELŐTT, hogy a gombok a hajtás fölött maradjanak. -->
+        ${ctaGroup("../", { location: "hero", heroCta: true, service: s.slug })}
+        <p class="cta-alt">Előbb számolnál? <a href="#funnel">${esc(s.navTitle)} kalkulátor — ${s.funnel.steps.length} kérdés</a></p>
+
         <div class="fact-row">
           ${s.facts
             .map(
@@ -1118,11 +1255,6 @@ ${nav(1)}
           </div>`
             )
             .join("\n          ")}
-        </div>
-
-        <div class="hero__actions">
-          <a class="btn" href="#funnel"><span class="btn__label">Számoljuk ki nálam</span><span class="btn__arrow">${ARROW}</span></a>
-          <a class="btn btn--ghost" data-cfg-href="contact.phoneHref|tel:" href="#"><span class="btn__label">Inkább hívnék</span></a>
         </div>
       </div>
 
@@ -1168,15 +1300,15 @@ ${nav(1)}
         <p class="lead" style="margin-top:1.25rem">
           Ha legalább egy pont igaz rád, jó eséllyel van itt pénz vagy védelem, amit ma nem használsz ki.
         </p>
-        <div class="hero__actions">
-          <a class="btn" href="#funnel"><span class="btn__label">Megnézem a számokat</span><span class="btn__arrow">${ARROW}</span></a>
-        </div>
+        ${ctaGroup("../", { location: "service_section", lg: false, service: s.slug })}
       </div>
       <ul class="check-list" data-reveal>
         ${s.bullets.map((b) => `<li>${esc(b)}</li>`).join("\n        ")}
       </ul>
     </div>
   </section>
+
+  ${processTrust("../", { service: s.slug })}
 
   <section class="section-sm on-paper">
     <div class="wrap split">
@@ -1252,21 +1384,13 @@ ${nav(1)}
     </div>
   </section>
 
-  <section class="section-sm">
-    <div class="wrap">
-      <div class="cta-band" data-reveal="scale">
-        <img class="cta-band__glyph" src="../assets/img/arrow-hero.webp" alt="" aria-hidden="true" width="900" height="900" loading="lazy" decoding="async">
-        <span class="label" style="color:var(--lime-ink);opacity:.7">Nem vagy biztos, hogy ez a téma a tiéd?</span>
-        <h2 class="h2" style="margin-top:.75rem;max-width:26ch">Töltsd ki a Pénzügyi Térképet — 1 perc.</h2>
-        <p style="margin-top:1rem;max-width:52ch;opacity:.8">
-          Hét gyors kérdés alapján megmutatom, melyik három terület hozza neked most a legtöbbet.
-        </p>
-        <div class="hero__actions">
-          <a class="btn btn--dark btn--lg" href="../#terkep"><span class="btn__label">Pénzügyi Térkép</span><span class="btn__arrow">${ARROW}</span></a>
-        </div>
-      </div>
-    </div>
-  </section>
+  ${finalCta("../", {
+    label: s.navTitle,
+    h: `${esc(s.navTitle)}: nézzük meg a te számaiddal.`,
+    p: "Kérj visszahívást, és a saját helyzetedre számolva, több szolgáltató ajánlatával beszélünk. Ha nincs teendő, azt is megmondom.",
+    service: s.slug,
+    bridge: `Nem biztos, hogy ez a téma a tiéd? A <a href="../#terkep">Pénzügyi Térkép</a> 7 kérdésből megmutatja, hol kezdd.`,
+  })}
 
 </main>
 ${footer(1)}
@@ -1287,6 +1411,7 @@ function imprintPage() {
       "a közvetítő társaság (OVB) cégadatai, MNB nyilvántartási szám, elérhetőségek.",
     url,
     depth: 0,
+    pageType: "legal",
   })}
 ${nav(0)}
 <main id="main" class="doc section">
@@ -1430,6 +1555,7 @@ function privacyPage() {
     desc: "Milyen adatokat kezelünk a jelentkezési űrlapokon, mennyi ideig, milyen jogalapon, és milyen jogaid vannak (GDPR).",
     url,
     depth: 0,
+    pageType: "legal",
   })}
 ${nav(0)}
 <main id="main" class="doc section">
@@ -1470,7 +1596,10 @@ ${nav(0)}
       <li><strong>A kérdőív válaszai:</strong> az általad megjelölt élethelyzeti és érdeklődési válaszok
       (pl. van-e gyerek, van-e lakáshitel), valamint a kalkulátorban beállított értékek.</li>
       <li><strong>Szabad szöveges megjegyzés:</strong> amit te írsz be.</li>
-      <li><strong>Technikai adat:</strong> a beküldés időpontja és annak az oldalnak a címe, ahonnan érkezett.</li>
+      <li><strong>Technikai adat:</strong> a beküldés időpontja és annak az oldalnak a címe, ahonnan érkezett;
+      az, hogy melyik gombbal nyitottad meg az űrlapot, és — ha elérhető — a látogatás forrása: az
+      első megnyitott oldal, a hivatkozó webhely domainje (pl. google.com) és a kampány-paraméterek
+      (utm_source, utm_medium, utm_campaign, utm_content, utm_term).</li>
     </ul>
     <p>
       Különös kategóriába tartozó (pl. egészségi) adatot az űrlap nem kér. Kérünk, hogy a
@@ -1510,8 +1639,9 @@ ${nav(0)}
     <h2 class="h3">6. Sütik</h2>
     <p>
       Az oldal alapesetben csak a működéshez szükséges tárolást használja (pl. a süti-banner
-      döntésének megjegyzése, valamint a böngésződben tárolt biztonsági másolat a beküldött
-      űrlapról). Marketing- vagy méréscélú sütiket a hozzájárulásod nélkül nem helyezünk el.
+      döntésének megjegyzése, a böngésződben tárolt biztonsági másolat a beküldött
+      űrlapról, valamint a látogatás forrása a 2. pont szerint, amely a böngészőfül bezárásakor
+      törlődik). Marketing- vagy méréscélú sütiket a hozzájárulásod nélkül nem helyezünk el.
       A böngésződben tárolt adatok a böngésző beállításaiból bármikor törölhetők.
     </p>
     <p>
@@ -1566,6 +1696,7 @@ function notFoundPage() {
     url: "",
     robots: "noindex,follow",
     depth: "root",
+    pageType: "404",
   })}
 ${nav("root")}
 <main id="main" class="doc section">
@@ -1574,16 +1705,11 @@ ${nav("root")}
     <h1 class="h1" style="margin-top:0.75rem">Ez az oldal nincs meg</h1>
     <p class="lead" style="margin:1.25rem auto 0">
       Vagy elírás történt a címben, vagy azóta átkerült a tartalom. A lényeg viszont
-      megvan: itt van mind a 13 téma, és egy perc alatt kiderül, melyik a tiéd.
+      megvan: itt van mind a 13 téma — vagy kérj visszahívást, és megbeszéljük, mit kerestél.
     </p>
-    <div class="hero__actions" style="justify-content:center;margin-top:2rem">
-      <a class="btn btn--lg" href="${BASE}/#terkep">
-        <span class="btn__label">Pénzügyi Térkép — 1 perc</span><span class="btn__arrow">${ARROW}</span>
-      </a>
-      <a class="btn btn--ghost btn--lg" href="${BASE}/#szolgaltatasok">
-        <span class="btn__label">Mind a 13 téma</span>
-      </a>
-    </div>
+    <div style="display:flex;justify-content:center">${ctaGroup(upOf("root"), { location: "404" })}</div>
+    <p class="cta-alt">Inkább böngésznél? <a href="${BASE}/#szolgaltatasok">Mind a 13 téma</a> ·
+      <a href="${BASE}/#terkep">Pénzügyi Térkép — 1 perc</a></p>
   </div>
 </main>
 ${footer("root")}
@@ -1819,16 +1945,89 @@ function contentPage(p, { crumbs, pageType = "WebPage", article = null, extraGra
         </aside>`
       : "";
 
+  /* Oldaltípus a méréshez és a záró CTA szövegéhez. */
+  const kind = article
+    ? "article"
+    : p.contactPage
+    ? "contact"
+    : p.profile
+    ? "about"
+    : p.path === "penzugyi-tervezes/"
+    ? "planning"
+    : p.path === "penzugyi-tanacsadas/varosok/"
+    ? "city_hub"
+    : "pillar";
+
   const heroInner = `
         ${crumbsHtml(crumbs, up)}
         <span class="label">${esc(p.label)}</span>
         <h1 class="h1" style="margin-top:.75rem">${esc(p.h1)}</h1>
         <p class="lead">${esc(p.lead)}</p>
         ${byline(dates, up)}
-        <div class="hero__actions">
-          ${p.map ? `<a class="btn" href="#terkep"><span class="btn__label">Pénzügyi Térkép — 1 perc</span><span class="btn__arrow">${ARROW}</span></a>` : ""}
-          <a class="btn ${p.map ? "btn--ghost" : ""}" href="tel:${esc(CFG.contact.phoneHref)}"><span class="btn__label">Hívás: ${esc(CFG.contact.phone)}</span></a>
-        </div>`;
+        ${ctaGroup(up, { location: "hero", heroCta: true, lg: kind !== "article" })}
+        ${p.map ? `<p class="cta-alt">Előbb számolnál? <a href="#terkep">Pénzügyi Térkép — 7 kérdés, 1 perc</a></p>` : ""}`;
+
+  /* Kapcsolat oldal: a visszahívás-űrlap BEÁGYAZVA, rögtön a fejléc alatt.
+     Minden oldal „Visszahívást kérek” gombja JS nélkül ide visz
+     (…/kapcsolat/#visszahivas); JS-sel ezen az oldalon a gomb ide görget. */
+  const inlineLead = p.inlineLead
+    ? `
+  <section class="section-sm" id="visszahivas" style="padding-top:0">
+    <div class="wrap qlf-inline">
+      <div>
+        <span class="label">Visszahívás</span>
+        <h2 class="h3">Kérj visszahívást — elég a neved és a számod</h2>
+        <p class="soft">Egy rövid űrlap, és én hívlak. Ha szeretnéd, jelöld meg a témát, vagy írd meg,
+        mikor alkalmas — a többit a hívásnál tisztázzuk.</p>
+        ${trustLine(up)}
+      </div>
+      <div class="qlf-inline__card" data-qlf-inline data-cta-location="contact_form">
+        <noscript><p class="soft">Az űrlaphoz JavaScript szükséges. Hívj közvetlenül:
+        <a href="${TEL}" style="color:var(--lime-text)">${esc(CFG.contact.phone)}</a>, vagy írj:
+        <a href="mailto:${esc(CFG.contact.email)}" style="color:var(--lime-text)">${esc(CFG.contact.email)}</a>.</p></noscript>
+      </div>
+    </div>
+  </section>`
+    : "";
+
+  /* Záró CTA oldaltípusonként — a kapcsolat oldalon nincs (ott az űrlap
+     a fejléc alatt van). A cikkeknél kontextuális híd a kapcsolódó
+     szolgáltatás-oldalra, nem agresszív értékesítés. */
+  const articleSvcs = article ? (article.services || []).map(svcBySlug).filter(Boolean) : [];
+  const FINAL = {
+    pillar: {
+      label: "Pénzügyi tanácsadás",
+      h: "Nézzük meg a te helyzeted — egy beszélgetésben.",
+      p: "Kérj visszahívást: 30–45 perc telefonon, videóhíváson vagy Budapesten személyesen. A tanácsadás díjmentes, és ha nincs teendő, azt is megmondom.",
+    },
+    planning: {
+      label: "Pénzügyi tervezés",
+      h: "Az első lépés egy beszélgetés a számaidról.",
+      p: "Kérj visszahívást, és a hat lépést a te helyzetedre nézzük végig: költségvetés, tartalék, védelem, hitelek, célok.",
+    },
+    city_hub: {
+      label: "Bárhonnan az országból",
+      h: "Online, az egész országban — kérj visszahívást.",
+      p: "Telefonon vagy videóhíváson beszélünk, Budapesten személyesen is. A számolás mindenhol ugyanaz.",
+    },
+    about: {
+      label: "Beszéljünk",
+      h: "Most, hogy tudod, ki vagyok: beszéljünk a számaidról.",
+      p: "Kérj visszahívást, vagy hívj most. A tanácsadás díjmentes, a döntés a tiéd.",
+    },
+    article: {
+      label: "Tudástár",
+      h: "Kérdésed maradt a témában?",
+      p: "Ha a saját számaidra vetítenéd, beszéljük át — egy rövid hívásból kiderül, van-e teendőd.",
+      location: "blog",
+      bridge: articleSvcs.length
+        ? `Kapcsolódó útmutató kalkulátorral: ${articleSvcs
+            .map((s) => `<a href="/szolgaltatas/${s.slug}.html">${esc(s.title)}</a>`)
+            .join(" · ")}`
+        : `Engem is ellenőrizhetsz: <a href="/rolam/#ellenorzes">jogi háttér és MNB-adatok</a>.`,
+    },
+  }[kind];
+  const finalBlock = FINAL ? finalCta(up, FINAL) : "";
 
   /* A „Rólam” oldalon a portré a fejlécben — ugyanaz a kép és keret, mint a
      főoldali bemutatkozásnál. */
@@ -1851,6 +2050,7 @@ function contentPage(p, { crumbs, pageType = "WebPage", article = null, extraGra
     ogType: article ? "article" : "website",
     article: article ? { published: dates.published, modified: dates.modified } : null,
     preloadLcp: p.profile ? CFG.advisor.photo : "",
+    pageType: kind,
   })}
 ${nav(depth, p.nav || "")}
 
@@ -1859,6 +2059,7 @@ ${nav(depth, p.nav || "")}
   <section class="page-hero">
     ${hero}
   </section>
+${inlineLead}
 
   ${
     p.answer
@@ -1900,10 +2101,10 @@ ${nav(depth, p.nav || "")}
       </div>
     </div>
   </section>
-
+${finalBlock}
 </main>
 ${footer(depth)}
-${stickyCta(depth, !!p.map)}
+${stickyCta(depth)}
 ${scripts(depth, false)}`;
   return relLinks(html, up);
 }
@@ -1981,6 +2182,8 @@ function cityPage(c) {
     url,
     depth,
     schema,
+    pageType: "city",
+    city: c.slug,
   })}
 ${nav(depth, "tanacsadas")}
 
@@ -1995,12 +2198,14 @@ ${nav(depth, "tanacsadas")}
       <div class="hero__meta">
         <span><b>${c.inPerson ? "Személyesen" : "Online"}</b> ${c.inPerson ? `${esc(c.loc)} is` : "az egész országban"}</span>
         <span><b>0 Ft</b> tanácsadási díj</span>
-        <span><b>24 órán</b> belül visszahívás</span>
+        <span><b>${esc(CFG.contact.hoursShort[0].toUpperCase() + CFG.contact.hoursShort.slice(1))}</b> között hívható</span>
       </div>
-      <div class="hero__actions">
-        <a class="btn" href="#terkep"><span class="btn__label">Pénzügyi Térkép — 1 perc</span><span class="btn__arrow">${ARROW}</span></a>
-        <a class="btn btn--ghost" href="tel:${esc(CFG.contact.phoneHref)}"><span class="btn__label">Hívás: ${esc(CFG.contact.phone)}</span></a>
-      </div>
+      <!-- A városi oldal SEO- ÉS konverziós landing: a lead a data-city
+           attribútumból kapja a várost (js/core/track.js). Helyi telefonszám
+           vagy iroda nincs — egy szám, egy tanácsadó. -->
+      ${ctaGroup(up, { location: "hero", heroCta: true })}
+      <p class="cta-alt">Előbb számolnál? <a href="#terkep">Pénzügyi Térkép — 7 kérdés, 1 perc</a></p>
+      ${trustLine(up, { eager: true })}
       ${byline({ published: UPDATED, modified: UPDATED }, up)}
     </div>
   </section>
@@ -2048,11 +2253,12 @@ ${nav(depth, "tanacsadas")}
           nyilvántartási számokat az <a href="/impresszum.html" style="color:var(--lime-text)">impresszumban</a>
           és a <a href="/rolam/" style="color:var(--lime-text)">bemutatkozásomban</a> ellenőrizheted.
         </p>
+        ${ctaGroup(up, { location: "mid_page", lg: false })}
       </div>
       <div class="steps">
         <div class="step">
           <h3 class="h3">Jelentkezés</h3>
-          <p class="soft">Pénzügyi Térkép vagy telefon. 24 órán belül hívlak, jellemzően hétköznap 9 és 19 óra között.</p>
+          <p class="soft">Visszahívás-kérés, Pénzügyi Térkép vagy telefon. ${PROMISE ? `${esc(PROMISE[0].toUpperCase() + PROMISE.slice(1))} hívlak,` : "Hívlak,"} jellemzően hétköznap 9 és 19 óra között.</p>
         </div>
         <div class="step">
           <h3 class="h3">Helyzetkép, 30–45 perc</h3>
@@ -2098,9 +2304,17 @@ ${nav(depth, "tanacsadas")}
     </div>
   </section>
 
+  ${finalCta(up, {
+    label: `Pénzügyi tanácsadás · ${c.name}`,
+    h: `Pénzügyi tanácsadás ${esc(c.inPerson ? c.loc : c.from)} — kérj visszahívást.`,
+    p: c.inPerson
+      ? "Egy 30–45 perces beszélgetéssel indulunk, személyesen vagy videóhíváson. A helyet és az időpontot a hívásnál egyeztetjük."
+      : "Egy 30–45 perces telefonos vagy videós beszélgetéssel indulunk — utazni nem kell, a számolás ugyanaz.",
+  })}
+
 </main>
 ${footer(depth)}
-${stickyCta(depth, true)}
+${stickyCta(depth)}
 ${scripts(depth, false)}`;
   return relLinks(html, up);
 }
@@ -2139,6 +2353,7 @@ function knowledgeHubPage() {
     url,
     depth,
     schema,
+    pageType: "blog_hub",
   })}
 ${nav(depth, "")}
 
@@ -2190,6 +2405,12 @@ ${nav(depth, "")}
       </div>
     </div>
   </section>
+${finalCta(up, {
+  label: "Tudástár",
+  h: "Olvasás helyett inkább beszélnél?",
+  p: "Kérj visszahívást, és a te számaiddal nézzük meg, melyik útmutató vonatkozik rád.",
+  location: "blog",
+})}
 </main>
 ${footer(depth)}
 ${stickyCta(depth)}
@@ -2246,6 +2467,7 @@ const CSS_FILES = [
   "css/funnel.css",
   "css/motion.css",
   "css/content.css",
+  "css/cro.css",
 ];
 const JS_FILES = [
   "js/config.js",
@@ -2253,8 +2475,10 @@ const JS_FILES = [
   "js/data/quiz.js",
   "js/core/rt.js",
   "js/core/ui.js",
+  "js/core/track.js",
   "js/core/motion.js",
   "js/lead.js",
+  "js/quick-lead.js",
   "js/funnel.js",
   "js/site.js",
 ];

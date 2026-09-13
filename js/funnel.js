@@ -10,6 +10,10 @@
   window.EP = window.EP || {};
 
   const { $, $$, on } = window.EP;
+  const track = (...a) => window.EP.track && window.EP.track(...a);
+  const C = (window.EP.CONFIG || {}).contact || {};
+  const ICON_PHONE =
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>';
   const ICON_ARROW =
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 17 17 7M9 7h8v8"/></svg>';
   const ICON_BACK =
@@ -30,6 +34,10 @@
       this.answers = {};
       this.calcValues = {};
       this.index = 0;
+      /* Egyedi id-előtag: egy oldalon a funnel és a visszahívás-modál
+         mezői nem ütközhetnek (label for / aria-describedby). */
+      this.uid = "fn" + ++Funnel.count;
+      this.formType = this.type === "map" ? "funnel_map" : "funnel_service";
       this.build();
     }
 
@@ -190,6 +198,10 @@
 
       $$(".opt", this.body).forEach((btn) =>
         on(btn, "click", () => {
+          if (!this.started) {
+            this.started = true;
+            track("funnel_start", { form_type: this.formType, service: this.slug || "" });
+          }
           const raw = btn.dataset.v;
           const opt = q.opts.find((o) => String(o.v) === raw);
           const val = opt ? opt.v : raw;
@@ -432,8 +444,12 @@
         }`;
       } else {
         headline = "Kész a helyzetkép";
+        /* Visszahívási időt csak a configban megerősített érték alapján
+           ígérünk (contact.callbackPromise) — üresen nincs időígéret. */
         sub =
-          "Ha szeretnéd konkrét ajánlatokkal, a saját számaidra szabva látni, hagyd itt az elérhetőségedet. 24 órán belül keresek — nem call center, hanem én.";
+          "Ha szeretnéd konkrét ajánlatokkal, a saját számaidra szabva látni, hagyd itt az elérhetőségedet" +
+          (C.callbackPromise ? `, és ${C.callbackPromise} hívlak` : "") +
+          ". Nem call center keres, hanem én.";
         if (this.result) {
           recoHtml = `<div class="result__hero">
             <div class="result__big${this.result.bigSmall ? " result__big--sm" : ""}">${esc(this.result.big)}</div>
@@ -442,6 +458,7 @@
         }
       }
 
+      const u = this.uid;
       this.body.innerHTML = `
         <div class="fstep is-active">
           <span class="fstep__kicker">Eredmény</span>
@@ -451,60 +468,85 @@
           <form class="lead-form" novalidate>
             <div class="lead-form__row">
               <div class="input-wrap">
-                <input class="input" id="f-name" name="name" placeholder=" " autocomplete="name" required>
-                <label for="f-name">Neved *</label>
-                <div class="field-error">Add meg a nevedet</div>
+                <input class="input" id="${u}-name" name="name" placeholder=" " autocomplete="name" maxlength="80" required aria-describedby="${u}-name-err">
+                <label for="${u}-name">Neved *</label>
+                <p class="field-error" id="${u}-name-err" aria-live="polite"></p>
               </div>
               <div class="input-wrap">
-                <input class="input" id="f-phone" name="phone" type="tel" placeholder=" " autocomplete="tel" required>
-                <label for="f-phone">Telefonszám *</label>
-                <div class="field-error">Adj meg egy elérhető telefonszámot</div>
+                <input class="input" id="${u}-phone" name="phone" type="tel" inputmode="tel" placeholder=" " autocomplete="tel" maxlength="24" required aria-describedby="${u}-phone-hint ${u}-phone-err">
+                <label for="${u}-phone">Telefonszám *</label>
+                <p class="field-hint" id="${u}-phone-hint">pl. 06 20 123 4567</p>
+                <p class="field-error" id="${u}-phone-err" aria-live="polite"></p>
               </div>
             </div>
             <div class="input-wrap">
-              <input class="input" id="f-email" name="email" type="email" placeholder=" " autocomplete="email">
-              <label for="f-email">E-mail (nem kötelező)</label>
-              <div class="field-error">Ez az e-mail cím nem tűnik érvényesnek</div>
+              <input class="input" id="${u}-email" name="email" type="email" inputmode="email" placeholder=" " autocomplete="email" maxlength="160" aria-describedby="${u}-email-err">
+              <label for="${u}-email">E-mail (nem kötelező)</label>
+              <p class="field-error" id="${u}-email-err" aria-live="polite"></p>
             </div>
             <div class="input-wrap">
-              <textarea class="input" id="f-msg" name="message" placeholder=" "></textarea>
-              <label for="f-msg">Megjegyzés, kérdés (nem kötelező)</label>
+              <textarea class="input" id="${u}-msg" name="message" maxlength="2000" placeholder=" "></textarea>
+              <label for="${u}-msg">Megjegyzés, kérdés (nem kötelező)</label>
             </div>
             <input class="honeypot" name="_hp" tabindex="-1" autocomplete="off" aria-hidden="true">
             <label class="consent">
-              <input type="checkbox" name="consent" required>
+              <input type="checkbox" name="consent" required aria-describedby="${u}-consent-err">
               <span>Hozzájárulok, hogy a megadott adataimat a megkeresés megválaszolása céljából kezeljék. Részletek az <a href="${this.hrefTo("adatkezeles", true)}" target="_blank" rel="noopener">adatkezelési tájékoztatóban</a>. *</span>
             </label>
-            <div class="field-error" data-consent-error>A hozzájárulás megadása kötelező</div>
+            <p class="field-error field-error--block" id="${u}-consent-err" data-consent-error hidden>Az adatkezelési hozzájárulás nélkül nem tudom elküldeni a kérést.</p>
+            <div class="form-status" data-status role="status" aria-live="polite" tabindex="-1" hidden></div>
             <button class="btn btn--lg btn--block" type="submit">
-              <span class="btn__label">Kérek visszahívást</span><span class="btn__arrow">${ICON_ARROW}</span>
+              <span class="btn__label">Visszahívást kérek</span><span class="btn__arrow">${ICON_ARROW}</span>
             </button>
-            <p class="tiny mute">Nem küldünk hírlevelet, nem adjuk át az adataidat harmadik félnek. Egy hívás, konkrét számokkal.</p>
+            <p class="tiny mute">Nem küldünk hírlevelet, nem adjuk át az adataidat harmadik félnek. Egy hívás, konkrét számokkal.
+              Inkább most hívnál? <a href="tel:${esc(C.phoneHref)}" style="color:var(--lime-text)">${esc(C.phone)}</a></p>
           </form>
         </div>`;
 
       const form = $("form", this.body);
-      /* Időbélyeg a bot-szűréshez: ember nem tölt ki egy négymezős űrlapot
-         két másodperc alatt, egy script viszont milliszekundum alatt kitölti. */
-      this.formShownAt = Date.now();
-      on(form, "submit", (e) => {
-        e.preventDefault();
-        this.submit(form);
+      track("lead_form_view", { form_type: this.formType, cta_location: "funnel", service: this.slug || "" });
+      /* Validáció, bot-szűrés, dupla beküldés elleni zár, küldés, hiba- és
+         töltésállapot: közös a visszahívás-űrlappal (js/lead.js). */
+      window.EP.bindLeadForm(form, {
+        formType: this.formType,
+        ctx: () => ({ cta_location: "funnel", service: this.slug || "" }),
+        payload: () => ({
+          tipus: this.type === "map" ? "Pénzügyi Térkép" : "Szolgáltatás-funnel",
+          tema: this.type === "map" ? (this.reco || []).join(", ") : this.svc.title,
+          slug: this.slug || "penzugyi-terkep",
+          valaszok: JSON.stringify(this.answers),
+          kalkulator: this.result
+            ? `${this.result.bigLabel}: ${this.result.big}` +
+              (Object.keys(this.calcValues).length ? " | " + JSON.stringify(this.calcValues) : "")
+            : "",
+        }),
+        onSuccess: () => {
+          this.index = this.steps.length - 1;
+          this.render();
+          /* A fókusz a köszönő címre (képernyőolvasó felolvassa), de a
+             görgetést mi végezzük a fix fejléc magasságával — a böngésző
+             magától a fejléc ALÁ görgetné. */
+          const h = $(".thanks .fstep__q", this.body);
+          if (h) h.focus({ preventScroll: true });
+          if (window.EP.scrollToEl && this.root.getBoundingClientRect().top < 0) window.EP.scrollToEl(this.root);
+        },
       });
     }
 
     renderThanks() {
+      const when = C.callbackPromise ? ` ${esc(C.callbackPromise)}` : "";
       this.body.innerHTML = `
-        <div class="fstep is-active thanks">
+        <div class="fstep is-active thanks" data-cta-location="form_success">
           <div class="thanks__check">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
           </div>
-          <h2 class="fstep__q">Megérkezett. Köszönöm!</h2>
+          <h2 class="fstep__q" tabindex="-1">Köszönöm, megkaptam a kérésed.</h2>
           <p class="fstep__help center" style="margin-inline:auto">
-            24 órán belül keresni fogom a megadott számon. Addig sem kell tétlenül várni:
-            nézz körül a többi témában, hátha van még pár tízezer forint az asztalon.
+            A megadott számon${when} visszahívlak — jellemzően ${esc(C.hoursShort || "hétköznap")} között.
+            Addig nézz körül a többi témában, hátha van még pár tízezer forint az asztalon.
           </p>
           <div class="row center" style="justify-content:center;margin-top:2rem">
+            <a class="btn" href="tel:${esc(C.phoneHref)}">${ICON_PHONE}<span class="btn__label">Inkább most hívnék</span></a>
             <a class="btn btn--ghost" href="${this.hrefTo("", true)}#szolgaltatasok">Többi téma</a>
           </div>
         </div>`;
@@ -523,80 +565,8 @@
       }
       return `${up}szolgaltatas/${target}.html`;
     }
-
-    /* --- beküldés ----------------------------------------------------- */
-    async submit(form) {
-      const data = new FormData(form);
-      const name = (data.get("name") || "").toString().trim();
-      const phone = (data.get("phone") || "").toString().trim();
-      const email = (data.get("email") || "").toString().trim();
-      const consent = form.querySelector('[name="consent"]').checked;
-
-      /* --- bot-szűrés: még a validáció ELŐTT, és csendben ---------------
-         Aki idáig eljut, az script. Nem adunk neki visszajelzést arról,
-         hogy min bukott el, mert abból tanulni lehet. A form csak nem
-         csinál semmit. Ez a kliensoldali szűrő; a valódi védelem a
-         szerveroldalon van (docs/apps-script.gs), mert a végpontra a
-         böngésző kihagyásával is lehet POST-olni.                       */
-      if ((data.get("_hp") || "").toString().length) return; // honeypot
-      /* 1,5 s: a botok 100 ms alatt küldenek, egy ember viszont még
-         automatikus kitöltéssel is legalább ennyit tölt a hozzájárulás
-         bepipálásával és a gombra kattintással. */
-      if (Date.now() - (this.formShownAt || 0) < 1500) return;
-
-      let bad = false;
-      const mark = (sel, cond) => {
-        const el = form.querySelector(sel);
-        if (!el) return;
-        el.classList.toggle("is-bad", cond);
-        if (cond) bad = true;
-      };
-      const digits = phone.replace(/\D/g, "");
-      mark("#f-name", name.length < 2 || name.length > 80);
-      /* 8 számjegy alatt nincs hívható szám, 15 fölött nincs érvényes
-         nemzetközi szám sem (E.164 maximum). */
-      mark("#f-phone", digits.length < 8 || digits.length > 15);
-      mark("#f-email", email !== "" && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email));
-      const ce = form.querySelector("[data-consent-error]");
-      if (ce) ce.style.display = consent ? "none" : "block";
-      if (!consent) bad = true;
-      if (bad) {
-        window.EP.toast("Nézd át a kiemelt mezőket");
-        return;
-      }
-
-      const btn = form.querySelector('button[type="submit"]');
-      btn.classList.add("is-loading");
-      btn.querySelector(".btn__label").textContent = "Küldés";
-
-      const payload = {
-        tipus: this.type === "map" ? "Pénzügyi Térkép" : "Szolgáltatás-funnel",
-        tema: this.type === "map" ? (this.reco || []).join(", ") : this.svc.title,
-        slug: this.slug || "penzugyi-terkep",
-        nev: name,
-        telefon: phone,
-        email: email,
-        megjegyzes: (data.get("message") || "").toString().trim(),
-        valaszok: JSON.stringify(this.answers),
-        kalkulator: this.result
-          ? `${this.result.bigLabel}: ${this.result.big}` +
-            (Object.keys(this.calcValues).length ? " | " + JSON.stringify(this.calcValues) : "")
-          : "",
-        oldal: location.href,
-        idopont: new Date().toISOString(),
-      };
-
-      const ok = await window.EP.sendLead(payload);
-      btn.classList.remove("is-loading");
-      if (ok) {
-        this.index = this.steps.length - 1;
-        this.render();
-      } else {
-        btn.querySelector(".btn__label").textContent = "Kérek visszahívást";
-        window.EP.toast("Nem sikerült elküldeni — próbáld újra, vagy hívj közvetlenül");
-      }
-    }
   }
+  Funnel.count = 0;
 
   /* --- publikus API ---------------------------------------------------- */
   window.EP.Funnel = {

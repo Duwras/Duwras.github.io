@@ -39,8 +39,11 @@ blokk) legerősebb tényezője — ezt csak a tulajdonos tudja beállítani, fi�
 > 20%-os adókedvezmények, élet-, baleset- és egészségbiztosítás, KGFB és casco, Otthon Start és
 > piaci lakáshitel, személyi kölcsön, díjmentes bankszámla. A tanácsadás díjmentes, online az
 > egész országban, Budapesten személyesen is. Az első beszélgetés 30–45 perc; jelentkezés után
-> 24 órán belül visszahívlak. A közvetítést az OVB Vermögensberatung Kft. (többes ügynök)
-> nevében végzem — nyilvántartási adatok a weboldal impresszumában.
+> visszahívlak, jellemzően hétköznap 9 és 19 óra között. A közvetítést az OVB Vermögensberatung
+> Kft. (többes ügynök) nevében végzem — nyilvántartási adatok a weboldal impresszumában.
+>
+> *(Ha vállalod a 24 órás visszahívást, itt is, és a `js/config.js → contact.callbackPromise`
+> mezőben is add meg — lásd `OWNER-DATA-NEEDED.md`.)*
 
 ## 3. Szolgáltatások a profilban
 

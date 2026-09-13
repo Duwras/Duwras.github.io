@@ -24,6 +24,8 @@ phoneHref: "+36203695312",
 email: "timar.richard2@ovb.hu",
 area: "Budapest és online, az egész ország területén",
 hours: "Hétfő–péntek 9:00–19:00, szombaton egyeztetés szerint",
+hoursShort: "hétköznap 9–19 óra",
+callbackPromise: "",
 facebook: "https://www.facebook.com/profile.php?id=61587459482095",
 instagram: "",
 linkedin: "https://www.linkedin.com/in/richard-timar/",
@@ -65,6 +67,9 @@ stats: [
 ],
 leadEndpoint:
 "https://script.google.com/macros/s/AKfycbw8k8XaYf8R7nutRBOUiMZiqhrBMJP2tlPDdkaRXNRjiPWdkAylqGUD5q_SEl-zFlEZ/exec",
+analytics: {
+gtmId: "",
+},
 siteCredit: {
 name: "StratosWeb",
 url: "https://www.stratosweb.hu/",
@@ -2779,26 +2784,10 @@ function initNav() {
 const nav = $(".nav");
 if (!nav) return;
 const bar = $(".scroll-bar");
-const sticky = $(".sticky-cta");
 let acc = 0;
 let dirDown = true;
 let hidden = false;
 let stuck = false;
-let ctaOn = false;
-let funnelSeen = false;
-const funnelEl = $("[data-funnel]");
-if (sticky && funnelEl && "IntersectionObserver" in window) {
-new IntersectionObserver(
-(entries) => {
-funnelSeen = entries.some((e) => e.isIntersecting);
-if (funnelSeen && ctaOn) {
-ctaOn = false;
-sticky.classList.remove("is-in");
-}
-},
-{ threshold: 0 }
-).observe(funnelEl);
-}
 rt.onScroll(({ y, dy, maxY }) => {
 if (dy !== 0) {
 const down = dy > 0;
@@ -2823,16 +2812,6 @@ hidden = false;
 nav.classList.remove("is-hidden");
 }
 if (bar) bar.style.setProperty("--p", maxY > 0 ? (y / maxY).toFixed(4) : 0);
-if (sticky) {
-const vh = window.innerHeight;
-if (!ctaOn && !funnelSeen && y > vh * 0.85) {
-ctaOn = true;
-sticky.classList.add("is-in");
-} else if (ctaOn && y < vh * 0.65) {
-ctaOn = false;
-sticky.classList.remove("is-in");
-}
-}
 });
 const burger = $(".burger");
 const menu = $(".menu");
@@ -2956,12 +2935,19 @@ function initCookie() {
 const el = $(".cookie");
 if (!el) return;
 const KEY = "ep-cookie-v1";
-if (localStorage.getItem(KEY)) return el.remove();
-setTimeout(() => el.classList.add("is-in"), 1200);
+let saved = null;
+try { saved = localStorage.getItem(KEY); } catch (e) {   }
+if (saved) return el.remove();
+setTimeout(() => {
+el.classList.add("is-in");
+document.body.classList.add("cookie-on");
+}, 1200);
 $$("[data-cookie]", el).forEach((btn) =>
 on(btn, "click", () => {
-localStorage.setItem(KEY, btn.dataset.cookie);
+try { localStorage.setItem(KEY, btn.dataset.cookie); } catch (e) {   }
+document.dispatchEvent(new CustomEvent("ep:consent", { detail: btn.dataset.cookie }));
 el.classList.remove("is-in");
+document.body.classList.remove("cookie-on");
 setTimeout(() => el.remove(), 600);
 })
 );
@@ -3048,6 +3034,144 @@ document.addEventListener("DOMContentLoaded", boot);
 } else {
 boot();
 }
+})();
+;
+(function () {
+"use strict";
+window.EP = window.EP || {};
+const CFG = window.EP.CONFIG || {};
+const root = document.documentElement;
+const dl = (window.dataLayer = window.dataLayer || []);
+const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+const VISIT_KEY = "ep-visit";
+const store = {
+get(k) {
+try { return JSON.parse(sessionStorage.getItem(k) || "null"); } catch (e) { return null; }
+},
+set(k, v) {
+try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) {   }
+},
+};
+function captureVisit() {
+const q = new URLSearchParams(location.search);
+const utm = {};
+UTM_KEYS.forEach((k) => {
+const v = q.get(k);
+if (v) utm[k] = v.slice(0, 100);
+});
+const hasUtm = Object.keys(utm).length > 0;
+let visit = store.get(VISIT_KEY);
+if (!visit || hasUtm) {
+let ref = "";
+try {
+const r = document.referrer ? new URL(document.referrer) : null;
+if (r && r.host && r.host !== location.host) ref = r.host.replace(/^www\./, "");
+} catch (e) {   }
+visit = {
+landing: location.pathname,
+referrer: ref || (visit && visit.referrer) || "",
+utm: hasUtm ? utm : (visit && visit.utm) || {},
+};
+store.set(VISIT_KEY, visit);
+}
+return visit;
+}
+const visit = captureVisit();
+function deviceContext() {
+const w = window.innerWidth || 0;
+return w < 860 ? "mobile" : w < 1024 ? "tablet" : "desktop";
+}
+function context(extra) {
+return Object.assign(
+{
+page_path: location.pathname,
+page_title: document.title,
+page_type: root.dataset.pageType || "other",
+service: root.dataset.service || "",
+city: root.dataset.city || "",
+device_context: deviceContext(),
+landing_page: visit.landing || "",
+referrer_host: visit.referrer || "",
+},
+visit.utm,
+extra || {}
+);
+}
+const PII = /^(name|nev|név|phone|telefon|tel|email|e-?mail|message|megjegyzes|megjegyzés|msg)$/i;
+const STD = [
+"page_path", "page_title", "page_type", "service", "city", "device_context",
+"landing_page", "referrer_host", "cta_location", "form_type", "topic",
+"error_type", "error_fields", ...UTM_KEYS,
+];
+let debug = /[?&]ep_debug=1\b/.test(location.search);
+try { debug = debug || localStorage.getItem("ep-debug") === "1"; } catch (e) {   }
+function track(event, params) {
+const p = context(params);
+const out = { event };
+STD.forEach((k) => (out[k] = undefined));
+Object.keys(p).forEach((k) => {
+if (PII.test(k)) return;
+const v = p[k];
+out[k] = v === "" || v == null ? undefined : v;
+});
+dl.push(out);
+if (typeof window.gtag === "function") {
+const g = Object.assign({}, out);
+delete g.event;
+window.gtag("event", event, g);
+}
+if (debug) console.info("[EP track]", event, out);
+}
+function ctaLocation(el) {
+if (!el || !el.closest) return "unknown";
+const tagged = el.closest("[data-cta-location]");
+if (tagged) return tagged.dataset.ctaLocation;
+if (el.closest(".nav")) return "header";
+if (el.closest(".menu")) return "menu";
+if (el.closest(".mbar")) return "mobile_sticky";
+if (el.closest(".footer")) return "footer";
+if (el.closest(".qlf")) return "form";
+if (el.closest(".funnel")) return "funnel";
+if (el.closest(".hero, .svc-hero, .page-hero")) return "hero";
+return "content";
+}
+document.addEventListener(
+"click",
+(e) => {
+const a = e.target && e.target.closest ? e.target.closest('a[href^="tel:"]') : null;
+if (a) track("cta_call_click", { cta_location: ctaLocation(a) });
+},
+true
+);
+const GTM_ID = String((CFG.analytics && CFG.analytics.gtmId) || "").trim();
+const consented = () => {
+try { return localStorage.getItem("ep-cookie-v1") === "all"; } catch (e) { return false; }
+};
+function gtagCmd() { dl.push(arguments); }
+let gtmLoaded = false;
+function loadGtm() {
+if (gtmLoaded || !/^GTM-[A-Z0-9]{4,}$/.test(GTM_ID)) return;
+gtmLoaded = true;
+gtagCmd("consent", "update", { analytics_storage: "granted" });
+dl.push({ "gtm.start": Date.now(), event: "gtm.js" });
+const s = document.createElement("script");
+s.async = true;
+s.src = "https://www.googletagmanager.com/gtm.js?id=" + encodeURIComponent(GTM_ID);
+document.head.appendChild(s);
+}
+if (GTM_ID) {
+gtagCmd("consent", "default", {
+ad_storage: "denied",
+ad_user_data: "denied",
+ad_personalization: "denied",
+analytics_storage: "denied",
+});
+if (consented()) loadGtm();
+document.addEventListener("ep:consent", (e) => {
+if (e.detail === "all") loadGtm();
+});
+}
+Object.assign(window.EP, { track, context, ctaLocation, visit });
 })();
 ;
 (function () {
@@ -3199,6 +3323,7 @@ else boot();
 "use strict";
 window.EP = window.EP || {};
 const LOCAL_KEY = "ep-leads-local";
+const TIMEOUT_MS = 15000;
 function storeLocal(payload) {
 try {
 const arr = JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]");
@@ -3208,7 +3333,7 @@ localStorage.setItem(LOCAL_KEY, JSON.stringify(arr.slice(-50)));
 }
 }
 window.EP.sendLead = async function sendLead(payload) {
-const cfg = (window.EP.CONFIG || {});
+const cfg = window.EP.CONFIG || {};
 const url = cfg.leadEndpoint;
 storeLocal(payload);
 if (!url) {
@@ -3221,12 +3346,16 @@ console.info("[Érték Pont] Beérkezett jelentkezés:", payload);
 await new Promise((r) => setTimeout(r, 650));
 return true;
 }
+if (navigator.onLine === false) return false;
+const ctrl = "AbortController" in window ? new AbortController() : null;
+const timer = ctrl ? setTimeout(() => ctrl.abort(), TIMEOUT_MS) : 0;
 try {
 await fetch(url, {
 method: "POST",
 mode: "no-cors",
 headers: { "Content-Type": "text/plain;charset=utf-8" },
 body: JSON.stringify(payload),
+signal: ctrl ? ctrl.signal : undefined,
 });
 return true;
 } catch (err) {
@@ -3237,6 +3366,8 @@ err,
 "https://script.google.com ÉS https://script.googleusercontent.com is kell."
 );
 return false;
+} finally {
+clearTimeout(timer);
 }
 };
 window.EP.leadHealthCheck = function () {
@@ -3250,6 +3381,232 @@ el.hidden = false;
 });
 }
 };
+const MOBILE = /^(20|30|31|50|70)/;
+const PHONE_EXAMPLE = "Pl. 06 20 123 4567";
+function formatHu(nsn) {
+if (MOBILE.test(nsn)) return `+36 ${nsn.slice(0, 2)} ${nsn.slice(2, 5)} ${nsn.slice(5)}`;
+if (nsn[0] === "1") return `+36 1 ${nsn.slice(1, 4)} ${nsn.slice(4)}`;
+return `+36 ${nsn.slice(0, 2)} ${nsn.slice(2, 5)} ${nsn.slice(5)}`;
+}
+function checkPhone(raw) {
+const s = String(raw == null ? "" : raw).trim().replace(/^\(\s*(?=\+)/, "");
+if (!s) return { ok: false, message: "Add meg a telefonszámodat — ezen hívlak vissza." };
+if (/[^\d\s+()\-./]/.test(s) || /\+/.test(s.slice(1))) {
+return { ok: false, message: "Csak számjegy, szóköz és az elején + jel lehet. " + PHONE_EXAMPLE };
+}
+const intl = /^(\+|00)/.test(s);
+let d = s.replace(/\D/g, "");
+if (/^00/.test(s)) d = d.slice(2);
+let nsn = null;
+if (/^36/.test(d) && (intl || d.length >= 10)) nsn = d.slice(2);
+else if (!intl && /^06/.test(d)) nsn = d.slice(2);
+else if (!intl && (/^(20|30|31|50|70)\d{7}$/.test(d) || /^1\d{7}$/.test(d))) nsn = d;
+if (nsn !== null) {
+const okHu = MOBILE.test(nsn) ? /^\d{9}$/.test(nsn) : /^[1-9]\d{7}$/.test(nsn);
+if (okHu) return { ok: true, value: formatHu(nsn) };
+return {
+ok: false,
+message: MOBILE.test(nsn)
+? "Hiányzik vagy fölösleges egy számjegy. " + PHONE_EXAMPLE
+: "Ez nem teljes magyar telefonszám. " + PHONE_EXAMPLE,
+};
+}
+if (intl && d.length >= 8 && d.length <= 15) return { ok: true, value: "+" + d };
+return { ok: false, message: "Ez nem tűnik érvényes telefonszámnak. " + PHONE_EXAMPLE };
+}
+function checkName(raw) {
+const s = String(raw == null ? "" : raw).trim();
+if (!s) return { ok: false, message: "Add meg a nevedet, hogy tudjam, kit keresek." };
+if (s.length < 2 || !/\p{L}/u.test(s)) return { ok: false, message: "A név legalább 2 betű legyen." };
+if (s.length > 80) return { ok: false, message: "A név legfeljebb 80 karakter lehet." };
+return { ok: true, value: s };
+}
+function checkEmail(raw) {
+const s = String(raw == null ? "" : raw).trim();
+if (!s) return { ok: true, value: "" };
+return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(s)
+? { ok: true, value: s }
+: { ok: false, message: "Ez az e-mail cím nem tűnik érvényesnek (vagy hagyd üresen)." };
+}
+window.EP.validate = { phone: checkPhone, name: checkName, email: checkEmail };
+window.EP.leadContext = function (extra) {
+const c = window.EP.context ? window.EP.context(extra) : Object.assign({}, extra);
+const keys = [
+"form_type", "cta_location", "page_type", "service", "city", "topic",
+"landing_page", "referrer_host", "device_context",
+"utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
+];
+return keys
+.filter((k) => c[k] !== undefined && c[k] !== null && c[k] !== "")
+.map((k) => `${k}=${String(c[k]).replace(/[|\n\r]/g, " ").slice(0, 120)}`)
+.join(" | ");
+};
+const esc = (s) =>
+String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+function errEl(input) {
+const ids = (input.getAttribute("aria-describedby") || "").split(/\s+/);
+const id = ids.find((x) => /-err$/.test(x));
+return id ? document.getElementById(id) : null;
+}
+function setFieldError(input, message) {
+if (!input) return;
+const box = errEl(input);
+input.classList.toggle("is-bad", !!message);
+if (message) input.setAttribute("aria-invalid", "true");
+else input.removeAttribute("aria-invalid");
+if (box) box.textContent = message || "";
+}
+const CHECKS = { name: checkName, phone: checkPhone, email: checkEmail };
+window.EP.bindLeadForm = function bindLeadForm(form, opts) {
+const track = window.EP.track || function () {};
+const CFG = window.EP.CONFIG || {};
+const status = form.querySelector("[data-status]");
+const btn = form.querySelector('button[type="submit"]');
+const label = btn && btn.querySelector(".btn__label");
+const idleLabel = label ? label.textContent : "";
+const shownAt = Date.now();
+let touched = false;
+let started = false;
+let sending = false;
+const base = () => Object.assign({ form_type: opts.formType }, opts.ctx ? opts.ctx() : {});
+const onTouch = (e) => {
+if (e && e.isTrusted === false) return;
+touched = true;
+if (!started && e && e.target && e.target.matches && e.target.matches("input:not([type=hidden]), textarea")) {
+started = true;
+track("lead_form_start", base());
+}
+};
+["pointerdown", "keydown", "input", "change"].forEach((ev) => form.addEventListener(ev, onTouch));
+const pending = new Set();
+const validateField = (key, input) => {
+if (!input.value.trim()) return;
+const r = CHECKS[key](input.value);
+setFieldError(input, r.ok ? "" : r.message);
+};
+const flush = () => {
+pointerIsDown = false;
+pending.forEach(([key, input]) => validateField(key, input));
+pending.clear();
+};
+let pointerIsDown = false;
+document.addEventListener("pointerdown", () => (pointerIsDown = true), true);
+document.addEventListener("pointerup", () => setTimeout(flush, 0), true);
+document.addEventListener("pointercancel", () => setTimeout(flush, 0), true);
+Object.keys(CHECKS).forEach((key) => {
+const input = form.elements[key];
+if (!input) return;
+input.addEventListener("blur", () => {
+if (pointerIsDown) pending.add([key, input]);
+else validateField(key, input);
+});
+input.addEventListener("input", () => {
+if (!input.classList.contains("is-bad")) return;
+const r = CHECKS[key](input.value);
+if (r.ok) setFieldError(input, "");
+});
+});
+const consent = form.elements.consent;
+const consentErr = form.querySelector("[data-consent-error]");
+if (consent && consentErr) {
+consent.addEventListener("change", () => {
+if (consent.checked) {
+consentErr.hidden = true;
+consent.removeAttribute("aria-invalid");
+}
+});
+}
+function setStatus(html, kind) {
+if (!status) return;
+status.className = "form-status" + (kind ? " form-status--" + kind : "");
+status.innerHTML = html || "";
+status.hidden = !html;
+}
+function setBusy(on) {
+sending = on;
+if (!btn) return;
+btn.disabled = on;
+btn.setAttribute("aria-busy", String(on));
+btn.classList.toggle("is-loading", on);
+if (label) label.textContent = on ? "Küldés folyamatban…" : idleLabel;
+}
+form.addEventListener("submit", async (e) => {
+e.preventDefault();
+if (sending) return;
+const data = new FormData(form);
+if (String(data.get("_hp") || "").length) return;
+if (!touched) return;
+const fields = {};
+const bad = [];
+Object.keys(CHECKS).forEach((key) => {
+const input = form.elements[key];
+if (!input) return;
+const r = CHECKS[key](input.value);
+setFieldError(input, r.ok ? "" : r.message);
+if (r.ok) fields[key] = r.value;
+else bad.push(key);
+});
+fields.message = String(data.get("message") || "").trim().slice(0, 2000);
+if (consent && !consent.checked) {
+bad.push("consent");
+consent.setAttribute("aria-invalid", "true");
+if (consentErr) consentErr.hidden = false;
+}
+if (bad.length) {
+track("lead_form_error", Object.assign(base(), { error_type: "validation", error_fields: bad.join(",") }));
+const fieldBad = bad.filter((k) => k !== "consent");
+setStatus(
+fieldBad.length ? "Nézd át a pirossal jelölt " + (fieldBad.length > 1 ? "mezőket" : "mezőt") + "." : "",
+"warn"
+);
+const first = bad[0] === "consent" ? consent : form.elements[bad[0]];
+if (first) first.focus();
+return;
+}
+setStatus("Küldés folyamatban…", "");
+setBusy(true);
+const wait = 1000 - (Date.now() - shownAt);
+if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+const ctx = base();
+track("lead_form_submit", ctx);
+const payload = Object.assign(
+{
+tipus: "Weboldal",
+tema: "",
+slug: "",
+nev: fields.name || "",
+telefon: fields.phone || "",
+email: fields.email || "",
+megjegyzes: fields.message || "",
+valaszok: "",
+kalkulator: "",
+oldal: location.href.slice(0, 300),
+idopont: new Date().toISOString(),
+kontextus: window.EP.leadContext(ctx),
+},
+opts.payload ? opts.payload(fields, data, ctx) : {}
+);
+const ok = await window.EP.sendLead(payload);
+setBusy(false);
+if (ok) {
+setStatus("", "");
+track("lead_form_success", ctx);
+if (opts.onSuccess) opts.onSuccess(fields);
+} else {
+track("lead_form_error", Object.assign({}, ctx, { error_type: navigator.onLine === false ? "offline" : "network" }));
+const c = CFG.contact || {};
+setStatus(
+`<strong>Nem sikerült elküldeni az űrlapot.</strong> A beírt adatok megmaradtak — próbáld újra,
+           vagy hívj most: <a href="tel:${esc(c.phoneHref)}" data-cta-location="form_error">${esc(c.phone)}</a>`,
+"error"
+);
+if (label) label.textContent = "Újraküldés";
+if (status) status.focus();
+}
+});
+return { setStatus };
+};
+window.EP.setFieldError = setFieldError;
 if (document.readyState === "loading") {
 document.addEventListener("DOMContentLoaded", window.EP.leadHealthCheck);
 } else {
@@ -3260,8 +3617,333 @@ window.EP.leadHealthCheck();
 (function () {
 "use strict";
 window.EP = window.EP || {};
+const { $, $$ } = window.EP;
+const CFG = window.EP.CONFIG || {};
+const C = CFG.contact || {};
+const root = document.documentElement;
+const track = (...a) => window.EP.track && window.EP.track(...a);
+const esc = (s) =>
+String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const ICON_PHONE =
+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>';
+const ICON_CHECK =
+'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>';
+const ICON_CLOSE =
+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+const up = () => root.getAttribute("data-up") || "";
+const SERVICES = window.EP.SERVICES || [];
+const svc = (slug) => SERVICES.find((s) => s.slug === slug) || null;
+const TOPICS = [
+{ key: "megtakaritas", label: "Nyugdíj, megtakarítás", slugs: ["nyugdij-megtakaritas", "gyerek-megtakaritas", "szabad-felhasznalasu-megtakaritas"] },
+{ key: "adokedvezmeny", label: "20% adókedvezmény", slugs: ["adokedvezmeny-gyerek-no", "adokedvezmeny-lakashitel"] },
+{ key: "biztositas", label: "Biztosítás", slugs: ["elet-biztositas", "baleset-biztositas", "egeszsegbiztositas", "kgfb-casco"] },
+{ key: "hitel", label: "Lakáshitel, kölcsön", slugs: ["tamogatott-hitelek", "piaci-hitelek", "szemelyi-kolcson"] },
+{ key: "bankszamla", label: "Bankszámla", slugs: ["dijmentes-bankszamla"] },
+{ key: "atnezes", label: "Teljes pénzügyi átnézés", slugs: [] },
+]
+.map((t) => Object.assign({}, t, { slugs: t.slugs.filter(svc) }))
+.filter((t) => t.key === "atnezes" || t.slugs.length);
+function defaultTopic(serviceSlug) {
+if (serviceSlug && svc(serviceSlug)) return "svc:" + serviceSlug;
+if (root.dataset.pageType === "planning") return "atnezes";
+return "";
+}
+function topicInfo(value) {
+if (!value) return { label: "Nem jelölt témát", slug: "" };
+if (value.startsWith("svc:")) {
+const s = svc(value.slice(4));
+return s ? { label: s.title, slug: s.slug } : { label: value, slug: "" };
+}
+const t = TOPICS.find((x) => x.key === value);
+return t ? { label: t.label, slug: t.key } : { label: value, slug: "" };
+}
+let uid = 0;
+function formHtml(p, serviceSlug) {
+const pre = defaultTopic(serviceSlug);
+const s = pre.startsWith("svc:") ? svc(pre.slice(4)) : null;
+const chips = (s ? [{ value: pre, label: s.navTitle }] : [])
+.concat(TOPICS.map((t) => ({ value: t.key, label: t.label })))
+.map(
+(t) => `<label class="qlf-chip"><input type="radio" name="topic" value="${esc(t.value)}"${t.value === pre ? " checked" : ""}><span>${esc(t.label)}</span></label>`
+)
+.join("");
+const priv = `${up()}adatkezeles.html`;
+return `
+      <form class="qlf__form" novalidate>
+        <!-- A két kötelező mező elöl: kis kijelzőn is a képben van, amint a
+             modál kinyílik. A téma utána jön, és nem kötelező. -->
+        <div class="qlf__row">
+          <div class="input-wrap">
+            <input class="input" id="${p}-name" name="name" autocomplete="name" enterkeyhint="next" maxlength="80" required placeholder=" " aria-describedby="${p}-name-err">
+            <label for="${p}-name">Neved *</label>
+            <p class="field-error" id="${p}-name-err" aria-live="polite"></p>
+          </div>
+          <div class="input-wrap">
+            <input class="input" id="${p}-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="send" maxlength="24" required placeholder=" " aria-describedby="${p}-phone-hint ${p}-phone-err">
+            <label for="${p}-phone">Telefonszám *</label>
+            <p class="field-hint" id="${p}-phone-hint">pl. 06 20 123 4567</p>
+            <p class="field-error" id="${p}-phone-err" aria-live="polite"></p>
+          </div>
+        </div>
+        <fieldset class="qlf-topics">
+          <legend class="qlf-legend">Miben segíthetek? <span class="mute">(nem kötelező)</span></legend>
+          <div class="qlf-chips">${chips}</div>
+        </fieldset>
+        <details class="qlf-more">
+          <summary>Megjegyzés hozzáadása <span class="mute">(nem kötelező)</span></summary>
+          <div class="input-wrap">
+            <textarea class="input" id="${p}-msg" name="message" maxlength="2000" placeholder=" "></textarea>
+            <label for="${p}-msg">Pl. mikor hívjalak, miről beszéljünk</label>
+          </div>
+        </details>
+        <input class="honeypot" name="_hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <label class="consent">
+          <input type="checkbox" name="consent" required aria-describedby="${p}-consent-err">
+          <span>Hozzájárulok, hogy a megadott adataimat a megkeresés megválaszolása céljából kezeljék. Részletek az <a href="${priv}" target="_blank" rel="noopener">adatkezelési tájékoztatóban</a>. *</span>
+        </label>
+        <p class="field-error field-error--block" id="${p}-consent-err" data-consent-error hidden>Az adatkezelési hozzájárulás nélkül nem tudom elküldeni a kérést.</p>
+        <div class="form-status" data-status role="status" aria-live="polite" tabindex="-1" hidden></div>
+        <button class="btn btn--lg btn--block" type="submit">
+          <span class="btn__label">Visszahívást kérek</span>
+        </button>
+        <p class="qlf-note tiny mute">Nem küldök hírlevelet, és nem adom át az adataidat harmadik félnek.
+          Inkább most hívnál? <a href="tel:${esc(C.phoneHref)}" data-cta-location="form">${esc(C.phone)}</a></p>
+      </form>`;
+}
+function successHtml(p) {
+const when = C.callbackPromise ? ` ${esc(C.callbackPromise)}` : "";
+return `
+      <div class="qlf-done" data-cta-location="form_success">
+        <div class="thanks__check">${ICON_CHECK}</div>
+        <h2 class="qlf-done__title" id="${p}-done" tabindex="-1">Köszönöm, megkaptam a kérésed.</h2>
+        <p class="soft">A megadott számon${when} visszahívlak — jellemzően ${esc(C.hoursShort || "hétköznap")} között.
+          Ha közben eszedbe jut valami, a hívásnál elmondhatod.</p>
+        <p class="qlf-done__alt">Inkább most beszélnél?</p>
+        <a class="btn btn--ghost btn--block" href="tel:${esc(C.phoneHref)}">${ICON_PHONE}<span class="btn__label">Hívás most: ${esc(C.phone)}</span></a>
+      </div>`;
+}
+function mountForm(host, { formType, ctx, onSuccess }) {
+const p = "qlf" + ++uid;
+const context = ctx || {};
+host.classList.add("qlf");
+host.innerHTML = formHtml(p, context.service || root.dataset.service || "");
+const form = $("form", host);
+window.EP.bindLeadForm(form, {
+formType,
+ctx: () => {
+const picked = form.querySelector('input[name="topic"]:checked');
+return {
+cta_location: context.cta_location || "",
+service: context.service || root.dataset.service || "",
+topic: picked ? topicInfo(picked.value).slug : "",
+};
+},
+payload: (fields, data, c) => {
+const t = topicInfo(String(data.get("topic") || ""));
+return {
+tipus: formType === "quick_inline" ? "Visszahívás-kérés (kapcsolat oldal)" : "Visszahívás-kérés",
+tema: t.label,
+slug: t.slug || root.dataset.service || "",
+valaszok: window.EP.leadContext(c),
+};
+},
+onSuccess: () => {
+host.innerHTML = successHtml(p);
+const h = document.getElementById(p + "-done");
+if (h) h.focus({ preventScroll: true });
+if (!host.closest("dialog") && window.EP.scrollToEl && host.getBoundingClientRect().top < 0) {
+window.EP.scrollToEl(host);
+}
+if (onSuccess) onSuccess();
+},
+});
+return form;
+}
+let dlg = null;
+let opener = null;
+let done = false;
+const modalCtx = {};
+function buildDialog() {
+dlg = document.createElement("dialog");
+dlg.className = "qlm";
+dlg.setAttribute("aria-labelledby", "qlm-title");
+dlg.innerHTML = `
+      <div class="qlm__panel">
+        <div class="qlm__head">
+          <img class="qlm__avatar" src="${up()}assets/brand/avatar.webp" alt="" width="48" height="48" decoding="async">
+          <div>
+            <h2 class="qlm__title" id="qlm-title" tabindex="-1">Visszahívást kérek</h2>
+            <p class="qlm__sub">${esc(CFG.advisor ? CFG.advisor.name : "")} — nem call center, én hívlak vissza.</p>
+          </div>
+          <button class="qlm__close" type="button" data-qlm-close aria-label="Bezárás">${ICON_CLOSE}</button>
+        </div>
+        <div class="qlm__body"></div>
+      </div>`;
+document.body.appendChild(dlg);
+$("[data-qlm-close]", dlg).addEventListener("click", () => close());
+dlg.addEventListener("click", (e) => {
+if (e.target === dlg) close();
+});
+dlg.addEventListener("close", onClosed);
+}
+function open(ctx) {
+if (!dlg) buildDialog();
+if (dlg.open) return;
+ctx = ctx || {};
+dlg.dataset.cta = ctx.cta_location || "";
+modalCtx.cta_location = ctx.cta_location || "";
+modalCtx.service = ctx.service || "";
+const body = $(".qlm__body", dlg);
+if (done || !body.firstElementChild) {
+done = false;
+mountForm(body, { formType: "quick_modal", ctx: modalCtx, onSuccess: () => (done = true) });
+}
+opener = document.activeElement;
+window.EP.lockScroll && window.EP.lockScroll(true);
+document.body.classList.add("qlm-open");
+if (typeof dlg.showModal === "function") dlg.showModal();
+else dlg.setAttribute("open", "");
+watchViewport(true);
+const fine = window.matchMedia && window.matchMedia("(pointer: fine)").matches;
+const target = fine ? $('input[name="name"]', dlg) : $("#qlm-title", dlg);
+(target || $("#qlm-title", dlg)).focus();
+track("lead_form_view", { form_type: "quick_modal", cta_location: ctx.cta_location || "", service: ctx.service || root.dataset.service || "" });
+}
+const vv = window.visualViewport;
+function fitViewport() {
+if (!vv || !dlg) return;
+const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+dlg.style.setProperty("--kb", Math.round(kb) + "px");
+dlg.style.setProperty("--vvh", Math.round(vv.height) + "px");
+}
+function onFieldFocus(e) {
+const t = e.target;
+if (!t || !t.matches || !t.matches("input, textarea")) return;
+setTimeout(() => t.scrollIntoView({ block: "nearest" }), 320);
+}
+function watchViewport(on) {
+if (vv) {
+const m = on ? "addEventListener" : "removeEventListener";
+vv[m]("resize", fitViewport);
+vv[m]("scroll", fitViewport);
+}
+if (dlg) dlg[on ? "addEventListener" : "removeEventListener"]("focusin", onFieldFocus);
+if (on) fitViewport();
+}
+function close() {
+if (!dlg || !dlg.open) return;
+if (typeof dlg.close === "function") dlg.close();
+else { dlg.removeAttribute("open"); onClosed(); }
+}
+function onClosed() {
+if (!done) track("lead_form_close", { form_type: "quick_modal", cta_location: dlg ? dlg.dataset.cta || "" : "" });
+watchViewport(false);
+document.body.classList.remove("qlm-open");
+window.EP.lockScroll && window.EP.lockScroll(false);
+if (opener && opener.focus && document.contains(opener)) opener.focus();
+opener = null;
+}
+function inlineHost() {
+return $("[data-qlf-inline]");
+}
+document.addEventListener("click", (e) => {
+const el = e.target && e.target.closest ? e.target.closest("[data-callback]") : null;
+if (!el || e.defaultPrevented || e.button > 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+e.preventDefault();
+const ctx = {
+cta_location: window.EP.ctaLocation ? window.EP.ctaLocation(el) : "",
+service: el.dataset.service || root.dataset.service || "",
+};
+track("cta_callback_click", ctx);
+const host = inlineHost();
+if (host) {
+window.EP.scrollToEl ? window.EP.scrollToEl(host.closest("section") || host) : host.scrollIntoView();
+const name = $('input[name="name"]', host);
+if (name) setTimeout(() => name.focus({ preventScroll: true }), 450);
+return;
+}
+open(ctx);
+});
+function mountInline() {
+const host = inlineHost();
+if (!host || host.dataset.mounted === "1") return;
+host.dataset.mounted = "1";
+mountForm(host, { formType: "quick_inline", ctx: { cta_location: host.dataset.ctaLocation || "contact_form" } });
+const seen = () => track("lead_form_view", { form_type: "quick_inline", cta_location: host.dataset.ctaLocation || "contact_form" });
+if ("IntersectionObserver" in window) {
+const io = new IntersectionObserver((entries) => {
+if (entries.some((x) => x.isIntersecting)) {
+io.disconnect();
+seen();
+}
+}, { threshold: 0.3 });
+io.observe(host);
+} else seen();
+if (location.hash === "#visszahivas") {
+const name = $('input[name="name"]', host);
+if (name) setTimeout(() => name.focus({ preventScroll: true }), 300);
+}
+}
+function initBar() {
+const bar = $(".mbar");
+if (!bar) return;
+const state = { past: false, blocked: false, typing: false };
+const apply = () => {
+const on = state.past && !state.blocked && !state.typing;
+bar.classList.toggle("is-in", on);
+bar.setAttribute("aria-hidden", String(!on));
+$$("a", bar).forEach((a) => (on ? a.removeAttribute("tabindex") : a.setAttribute("tabindex", "-1")));
+document.body.classList.toggle("mbar-on", on);
+};
+const heroCta = $("[data-hero-cta]");
+if (heroCta && "IntersectionObserver" in window) {
+new IntersectionObserver((entries) => {
+state.past = !entries[0].isIntersecting;
+apply();
+}, { rootMargin: "0px 0px -64px 0px" }).observe(heroCta);
+} else {
+state.past = true;
+}
+const blockers = $$("[data-funnel] .funnel__foot, [data-qlf-inline]");
+if (blockers.length && "IntersectionObserver" in window) {
+const vis = new Set();
+const io = new IntersectionObserver((entries) => {
+entries.forEach((e) => (e.isIntersecting ? vis.add(e.target) : vis.delete(e.target)));
+state.blocked = vis.size > 0;
+apply();
+});
+blockers.forEach((b) => io.observe(b));
+}
+const isField = (t) => t && t.matches && t.matches("input:not([type=checkbox]):not([type=radio]), textarea, select");
+document.addEventListener("focusin", (e) => {
+if (isField(e.target)) { state.typing = true; apply(); }
+});
+document.addEventListener("focusout", (e) => {
+if (isField(e.target)) {
+state.typing = false;
+setTimeout(() => { if (!isField(document.activeElement)) apply(); }, 120);
+}
+});
+apply();
+}
+function boot() {
+mountInline();
+setTimeout(initBar, 0);
+}
+window.EP.QuickLead = { open, close, mount: mountForm, TOPICS };
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+else boot();
+})();
+;
+(function () {
+"use strict";
+window.EP = window.EP || {};
 
 const { $, $$, on } = window.EP;
+const track = (...a) => window.EP.track && window.EP.track(...a);
+const C = (window.EP.CONFIG || {}).contact || {};
+const ICON_PHONE =
+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>';
 const ICON_ARROW =
 '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 17 17 7M9 7h8v8"/></svg>';
 const ICON_BACK =
@@ -3282,6 +3964,9 @@ this.svc = this.slug ? window.EP.SERVICES.find((s) => s.slug === this.slug) : nu
 this.answers = {};
 this.calcValues = {};
 this.index = 0;
+ 
+this.uid = "fn" + ++Funnel.count;
+this.formType = this.type === "map" ? "funnel_map" : "funnel_service";
 this.build();
 }
 
@@ -3435,6 +4120,10 @@ return `<button type="button" class="opt${isOn ? " is-picked" : ""}" data-v="${e
 
 $$(".opt", this.body).forEach((btn) =>
 on(btn, "click", () => {
+if (!this.started) {
+this.started = true;
+track("funnel_start", { form_type: this.formType, service: this.slug || "" });
+}
 const raw = btn.dataset.v;
 const opt = q.opts.find((o) => String(o.v) === raw);
 const val = opt ? opt.v : raw;
@@ -3664,8 +4353,11 @@ return `<a class="reco__item" href="${this.hrefTo(s.slug)}">
 : ""}`;
 } else {
 headline = "Kész a helyzetkép";
+ 
 sub =
-"Ha szeretnéd konkrét ajánlatokkal, a saját számaidra szabva látni, hagyd itt az elérhetőségedet. 24 órán belül keresek — nem call center, hanem én.";
+"Ha szeretnéd konkrét ajánlatokkal, a saját számaidra szabva látni, hagyd itt az elérhetőségedet" +
+(C.callbackPromise ? `, és ${C.callbackPromise} hívlak` : "") +
+". Nem call center keres, hanem én.";
 if (this.result) {
 recoHtml = `<div class="result__hero">
             <div class="result__big${this.result.bigSmall ? " result__big--sm" : ""}">${esc(this.result.big)}</div>
@@ -3674,6 +4366,7 @@ recoHtml = `<div class="result__hero">
 }
 }
 
+const u = this.uid;
 this.body.innerHTML = `
         <div class="fstep is-active">
           <span class="fstep__kicker">Eredmény</span>
@@ -3683,59 +4376,82 @@ this.body.innerHTML = `
           <form class="lead-form" novalidate>
             <div class="lead-form__row">
               <div class="input-wrap">
-                <input class="input" id="f-name" name="name" placeholder=" " autocomplete="name" required>
-                <label for="f-name">Neved *</label>
-                <div class="field-error">Add meg a nevedet</div>
+                <input class="input" id="${u}-name" name="name" placeholder=" " autocomplete="name" maxlength="80" required aria-describedby="${u}-name-err">
+                <label for="${u}-name">Neved *</label>
+                <p class="field-error" id="${u}-name-err" aria-live="polite"></p>
               </div>
               <div class="input-wrap">
-                <input class="input" id="f-phone" name="phone" type="tel" placeholder=" " autocomplete="tel" required>
-                <label for="f-phone">Telefonszám *</label>
-                <div class="field-error">Adj meg egy elérhető telefonszámot</div>
+                <input class="input" id="${u}-phone" name="phone" type="tel" inputmode="tel" placeholder=" " autocomplete="tel" maxlength="24" required aria-describedby="${u}-phone-hint ${u}-phone-err">
+                <label for="${u}-phone">Telefonszám *</label>
+                <p class="field-hint" id="${u}-phone-hint">pl. 06 20 123 4567</p>
+                <p class="field-error" id="${u}-phone-err" aria-live="polite"></p>
               </div>
             </div>
             <div class="input-wrap">
-              <input class="input" id="f-email" name="email" type="email" placeholder=" " autocomplete="email">
-              <label for="f-email">E-mail (nem kötelező)</label>
-              <div class="field-error">Ez az e-mail cím nem tűnik érvényesnek</div>
+              <input class="input" id="${u}-email" name="email" type="email" inputmode="email" placeholder=" " autocomplete="email" maxlength="160" aria-describedby="${u}-email-err">
+              <label for="${u}-email">E-mail (nem kötelező)</label>
+              <p class="field-error" id="${u}-email-err" aria-live="polite"></p>
             </div>
             <div class="input-wrap">
-              <textarea class="input" id="f-msg" name="message" placeholder=" "></textarea>
-              <label for="f-msg">Megjegyzés, kérdés (nem kötelező)</label>
+              <textarea class="input" id="${u}-msg" name="message" maxlength="2000" placeholder=" "></textarea>
+              <label for="${u}-msg">Megjegyzés, kérdés (nem kötelező)</label>
             </div>
             <input class="honeypot" name="_hp" tabindex="-1" autocomplete="off" aria-hidden="true">
             <label class="consent">
-              <input type="checkbox" name="consent" required>
+              <input type="checkbox" name="consent" required aria-describedby="${u}-consent-err">
               <span>Hozzájárulok, hogy a megadott adataimat a megkeresés megválaszolása céljából kezeljék. Részletek az <a href="${this.hrefTo("adatkezeles", true)}" target="_blank" rel="noopener">adatkezelési tájékoztatóban</a>. *</span>
             </label>
-            <div class="field-error" data-consent-error>A hozzájárulás megadása kötelező</div>
+            <p class="field-error field-error--block" id="${u}-consent-err" data-consent-error hidden>Az adatkezelési hozzájárulás nélkül nem tudom elküldeni a kérést.</p>
+            <div class="form-status" data-status role="status" aria-live="polite" tabindex="-1" hidden></div>
             <button class="btn btn--lg btn--block" type="submit">
-              <span class="btn__label">Kérek visszahívást</span><span class="btn__arrow">${ICON_ARROW}</span>
+              <span class="btn__label">Visszahívást kérek</span><span class="btn__arrow">${ICON_ARROW}</span>
             </button>
-            <p class="tiny mute">Nem küldünk hírlevelet, nem adjuk át az adataidat harmadik félnek. Egy hívás, konkrét számokkal.</p>
+            <p class="tiny mute">Nem küldünk hírlevelet, nem adjuk át az adataidat harmadik félnek. Egy hívás, konkrét számokkal.
+              Inkább most hívnál? <a href="tel:${esc(C.phoneHref)}" style="color:var(--lime-text)">${esc(C.phone)}</a></p>
           </form>
         </div>`;
 
 const form = $("form", this.body);
+track("lead_form_view", { form_type: this.formType, cta_location: "funnel", service: this.slug || "" });
  
-this.formShownAt = Date.now();
-on(form, "submit", (e) => {
-e.preventDefault();
-this.submit(form);
+window.EP.bindLeadForm(form, {
+formType: this.formType,
+ctx: () => ({ cta_location: "funnel", service: this.slug || "" }),
+payload: () => ({
+tipus: this.type === "map" ? "Pénzügyi Térkép" : "Szolgáltatás-funnel",
+tema: this.type === "map" ? (this.reco || []).join(", ") : this.svc.title,
+slug: this.slug || "penzugyi-terkep",
+valaszok: JSON.stringify(this.answers),
+kalkulator: this.result
+? `${this.result.bigLabel}: ${this.result.big}` +
+(Object.keys(this.calcValues).length ? " | " + JSON.stringify(this.calcValues) : "")
+: "",
+}),
+onSuccess: () => {
+this.index = this.steps.length - 1;
+this.render();
+ 
+const h = $(".thanks .fstep__q", this.body);
+if (h) h.focus({ preventScroll: true });
+if (window.EP.scrollToEl && this.root.getBoundingClientRect().top < 0) window.EP.scrollToEl(this.root);
+},
 });
 }
 
 renderThanks() {
+const when = C.callbackPromise ? ` ${esc(C.callbackPromise)}` : "";
 this.body.innerHTML = `
-        <div class="fstep is-active thanks">
+        <div class="fstep is-active thanks" data-cta-location="form_success">
           <div class="thanks__check">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg>
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
           </div>
-          <h2 class="fstep__q">Megérkezett. Köszönöm!</h2>
+          <h2 class="fstep__q" tabindex="-1">Köszönöm, megkaptam a kérésed.</h2>
           <p class="fstep__help center" style="margin-inline:auto">
-            24 órán belül keresni fogom a megadott számon. Addig sem kell tétlenül várni:
-            nézz körül a többi témában, hátha van még pár tízezer forint az asztalon.
+            A megadott számon${when} visszahívlak — jellemzően ${esc(C.hoursShort || "hétköznap")} között.
+            Addig nézz körül a többi témában, hátha van még pár tízezer forint az asztalon.
           </p>
           <div class="row center" style="justify-content:center;margin-top:2rem">
+            <a class="btn" href="tel:${esc(C.phoneHref)}">${ICON_PHONE}<span class="btn__label">Inkább most hívnék</span></a>
             <a class="btn btn--ghost" href="${this.hrefTo("", true)}#szolgaltatasok">Többi téma</a>
           </div>
         </div>`;
@@ -3751,72 +4467,8 @@ return up || "./";
 }
 return `${up}szolgaltatas/${target}.html`;
 }
-
- 
-async submit(form) {
-const data = new FormData(form);
-const name = (data.get("name") || "").toString().trim();
-const phone = (data.get("phone") || "").toString().trim();
-const email = (data.get("email") || "").toString().trim();
-const consent = form.querySelector('[name="consent"]').checked;
-
- 
-if ((data.get("_hp") || "").toString().length) return;
- 
-if (Date.now() - (this.formShownAt || 0) < 1500) return;
-
-let bad = false;
-const mark = (sel, cond) => {
-const el = form.querySelector(sel);
-if (!el) return;
-el.classList.toggle("is-bad", cond);
-if (cond) bad = true;
-};
-const digits = phone.replace(/\D/g, "");
-mark("#f-name", name.length < 2 || name.length > 80);
- 
-mark("#f-phone", digits.length < 8 || digits.length > 15);
-mark("#f-email", email !== "" && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email));
-const ce = form.querySelector("[data-consent-error]");
-if (ce) ce.style.display = consent ? "none" : "block";
-if (!consent) bad = true;
-if (bad) {
-window.EP.toast("Nézd át a kiemelt mezőket");
-return;
 }
-
-const btn = form.querySelector('button[type="submit"]');
-btn.classList.add("is-loading");
-btn.querySelector(".btn__label").textContent = "Küldés";
-
-const payload = {
-tipus: this.type === "map" ? "Pénzügyi Térkép" : "Szolgáltatás-funnel",
-tema: this.type === "map" ? (this.reco || []).join(", ") : this.svc.title,
-slug: this.slug || "penzugyi-terkep",
-nev: name,
-telefon: phone,
-email: email,
-megjegyzes: (data.get("message") || "").toString().trim(),
-valaszok: JSON.stringify(this.answers),
-kalkulator: this.result
-? `${this.result.bigLabel}: ${this.result.big}` +
-(Object.keys(this.calcValues).length ? " | " + JSON.stringify(this.calcValues) : "")
-: "",
-oldal: location.href,
-idopont: new Date().toISOString(),
-};
-
-const ok = await window.EP.sendLead(payload);
-btn.classList.remove("is-loading");
-if (ok) {
-this.index = this.steps.length - 1;
-this.render();
-} else {
-btn.querySelector(".btn__label").textContent = "Kérek visszahívást";
-window.EP.toast("Nem sikerült elküldeni — próbáld újra, vagy hívj közvetlenül");
-}
-}
-}
+Funnel.count = 0;
 
  
 window.EP.Funnel = {

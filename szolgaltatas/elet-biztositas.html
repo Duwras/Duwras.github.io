@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="hu" data-up="../">
+<html lang="hu" data-up="../" data-page-type="service" data-service="elet-biztositas">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
 <title>Életbiztosítás 2026 — mekkora biztosítási összeg indokolt?</title>
 <meta name="description" content="Kockázati életbiztosítás, kritikus betegség, hitelfedezet: mennyi fedezet kell a családodnak? Számold ki, majd nézzük át együtt.">
@@ -36,7 +36,7 @@
 
 <!-- EGY stíluslap: a hét forrásfájlból a generátor fűzi össze (css/site.css).
      Hét blokkoló kérés helyett egy. Szerkeszteni továbbra is a css/*.css-t kell. -->
-<link rel="stylesheet" href="../css/site.css?v=mu0c4p28">
+<link rel="stylesheet" href="../css/site.css?v=mu0ejk2v">
 <!-- JS nélkül a reveal-animáció sosem indulna el, és a tartalom átlátszó
      maradna — ez a biztosíték, hogy szöveg mindig látható legyen. -->
 <noscript><style>[data-reveal],.split-words .w{opacity:1!important;transform:none!important;clip-path:none!important}</style></noscript>
@@ -63,15 +63,25 @@
     <a class="nav__link" href="../rolam/">Rólam</a>
     <a class="nav__link" href="../kapcsolat/">Kapcsolat</a>
   </nav>
-  <div class="nav__actions">
-    <a class="btn hide-mobile" href="../#terkep">
-      <span class="btn__label">Indítsuk el</span><span class="btn__arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+  <!-- Konverziós út a fejlécben: telefon (tel:) + visszahívás (modál).
+       A telefonszám 1280 px felett kiírva, alatta ikon; 860 px alatt a
+       mobil konverziós sáv (.mbar) veszi át. -->
+  <div class="nav__actions" data-cta-location="header">
+    <a class="nav__phone" href="tel:+36203695312" aria-label="Hívás: +36 20 369 5312">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg><span class="nav__phone-num">+36 20 369 5312</span>
+    </a>
+    <a class="btn nav__cta hide-mobile" href="../kapcsolat/#visszahivas" data-callback>
+      <span class="btn__label">Visszahívást kérek</span>
     </a>
     <button class="burger" aria-expanded="false" aria-label="Menü" aria-controls="menu"><span></span></button>
   </div>
 </header>
 
 <div class="menu" id="menu">
+  <div class="menu__cta" data-cta-location="menu">
+    <a class="btn btn--lg btn--block" href="../kapcsolat/#visszahivas" data-callback><span class="btn__label">Visszahívást kérek</span></a>
+    <a class="btn btn--ghost btn--lg btn--block" href="tel:+36203695312"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg><span class="btn__label">Hívás: +36 20 369 5312</span></a>
+  </div>
   <div class="menu__group">
     <p class="footer__title">Kezdd itt</p>
     <a class="menu__item" href="../#terkep"><span>Pénzügyi Térkép</span><small>1 perc</small></a>
@@ -132,6 +142,19 @@
         <h1 class="h1" style="margin-top:1.25rem" data-lines>Életbiztosítás — kockázati és hitelfedezeti</h1>
         <p class="lead" style="margin-top:1.25rem">Nem neked szól. Azoknak, akik utánad maradnak — és akiknek a hitel, a rezsi meg az iskola akkor is fizetni kell.</p>
 
+        <!-- Elsődleges: visszahívás a témával előre kijelölve; másodlagos:
+             hívás. A kalkulátoros funnel (jobbra / alatta) harmadlagos út.
+             A tényszámok ELŐTT, hogy a gombok a hajtás fölött maradjanak. -->
+        <div class="hero__actions cta-group" data-cta-location="hero" data-hero-cta>
+          <a class="btn btn--lg" href="../kapcsolat/#visszahivas" data-callback data-service="elet-biztositas">
+            <span class="btn__label">Visszahívást kérek</span><span class="btn__arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </a>
+          <a class="btn btn--ghost btn--lg" href="tel:+36203695312">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg><span class="btn__label"><span class="only-mobile">Hívás most</span><span class="hide-mobile">Hívás: +36 20 369 5312</span></span>
+          </a>
+        </div>
+        <p class="cta-alt">Előbb számolnál? <a href="#funnel">Életbiztosítás kalkulátor — 3 kérdés</a></p>
+
         <div class="fact-row">
           <div data-reveal>
             <div class="fact__v">10×</div>
@@ -145,11 +168,6 @@
             <div class="fact__v">kritikus betegség</div>
             <div class="fact__l">kiegészítéssel élő állapotra is fizet</div>
           </div>
-        </div>
-
-        <div class="hero__actions">
-          <a class="btn" href="#funnel"><span class="btn__label">Számoljuk ki nálam</span><span class="btn__arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-          <a class="btn btn--ghost" data-cfg-href="contact.phoneHref|tel:" href="tel:+36203695312"><span class="btn__label">Inkább hívnék</span></a>
         </div>
       </div>
 
@@ -196,8 +214,13 @@
         <p class="lead" style="margin-top:1.25rem">
           Ha legalább egy pont igaz rád, jó eséllyel van itt pénz vagy védelem, amit ma nem használsz ki.
         </p>
-        <div class="hero__actions">
-          <a class="btn" href="#funnel"><span class="btn__label">Megnézem a számokat</span><span class="btn__arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
+        <div class="hero__actions cta-group" data-cta-location="service_section">
+          <a class="btn" href="../kapcsolat/#visszahivas" data-callback data-service="elet-biztositas">
+            <span class="btn__label">Visszahívást kérek</span><span class="btn__arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </a>
+          <a class="btn btn--ghost" href="tel:+36203695312">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg><span class="btn__label"><span class="only-mobile">Hívás most</span><span class="hide-mobile">Hívás: +36 20 369 5312</span></span>
+          </a>
         </div>
       </div>
       <ul class="check-list" data-reveal>
@@ -206,6 +229,53 @@
         <li>a családi kassza rád (is) épül</li>
         <li>van már szerződésed, de nem tudod, mennyit fizet valójában</li>
       </ul>
+    </div>
+  </section>
+
+  
+  <section class="section-sm" id="menet">
+    <div class="wrap split">
+      <div>
+        <span class="label">Mi történik, ha visszahívást kérsz?</span>
+        <h2 class="h2" style="margin-top:.75rem">Három lépés, és te döntesz</h2>
+        
+        <div class="trust-card">
+          <img src="../assets/brand/avatar.webp" alt="" width="64" height="64" loading="lazy" decoding="async">
+          <div>
+            <div class="trust-card__name">Tímár Richárd</div>
+            <p>pénzügyi tanácsadó · Tímár Richárd e.v. A közvetítés az
+            OVB (többes ügynök) nevében történik — a társaság
+            MNB-nyilvántartási száma: 125100300147.
+            <a href="../rolam/#ellenorzes">Így ellenőrizheted</a>.</p>
+            <p>A tanácsadás díjmentes: a jutalékot a szolgáltató fizeti, ha a te döntésed alapján szerződés jön létre.</p>
+          </div>
+        </div>
+        <div class="hero__actions cta-group" data-cta-location="process">
+          <a class="btn btn--lg" href="../kapcsolat/#visszahivas" data-callback data-service="elet-biztositas">
+            <span class="btn__label">Visszahívást kérek</span><span class="btn__arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </a>
+          <a class="btn btn--ghost btn--lg" href="tel:+36203695312">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg><span class="btn__label"><span class="only-mobile">Hívás most</span><span class="hide-mobile">Hívás: +36 20 369 5312</span></span>
+          </a>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <h3 class="h3">Visszahívást kérsz</h3>
+          <p class="soft">Megadod a neved és a számod — ha szeretnéd, azt is, miről beszéljünk.
+          Hívlak, jellemzően hétköznap 9–19 óra között.</p>
+        </div>
+        <div class="step">
+          <h3 class="h3">Első beszélgetés, 30–45 perc</h3>
+          <p class="soft">Telefonon, videóhíváson vagy Budapesten személyesen. Megnézzük a helyzeted és a
+          lehetséges lépéseket — egyetlen konkrét témánál gyakran 15 perc is elég.</p>
+        </div>
+        <div class="step">
+          <h3 class="h3">Te döntesz</h3>
+          <p class="soft">Ha kéred, több szolgáltató ajánlatát hasonlítom össze, a költségekkel együtt.
+          Ha nincs teendő, azt is megmondom.</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -314,18 +384,28 @@
     </div>
   </section>
 
-  <section class="section-sm">
+  
+  <section class="section-sm" aria-labelledby="zaro-cta">
     <div class="wrap">
       <div class="cta-band" data-reveal="scale">
         <img class="cta-band__glyph" src="../assets/img/arrow-hero.webp" alt="" aria-hidden="true" width="900" height="900" loading="lazy" decoding="async">
-        <span class="label" style="color:var(--lime-ink);opacity:.7">Nem vagy biztos, hogy ez a téma a tiéd?</span>
-        <h2 class="h2" style="margin-top:.75rem;max-width:26ch">Töltsd ki a Pénzügyi Térképet — 1 perc.</h2>
-        <p style="margin-top:1rem;max-width:52ch;opacity:.8">
-          Hét gyors kérdés alapján megmutatom, melyik három terület hozza neked most a legtöbbet.
-        </p>
-        <div class="hero__actions">
-          <a class="btn btn--dark btn--lg" href="../#terkep"><span class="btn__label">Pénzügyi Térkép</span><span class="btn__arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
+        <span class="label" style="color:var(--lime-ink);opacity:.7">Életbiztosítás</span>
+        <h2 class="h2" id="zaro-cta" style="margin-top:.75rem;max-width:24ch">Életbiztosítás: nézzük meg a te számaiddal.</h2>
+        <p style="margin-top:1rem;max-width:54ch;opacity:.85">Kérj visszahívást, és a saját helyzetedre számolva, több szolgáltató ajánlatával beszélünk. Ha nincs teendő, azt is megmondom.</p>
+        <div class="hero__actions cta-group" data-cta-location="final">
+          <a class="btn btn--lg btn--dark" href="../kapcsolat/#visszahivas" data-callback data-service="elet-biztositas">
+            <span class="btn__label">Visszahívást kérek</span><span class="btn__arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          </a>
+          <a class="btn btn--ghost btn--lg btn--ghost-ink" href="tel:+36203695312">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg><span class="btn__label"><span class="only-mobile">Hívás most</span><span class="hide-mobile">Hívás: +36 20 369 5312</span></span>
+          </a>
         </div>
+        <p class="cta-band__bridge">Nem biztos, hogy ez a téma a tiéd? A <a href="../#terkep">Pénzügyi Térkép</a> 7 kérdésből megmutatja, hol kezdd.</p>
+        <p class="cta-trust">
+          <img src="../assets/brand/avatar.webp" alt="" width="40" height="40" loading="lazy" decoding="async">
+          <span><strong>Tímár Richárd</strong>, pénzügyi tanácsadó — nem call center, én hívlak vissza.
+          Elérhetőség: <span class="nowrap">hétköznap 9–19 óra</span>.</span>
+        </p>
       </div>
     </div>
   </section>
@@ -447,14 +527,12 @@
   </div>
 </div>
 
-<div class="sticky-cta">
-  <a class="btn btn--block" href="../#terkep"><span class="btn__label">Pénzügyi Térkép</span></a>
-  <a class="btn btn--ghost btn--icon" data-cfg-href="contact.phoneHref|tel:" href="tel:+36203695312" aria-label="Telefonhívás">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>
-  </a>
+<div class="mbar" data-cta-location="mobile_sticky" aria-hidden="true">
+  <a class="btn btn--ghost mbar__call" href="tel:+36203695312" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg><span class="btn__label">Hívás</span></a>
+  <a class="btn mbar__cb" href="../kapcsolat/#visszahivas" data-callback tabindex="-1"><span class="btn__label"><span class="mbar__long">Visszahívást kérek</span><span class="mbar__short">Visszahívás</span></span></a>
 </div>
 
-<script src="../js/app.js?v=mu0c4p28" defer></script>
+<script src="../js/app.js?v=mu0ejk2v" defer></script>
 
 </body>
 </html>

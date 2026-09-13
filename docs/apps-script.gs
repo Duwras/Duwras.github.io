@@ -24,13 +24,20 @@
  *     több beküldés → automatikusan a „Spam” lapra
  * Így semmi nem veszik el (minden beküldés eltárolódik valahol), de a rendes
  * lista és a postafiók tiszta marad.
+ *
+ * ÚJ (v4): KONTEXTUS oszlop. A weboldal minden leadhez elküldi, honnan jött:
+ * melyik űrlap (visszahívás-modál, kapcsolat oldal, funnel), melyik gomb
+ * (hero, fejléc, mobil sáv, záró CTA…), oldaltípus, szolgáltatás, város,
+ * landing oldal, hivatkozó domain és a kampány UTM-paraméterei. Ez a
+ * táblázat 12. oszlopába (Kontextus) és az értesítő e-mailbe kerül.
+ * Visszafelé kompatibilis: a régi táblázat fejlécét magától kiegészíti.
  */
 
 const NOTIFY_EMAIL = "timar.richard2@ovb.hu";
 
 const HEADERS = [
   "Időpont", "Típus", "Téma", "Slug", "Név", "Telefon",
-  "E-mail", "Megjegyzés", "Válaszok", "Kalkulátor", "Oldal"
+  "E-mail", "Megjegyzés", "Válaszok", "Kalkulátor", "Oldal", "Kontextus"
 ];
 
 const SPAM_SHEET = "Spam";      // ide kerülnek a kiszűrt beküldések
@@ -150,10 +157,12 @@ function spamSheet_(ss) {
   let sh = ss.getSheetByName(SPAM_SHEET);
   if (!sh) {
     sh = ss.insertSheet(SPAM_SHEET);
-    sh.appendRow(HEADERS.concat(["Miért szűrtük", "Pont"]));
-    sh.getRange(1, 1, 1, HEADERS.length + 2).setFontWeight("bold");
+    sh.appendRow(HEADERS.slice(0, 11).concat(["Miért szűrtük", "Pont", "Kontextus"]));
+    sh.getRange(1, 1, 1, 14).setFontWeight("bold");
     sh.setFrozenRows(1);
   }
+  /* v3-as Spam lap: a Kontextus oszlop fejléce hiányzik (14. oszlop). */
+  if (sh.getLastRow() > 0 && !sh.getRange(1, 14).getValue()) sh.getRange(1, 14).setValue("Kontextus").setFontWeight("bold");
   sh.getRange("F:F").setNumberFormat("@");
   return sh;
 }
@@ -201,10 +210,11 @@ function doPost(e) {
       safe_(data.kalkulator, 1000),
       safe_(data.oldal, 300)
     ];
+    const kontextus = safe_(data.kontextus, 1000);
 
     if (verdict.score >= SPAM_LIMIT) {
       /* Kiszűrve: eltároljuk, de nem szólunk róla e-mailben. */
-      spamSheet_(ss).appendRow(row.concat([verdict.reasons, verdict.score]));
+      spamSheet_(ss).appendRow(row.concat([verdict.reasons, verdict.score, kontextus]));
       return json_({ ok: true });
     }
 
@@ -214,10 +224,14 @@ function doPost(e) {
       sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight("bold");
       sheet.setFrozenRows(1);
     }
+    /* v3-as táblázat: a 12. oszlop (Kontextus) fejléce még hiányzik. */
+    if (!sheet.getRange(1, HEADERS.length).getValue()) {
+      sheet.getRange(1, HEADERS.length).setValue(HEADERS[HEADERS.length - 1]).setFontWeight("bold");
+    }
     // a Telefon oszlop formátuma sima szöveg — kézi szerkesztésnél is véd
     sheet.getRange("F:F").setNumberFormat("@");
 
-    sheet.appendRow(row);
+    sheet.appendRow(row.concat([kontextus]));
     notify_(data, verdict);
 
     return json_({ ok: true });
@@ -255,7 +269,8 @@ function notify_(data, verdict) {
     "",
     "Megjegyzés: " + (data.megjegyzes || "-"),
     "Válaszok:   " + (data.valaszok || "-"),
-    "Oldal:      " + (data.oldal || "-")
+    "Oldal:      " + (data.oldal || "-"),
+    "Honnan:     " + (data.kontextus || "-")
   ];
 
   if (flag) {
@@ -291,7 +306,8 @@ function tesztSor() {
         megjegyzes: "Ez egy teszt sor, törölhető.",
         valaszok: "{}",
         kalkulator: "-",
-        oldal: "apps-script"
+        oldal: "apps-script",
+        kontextus: "form_type=teszt | cta_location=apps-script"
       })
     }
   });

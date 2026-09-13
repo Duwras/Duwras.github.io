@@ -10,8 +10,16 @@ róluk. Nincs szükség szerverre, adatbázisra vagy előfizetésre.
 **A bekötés él és működik** — a végpont be van írva a `js/config.js`-be, teszteltem, a sorok
 megérkeznek és az e-mail is megy.
 
-Az [`apps-script.gs`](apps-script.gs) **két dolgot** javít, ezért kell egyszer frissíteni:
-**(1)** a telefonszám elromlását, **(2)** a spam-szűrést (lásd a „Spam-szűrés" szakaszt lent).
+Az [`apps-script.gs`](apps-script.gs) **három dolgot** javít, ezért kell egyszer frissíteni:
+**(1)** a telefonszám elromlását, **(2)** a spam-szűrést (lásd a „Spam-szűrés" szakaszt lent),
+**(3)** v4 — a **Kontextus** oszlopot: melyik űrlapról és gombról jött a lead (visszahívás-modál,
+kapcsolat oldal, funnel; hero, fejléc, mobil sáv…), melyik oldalról, városból, kampányból
+(UTM). A táblázat 12. oszlopa és az e-mail „Honnan:” sora lesz. A régi táblázat fejlécét a
+script magától kiegészíti.
+
+> Amíg nem frissítesz: a **visszahívás-kéréseknél** a kontextus a *Válaszok* oszlopba is
+> bekerül, tehát ott sem vész el. A funnelekből érkező leadeknél a kontextus csak a
+> frissítés után látszik.
 
 ### 1. A telefonszám elromlása
 

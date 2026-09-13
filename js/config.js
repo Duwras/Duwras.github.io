@@ -45,6 +45,15 @@ window.EP.CONFIG = {
     email: "timar.richard2@ovb.hu",
     area: "Budapest és online, az egész ország területén",
     hours: "Hétfő–péntek 9:00–19:00, szombaton egyeztetés szerint",
+    /* Ugyanez röviden, a CTA-k mellé (hero, mobil sáv, visszahívás-űrlap).
+       Ha a `hours` változik, ezt is írd át. */
+    hoursShort: "hétköznap 9–19 óra",
+    /* Vállalt visszahívási idő, pl. "24 órán belül". SZÁNDÉKOSAN ÜRES:
+       amíg nincs megerősítve, hogy minden esetben (hétvégén, szabadság
+       alatt is) tartható, az oldal nem ígér időt. Kitöltve a hero, a
+       visszahívás-űrlap, a siker-képernyő és a záró CTA-k megjelenítik.
+       Lásd OWNER-DATA-NEEDED.md. */
+    callbackPromise: "",
     facebook: "https://www.facebook.com/profile.php?id=61587459482095",
     instagram: "",
     /* LinkedIn: a saját profil URL-je. Üresen a link NEM jelenik meg
@@ -131,6 +140,19 @@ window.EP.CONFIG = {
      letöltődik. A link a docs/google-sheets-setup.md-ben van.            */
   leadEndpoint:
     "https://script.google.com/macros/s/AKfycbw8k8XaYf8R7nutRBOUiMZiqhrBMJP2tlPDdkaRXNRjiPWdkAylqGUD5q_SEl-zFlEZ/exec",
+
+  /* --- Mérés (Google Tag Manager) --------------------------------------
+     Az oldal minden konverziós eseményt a `window.dataLayer`-be ír
+     (js/core/track.js — lista: CRO-AUDIT-AFTER.md). Amíg a gtmId üres,
+     SEMMILYEN külső mérőkód nem töltődik be, és süti sem kerül ki.
+     Kitöltve (pl. "GTM-ABC1234") a GTM CSAK akkor töltődik be, ha a
+     látogató a süti-bannerben a „Rendben” gombot választja; a generátor
+     ekkor a CSP-be is felveszi a Google-domaineket.
+     ELŐTTE: az adatkezelési tájékoztatót és a süti-banner szövegét
+     frissíteni kell (OWNER-DATA-NEEDED.md → Mérés).                     */
+  analytics: {
+    gtmId: "",
+  },
 
   /* --- Ki készítette az oldalt (lábléc, minden lapon) ------------------
      A `url` üresen hagyva sima szöveg lesz belőle, link nélkül.

@@ -628,25 +628,7 @@
 }
 .toast.is-in { transform: translate(-50%, 0); }
 
-/* --- Sticky mobil CTA sáv -------------------------------------------- */
-
-.sticky-cta {
-  position: fixed;
-  left: var(--space-3); right: var(--space-3); bottom: var(--space-3);
-  z-index: var(--z-nav);
-  display: flex;
-  gap: var(--space-2);
-  padding: var(--space-2);
-  border-radius: var(--r-pill);
-  /* Átlátszatlan, nem blurös: ez a sáv KIZÁRÓLAG telefonon látszik, ahol a
-     backdrop-filter görgetés közben folyamatos újrafestést kényszerít. */
-  background: var(--ink-700);
-  border: 1px solid var(--line);
-  transform: translateY(160%);
-  transition: transform 420ms var(--ease-out);
-}
-.sticky-cta.is-in { transform: none; }
-@media (min-width: 860px) { .sticky-cta { display: none; } }
+/* A mobil konverziós sáv (.mbar) a css/cro.css-ben van. */
 
 /* --- Scroll progress ------------------------------------------------- */
 

@@ -3,7 +3,7 @@
    --------------------------------------------------------------------------
    Minden állítás a már közzétett tényekre épül (config.js, impresszum,
    főoldali GYIK): díjmentes tanácsadás (jutalék a szolgáltatótól), 30–45
-   perces első beszélgetés, 24 órán belüli visszahívás, Budapesten
+   perces első beszélgetés, visszahívás (időígéret NÉLKÜL — csak a config.contact.callbackPromise-ból), Budapesten
    személyesen, máshol online, közvetítés az OVB (többes ügynök) nevében.
    Új képesítést, díjat, ügyfélszámot, irodát NEM állítunk.
 
@@ -161,7 +161,7 @@ export function pillarPage({ CFG, BRAND, CITIES }) {
           <li><strong>Ügyintézés és utána.</strong> Az adminisztrációt átveszem, és kárügynél,
           évfordulónál, jogszabály-változásnál is elérhető vagyok.</li>
         </ol>
-        <p>Jelentkezés után <strong>24 órán belül</strong> hívlak a megadott számon. Ha a folyamat
+        <p>Jelentkezés után a megadott számon hívlak, jellemzően hétköznap 9 és 19 óra között. Ha a folyamat
         bármelyik pontján úgy döntesz, hogy nem kérsz semmit, az is rendben van.</p>`,
       },
       {
@@ -314,7 +314,7 @@ export function pillarPage({ CFG, BRAND, CITIES }) {
     sources: [SRC.mnbKereso, SRC.mnbRegiszter, SRC.mnbAlkusz, SRC.bit, SRC.hpt, SRC.bszt, SRC.mnbFogyved, SRC.mnbBekeltetes],
     map: {
       h: "Kezdjük a helyzetképpel — egy perc",
-      p: "A Pénzügyi Térkép hét kérdésből megmutatja, nálad melyik három téma hozza most a legtöbbet. A végén kérhetsz visszahívást — 24 órán belül keresek.",
+      p: "A Pénzügyi Térkép hét kérdésből megmutatja, nálad melyik három téma hozza most a legtöbbet. A végén visszahívást is kérhetsz, és a konkrét számokkal beszélünk.",
     },
     related: [
       { href: "/penzugyi-tervezes/", t: "Pénzügyi tervezés lépésről lépésre", n: "a 6 lépés sorrendje, szemléltető példával" },
@@ -465,7 +465,7 @@ export function planningPage({ CFG }) {
     sources: [SRC.mnbTervezes, SRC.mnbNavigator, SRC.mnbNyugdij, SRC.mnbPenztar, SRC.mnbHitel],
     map: {
       h: "A tervezés első lépése: a Pénzügyi Térkép",
-      p: "Hét kérdés az élethelyzetedről, egy perc. A végén három téma, a konkrét számokkal — és ha kéred, 24 órán belül hívlak, hogy együtt folytassuk.",
+      p: "Hét kérdés az élethelyzetedről, egy perc. A végén három téma, a konkrét számokkal — és ha kéred, visszahívlak, hogy együtt folytassuk.",
     },
     related: [
       { href: "/tudastar/haztartasi-koltsegvetes-es-vesztartalek/", t: "Háztartási költségvetés és vésztartalék", n: "5 lépés, példa-költségvetéssel" },
@@ -507,7 +507,7 @@ export function hubPage({ CITIES }) {
       label: "Röviden",
       html: `A tanácsadás <strong>online az egész országban</strong> működik (videóhívás, telefon,
       e-mail), <strong>Budapesten személyesen is</strong>. Az első beszélgetés díjmentes, 30–45 perc,
-      és jelentkezés után 24 órán belül keresem. Irodát vagy telephelyet a lenti városokban nem
+      és jelentkezés után én hívlak vissza. Irodát vagy telephelyet a lenti városokban nem
       állítok — a városi oldalak a helyi pénzügyi helyzetekről szólnak.`,
     },
     sections: [
@@ -530,8 +530,8 @@ export function hubPage({ CITIES }) {
         title: "Hogyan működik a tanácsadás, ha nem Budapesten élsz?",
         html: `
         <ol>
-          <li><strong>Jelentkezés:</strong> kitöltöd a Pénzügyi Térképet vagy felhívsz. 24 órán belül
-          keresem a megadott számot.</li>
+          <li><strong>Jelentkezés:</strong> visszahívást kérsz, kitöltöd a Pénzügyi Térképet vagy felhívsz.
+          A megadott számon keresem, jellemzően hétköznap 9 és 19 óra között.</li>
           <li><strong>Első beszélgetés:</strong> 30–45 perc videóhíváson vagy telefonon. Elég, ha kéznél
           vannak a meglévő szerződéseid.</li>
           <li><strong>Összehasonlítás:</strong> az ajánlatokat e-mailben küldöm, és képernyőn együtt
@@ -557,7 +557,7 @@ export function hubPage({ CITIES }) {
     sources: [],
     map: {
       h: "Bárhonnan az országból — egy perccel kezdődik",
-      p: "Töltsd ki a Pénzügyi Térképet, és 24 órán belül keresek a konkrét számokkal.",
+      p: "Töltsd ki a Pénzügyi Térképet, és a konkrét számokkal hívlak vissza.",
     },
     related: [
       { href: "/penzugyi-tanacsadas/", t: "Pénzügyi tanácsadás", n: "hogyan működik, mennyibe kerül" },

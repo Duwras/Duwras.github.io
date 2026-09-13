@@ -19,8 +19,9 @@ OVB cégadatok, stat blokk. **A lead-fogadás is be van kötve és tesztelve** (
 megérkezik a táblázatba, és e-mail is jön róla).
 
 **Egy dolog maradt:** az Apps Script frissítése, hogy a **telefonszám** ne romoljon el a
-táblázatban (a Sheets a `+36…`-ot formulának veszi, és kiüríti a cellát). A javított kód
-készen van, 4 kattintás a telepítése, az `/exec` URL nem változik:
+táblázatban (a Sheets a `+36…`-ot formulának veszi, és kiüríti a cellát), és hogy a lead
+**Kontextus** oszlopa (melyik gomb, oldal, város, kampány hozta — v4) is megjelenjen. A javított
+kód készen van, 4 kattintás a telepítése, az `/exec` URL nem változik:
 → [`docs/google-sheets-setup.md`](docs/google-sheets-setup.md) legfelső szakasza.
 
 > Addig sem veszik el lead: **az e-mail értesítésben a telefonszám mindig helyes**, mert az a
@@ -60,8 +61,8 @@ sitemap.xml, robots.txt     ← generált
 .nojekyll                   ← generált (a GitHub Pages ne Jekyll-ezzen)
 .gitignore                  ← mi NEM kerül fel a GitHubra (_source/, .claude/)
 
-css/site.css                ← GENERÁLT: a hat css/*.css egy fájlban (ezt tölti a böngésző)
-js/app.js                   ← GENERÁLT: a kilenc alap-script egy fájlban
+css/site.css                ← GENERÁLT: a css/*.css egy fájlban (ezt tölti a böngésző)
+js/app.js                   ← GENERÁLT: a tizenegy alap-script egy fájlban
 js/3d.js                    ← GENERÁLT: a három 3D script egy fájlban (csak a főoldalon)
 
 js/config.js                ← ITT állítod be a saját adataidat
@@ -71,7 +72,11 @@ js/data/quiz.js             ← a Pénzügyi Térkép kérdései, pontozása, jo
 js/core/rt.js               ← EGY rAF hurok + EGY scroll-busz az egész oldalra
 js/core/ui.js               ← reveal, nav, akkordeon, számlálók, süti banner
 js/funnel.js                ← funnel motor (kérdés → kalkulátor → eredmény → lead)
-js/lead.js                  ← lead küldés Google Sheets-be
+js/lead.js                  ← lead küldés Google Sheets-be + KÖZÖS űrlap-logika
+                              (telefon-validáció, töltés/hiba/siker, dupla beküldés ellen)
+js/quick-lead.js            ← „Visszahívást kérek”: modál, gyors űrlap, mobil konverziós sáv
+js/core/track.js            ← mérés (dataLayer-események, UTM, GTM consent-kapuval)
+css/cro.css                 ← konverziós komponensek (header-telefon, CTA-k, sáv, modál, űrlap)
 js/site.js                  ← config-kötések, stat blokk, kategória-szűrő
 js/core/motion.js           ← kártya-tilt, magnetikus gombok, parallax, futószalag
 js/gl/mini3d.js             ← saját mini WebGL réteg + GLB olvasó (~8 kB, three.js helyett)
@@ -102,6 +107,10 @@ build/generate.mjs          ← oldalgenerátor
 build/content/*.mjs         ← A TARTALMI OLDALAK SZÖVEGE: cities.mjs (8 város), pages.mjs
                               (pillar, tervezés, hub, források), about.mjs, articles.mjs
 build/seo-check.mjs         ← SEO QA: title/H1/canonical/JSON-LD/linkek/doorway-hasonlóság
+build/cro-check.mjs         ← CRO QA: telefon-validáció, PII-szűrés, CTA-k és tel-linkek
+                              minden oldalon, igazolatlan ígéretek tiltása
+CRO-*.md, CONVERSION-FUNNEL.md, OWNER-DATA-NEEDED.md ← konverziós audit, funnel-térkép,
+                              teszt-roadmap, tulajdonosi teendők
 css/content.css             ← hosszú szöveg, tartalomjegyzék, táblázat, témakártya
 SEO-*.md, LOCAL-SEO-*.md    ← kulcsszótérkép, tartalmi roadmap, audit, Cégprofil-lista
 docs/github-pages.md        ← ingyenes hosting: feltöltés, frissítés, saját domain
@@ -120,11 +129,18 @@ A szolgáltatások szövege, számai, funnel-kérdései és kalkulátorai **egy 
 ```bash
 node build/generate.mjs
 node build/seo-check.mjs
+node build/cro-check.mjs
 ```
 
 Ez újragenerálja az összes oldalt és a sitemap-et, majd a második parancs ellenőrzi
-(title, H1, canonical, JSON-LD, törött linkek, városi oldalak hasonlósága). Hiba esetén
-nem-nulla kóddal lép ki — push előtt futtasd.
+(title, H1, canonical, JSON-LD, törött linkek, városi oldalak hasonlósága), a harmadik a
+konverziós rendszert (CTA-k, telefonszám, űrlap-validáció, mérés). Hiba esetén
+nem-nulla kóddal lépnek ki — push előtt futtasd.
+
+**Konverzió (CRO):** minden oldalon „Visszahívást kérek” (modál) + „Hívás most” (`tel:`).
+A telefonszám, az elérhetőség és a vállalt visszahívási idő (`contact.callbackPromise`,
+alapból üres = nincs időígéret) a `js/config.js`-ben van. Mérés: `analytics.gtmId`
+(üresen nincs külső script). Részletek: `CONVERSION-FUNNEL.md`, `CRO-AUDIT-AFTER.md`.
 
 A városi, pillar-, tervezés-, rólam-, kapcsolat- és tudástár-oldalak szövege a
 `build/content/` mappában van. Új cikk: új elem az `ARTICLES` tömbben (`articles.mjs`).

@@ -102,7 +102,7 @@ export const CITIES = [
     ],
     cta: {
       h: "Pénzügyi konzultáció Budapesten — személyesen vagy online",
-      p: "Töltsd ki a Pénzügyi Térképet: hét kérdés, egy perc. 24 órán belül visszahívlak, és megbeszéljük, hogy személyesen vagy videóhíváson folytatjuk.",
+      p: "Töltsd ki a Pénzügyi Térképet: hét kérdés, egy perc. Utána visszahívlak, és megbeszéljük, hogy személyesen vagy videóhíváson folytatjuk.",
     },
     services: ["tamogatott-hitelek", "piaci-hitelek", "szabad-felhasznalasu-megtakaritas", "nyugdij-megtakaritas"],
     articles: ["haztartasi-koltsegvetes-es-vesztartalek", "penzugyi-tanacsado-ellenorzese"],
@@ -122,7 +122,7 @@ export const CITIES = [
       title: "Pénzügyi tanácsadó Debrecen — online konzultáció | Érték Pont",
       desc:
         "Pénzügyi tanácsadás Debrecenből, online: első fizetés és első lakás, Otthon Start, " +
-        "nyugdíj-megtakarítás 25 év alatt is, KGFB. Díjmentes, 24 órán belüli visszahívás.",
+        "nyugdíj-megtakarítás 25 év alatt is, KGFB. Díjmentes, visszahívással.",
     },
     h1: "Pénzügyi tanácsadás Debrecenben, online",
     lead:
@@ -185,7 +185,7 @@ export const CITIES = [
     ],
     cta: {
       h: "Pénzügyi konzultáció Debrecenből, online",
-      p: "Hét kérdés, egy perc: a Pénzügyi Térkép megmutatja, melyik három téma a legfontosabb nálad. 24 órán belül hívlak, és videóhíváson folytatjuk.",
+      p: "Hét kérdés, egy perc: a Pénzügyi Térkép megmutatja, melyik három téma a legfontosabb nálad. Utána hívlak, és videóhíváson folytatjuk.",
     },
     services: ["dijmentes-bankszamla", "tamogatott-hitelek", "nyugdij-megtakaritas", "kgfb-casco"],
     articles: ["haztartasi-koltsegvetes-es-vesztartalek", "penzugyi-tanacsado-ellenorzese"],
@@ -263,12 +263,12 @@ export const CITIES = [
       },
       {
         q: "Mennyi idő után keresel, ha kitöltöm az űrlapot?",
-        a: "A megadott telefonszámon 24 órán belül keresem, jellemzően hétköznap 9 és 19 óra között. Ha más időpont jobb neked, a megjegyzés rovatba írd be.",
+        a: "A megadott telefonszámon keresem, jellemzően hétköznap 9 és 19 óra között. Ha más időpont jobb neked, a megjegyzés rovatba írd be.",
       },
     ],
     cta: {
       h: "Pénzügyi tervezés Szegedről — egy perccel kezdődik",
-      p: "A Pénzügyi Térkép hét kérdés alapján megmutatja, hol van nálad a legtöbb pénz vagy biztonság. Utána 24 órán belül keresek, és online folytatjuk.",
+      p: "A Pénzügyi Térkép hét kérdés alapján megmutatja, hol van nálad a legtöbb pénz vagy biztonság. Utána keresek, és online folytatjuk.",
     },
     services: ["szabad-felhasznalasu-megtakaritas", "adokedvezmeny-gyerek-no", "gyerek-megtakaritas", "elet-biztositas"],
     articles: ["haztartasi-koltsegvetes-es-vesztartalek", "penzugyi-tanacsado-ellenorzese"],
@@ -350,7 +350,7 @@ export const CITIES = [
     ],
     cta: {
       h: "Hitel, lakás, tartalék — nézzük meg Miskolcról, online",
-      p: "Egy perc a Pénzügyi Térképpel, és kiderül, nálad melyik három téma hozza a legtöbbet. 24 órán belül visszahívlak.",
+      p: "Egy perc a Pénzügyi Térképpel, és kiderül, nálad melyik három téma hozza a legtöbbet — utána visszahívlak.",
     },
     services: ["szemelyi-kolcson", "tamogatott-hitelek", "piaci-hitelek", "baleset-biztositas"],
     articles: ["haztartasi-koltsegvetes-es-vesztartalek", "penzugyi-tanacsado-ellenorzese"],
@@ -433,7 +433,7 @@ export const CITIES = [
     ],
     cta: {
       h: "Pénzügyi konzultáció Pécsről — kezdjük egy perccel",
-      p: "Töltsd ki a Pénzügyi Térképet, vagy írd a megjegyzésbe, melyik szerződést néznéd át. 24 órán belül keresek.",
+      p: "Töltsd ki a Pénzügyi Térképet, vagy írd a megjegyzésbe, melyik szerződést néznéd át, és visszahívlak.",
     },
     services: ["piaci-hitelek", "egeszsegbiztositas", "nyugdij-megtakaritas", "gyerek-megtakaritas"],
     articles: ["penzugyi-tanacsado-ellenorzese", "haztartasi-koltsegvetes-es-vesztartalek"],
@@ -519,7 +519,7 @@ export const CITIES = [
     ],
     cta: {
       h: "Pénzügyi konzultáció Győrből és a környékről",
-      p: "Pótlékos bér, osztrák fizetés, munkáltatói pénztár — egy perc a Pénzügyi Térképpel, és 24 órán belül keresek a konkrét számokkal.",
+      p: "Pótlékos bér, osztrák fizetés, munkáltatói pénztár — egy perc a Pénzügyi Térképpel, és a konkrét számokkal hívlak vissza.",
     },
     services: ["nyugdij-megtakaritas", "szabad-felhasznalasu-megtakaritas", "adokedvezmeny-gyerek-no", "kgfb-casco"],
     articles: ["haztartasi-koltsegvetes-es-vesztartalek", "penzugyi-tanacsado-ellenorzese"],
@@ -584,7 +584,7 @@ export const CITIES = [
     faq: [
       {
         q: "Nyíregyházáról hogyan tudok konzultációt kérni?",
-        a: "Kitöltheted a Pénzügyi Térképet ezen az oldalon, vagy felhívhatsz közvetlenül. 24 órán belül keresem a megadott számot, és egy 30–45 perces telefonos vagy videós beszélgetéssel indulunk.",
+        a: "Kitöltheted a Pénzügyi Térképet ezen az oldalon, vagy felhívhatsz közvetlenül. A megadott számon keresem, és egy 30–45 perces telefonos vagy videós beszélgetéssel indulunk.",
       },
       {
         q: "Szja-mentes édesanya vagyok. Mit jelent ez a megtakarításainkra?",
@@ -601,7 +601,7 @@ export const CITIES = [
     ],
     cta: {
       h: "Családi pénzügyek Nyíregyházáról — kezdd egy perccel",
-      p: "A Pénzügyi Térkép hét kérdésből kiválasztja a három legfontosabb témát, és azt is megmutatja, mit miért hagyott ki. 24 órán belül keresek.",
+      p: "A Pénzügyi Térkép hét kérdésből kiválasztja a három legfontosabb témát, és azt is megmutatja, mit miért hagyott ki. Utána visszahívlak.",
     },
     services: ["gyerek-megtakaritas", "tamogatott-hitelek", "szabad-felhasznalasu-megtakaritas", "dijmentes-bankszamla"],
     articles: ["haztartasi-koltsegvetes-es-vesztartalek", "penzugyi-tanacsado-ellenorzese"],
@@ -684,7 +684,7 @@ export const CITIES = [
     ],
     cta: {
       h: "Lakás, hitel, család — kezdjük Kecskemétről",
-      p: "Egy perc a Pénzügyi Térképpel. 24 órán belül visszahívlak, és eldöntjük, online vagy Budapesten személyesen folytatjuk.",
+      p: "Egy perc a Pénzügyi Térképpel, utána visszahívlak, és eldöntjük, online vagy Budapesten személyesen folytatjuk.",
     },
     services: ["tamogatott-hitelek", "adokedvezmeny-lakashitel", "elet-biztositas", "kgfb-casco"],
     articles: ["haztartasi-koltsegvetes-es-vesztartalek", "penzugyi-tanacsado-ellenorzese"],

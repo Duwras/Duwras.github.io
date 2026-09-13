@@ -140,13 +140,17 @@ export function contactPage({ CFG, esc }) {
     title: `Kapcsolat — ${CFG.advisor.name} pénzügyi tanácsadó | Érték Pont`,
     desc:
       `Kapcsolat: ${CFG.contact.phone}, ${CFG.contact.email}, Messenger. Díjmentes pénzügyi ` +
-      "konzultáció online az egész országban, Budapesten személyesen. Visszahívás 24 órán belül.",
+      "konzultáció online az egész országban, Budapesten személyesen. Kérj visszahívást.",
     label: "Kapcsolat",
     h1: "Kapcsolat",
+    /* Visszahívási időt nem ígérünk, amíg a tulajdonos nem erősíti meg
+       (config.contact.callbackPromise, OWNER-DATA-NEEDED.md). */
     lead:
-      "Hívj, írj, vagy töltsd ki a Pénzügyi Térképet — 24 órán belül keresem a megadott számot. " +
-      "Az első beszélgetés díjmentes, és nem jár semmilyen kötelezettséggel.",
+      "Kérj visszahívást, hívj vagy írj — a megadott számon én hívlak vissza, jellemzően hétköznap " +
+      "9 és 19 óra között. Az első beszélgetés díjmentes, és nem jár semmilyen kötelezettséggel.",
     contactPage: true,
+    /* A rövid visszahívás-űrlap beágyazva, a fejléc alatt (#visszahivas). */
+    inlineLead: true,
     sections: [
       {
         id: "elerhetosegek",
@@ -167,7 +171,7 @@ export function contactPage({ CFG, esc }) {
         title: "Mi történik, miután jelentkezel?",
         html: `
         <ol>
-          <li><strong>24 órán belül hívlak</strong> a megadott számon, jellemzően hétköznap 9 és 19 óra
+          <li><strong>Hívlak</strong> a megadott számon, jellemzően hétköznap 9 és 19 óra
           között. Ha más időpont jobb, írd a megjegyzésbe.</li>
           <li><strong>Egyeztetünk:</strong> online (videóhívás, telefon) vagy Budapesten személyesen.</li>
           <li><strong>Első beszélgetés, 30–45 perc:</strong> helyzetkép és a lehetséges lépések. Egyetlen

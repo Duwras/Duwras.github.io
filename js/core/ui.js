@@ -83,7 +83,8 @@
     const nav = $(".nav");
     if (!nav) return;
     const bar = $(".scroll-bar");
-    const sticky = $(".sticky-cta");
+    /* A mobil konverziós sáv (.mbar) láthatóságát a js/quick-lead.js
+       vezérli, IntersectionObserverrel — itt nincs vele dolgunk. */
 
     /* Hiszterézis: korábban 6px-es küszöb döntött az elrejtésről, ezért
        tapipadon / lendületes görgetésnél a sáv villogott. Most 64px
@@ -92,27 +93,6 @@
     let dirDown = true;
     let hidden = false;
     let stuck = false;
-    let ctaOn = false;
-
-    /* A lebegő alsó CTA-sáv telefonon pontosan a funnel léptető gombjaira
-       (Vissza / Tovább / Kérek visszahívást) esett, és elfogta a koppintást.
-       Amikor a funnel a képernyőn van, nincs is szükség rá: a funnel maga a
-       cselekvésre hívás. IntersectionObserverrel figyeljük, hogy ne kelljen
-       görgetésenként újabb layoutot olvasni. */
-    let funnelSeen = false;
-    const funnelEl = $("[data-funnel]");
-    if (sticky && funnelEl && "IntersectionObserver" in window) {
-      new IntersectionObserver(
-        (entries) => {
-          funnelSeen = entries.some((e) => e.isIntersecting);
-          if (funnelSeen && ctaOn) {
-            ctaOn = false;
-            sticky.classList.remove("is-in");
-          }
-        },
-        { threshold: 0 }
-      ).observe(funnelEl);
-    }
 
     rt.onScroll(({ y, dy, maxY }) => {
       if (dy !== 0) {
@@ -141,18 +121,6 @@
       }
 
       if (bar) bar.style.setProperty("--p", maxY > 0 ? (y / maxY).toFixed(4) : 0);
-
-      if (sticky) {
-        /* külön be- és kikapcsolási pont, hogy a határon ne pumpáljon */
-        const vh = window.innerHeight;
-        if (!ctaOn && !funnelSeen && y > vh * 0.85) {
-          ctaOn = true;
-          sticky.classList.add("is-in");
-        } else if (ctaOn && y < vh * 0.65) {
-          ctaOn = false;
-          sticky.classList.remove("is-in");
-        }
-      }
     });
 
     // mobil menü
@@ -300,12 +268,22 @@
     const el = $(".cookie");
     if (!el) return;
     const KEY = "ep-cookie-v1";
-    if (localStorage.getItem(KEY)) return el.remove();
-    setTimeout(() => el.classList.add("is-in"), 1200);
+    let saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (e) { /* tiltott tároló */ }
+    if (saved) return el.remove();
+    /* A body osztály a mobil konverziós sávnak szól: amíg a banner kint
+       van, a sáv fölé kerül, nem egymásra (css/cro.css). */
+    setTimeout(() => {
+      el.classList.add("is-in");
+      document.body.classList.add("cookie-on");
+    }, 1200);
     $$("[data-cookie]", el).forEach((btn) =>
       on(btn, "click", () => {
-        localStorage.setItem(KEY, btn.dataset.cookie);
+        try { localStorage.setItem(KEY, btn.dataset.cookie); } catch (e) { /* tiltott tároló */ }
+        /* A mérés (js/core/track.js) ebből tudja, hogy betöltheti-e a GTM-et. */
+        document.dispatchEvent(new CustomEvent("ep:consent", { detail: btn.dataset.cookie }));
         el.classList.remove("is-in");
+        document.body.classList.remove("cookie-on");
         setTimeout(() => el.remove(), 600);
       })
     );
