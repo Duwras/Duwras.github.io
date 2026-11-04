@@ -2,7 +2,7 @@
    OLDALGENERÁTOR — statikus HTML-t ír a js/data/services.js tartalomból
    Futtatás:  node build/generate.mjs
    Kimenet:   index.html, szolgaltatas/<slug>.html (13 db), impresszum.html,
-              adatkezeles.html, 404.html, sitemap.xml, robots.txt, .nojekyll,
+              adatkezeles.html, 404.html, sitemap.xml, robots.txt, _config.yml,
               valamint a tartalmi oldalak (build/content/*.mjs): pillar,
               tervezés, 8 városi oldal + hub, rólam, kapcsolat, tudástár
    QA:        node build/seo-check.mjs
@@ -231,11 +231,19 @@ const PRELOAD_FONTS = ["assets/fonts/inter-latin.woff2", "assets/fonts/inter-tig
 /* Mérés: a Google Tag Manager domainjei CSAK akkor kerülnek a házirendbe,
    ha a config.analytics.gtmId ki van töltve. Üresen a CSP ugyanolyan szigorú
    marad, mint eddig — a dataLayer-események ettől még gyűlnek (memóriában). */
+/* GA4 közvetlenül (G-…), GTM nélkül is beköthető: egy egyéni tanácsadónak
+   ez az egyszerűbb út (nincs külön GTM-konténer). Mindkettő ugyanazokat a
+   Google-domaineket igényli. */
 const GTM_ON = /^GTM-[A-Z0-9]{4,}$/.test(String(CFG.analytics?.gtmId || "").trim());
-const GTM_SRC = GTM_ON ? " https://www.googletagmanager.com" : "";
-const GA_CONNECT = GTM_ON
+const GA4_ON = /^G-[A-Z0-9]{4,}$/.test(String(CFG.analytics?.ga4Id || "").trim());
+const ANALYTICS_ON = GTM_ON || GA4_ON;
+const GTM_SRC = ANALYTICS_ON ? " https://www.googletagmanager.com" : "";
+const GA_CONNECT = ANALYTICS_ON
   ? " https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com"
   : "";
+/* Search Console HTML-tag ellenőrzés (alternatíva a DNS TXT rekordhoz):
+   a Search Console „HTML-címke” módszerénél kapott content-érték. */
+const GSC_TOKEN = String(CFG.analytics?.searchConsole || "").trim();
 
 function cspMeta(inlineHashes = []) {
   const scriptSrc = ["'self'", ...inlineHashes.map((h) => `'${h}'`)].join(" ") + GTM_SRC;
@@ -245,7 +253,7 @@ function cspMeta(inlineHashes = []) {
     "object-src 'none'",
     `script-src ${scriptSrc}`,
     "style-src 'self' 'unsafe-inline'",
-    `img-src 'self' data:${GTM_ON ? " https://*.google-analytics.com https://www.googletagmanager.com" : ""}`,
+    `img-src 'self' data:${ANALYTICS_ON ? " https://*.google-analytics.com https://www.googletagmanager.com" : ""}`,
     "font-src 'self'",
     `connect-src 'self' https://script.google.com https://script.googleusercontent.com${GA_CONNECT}`,
     "form-action 'self'",
@@ -318,23 +326,28 @@ ${cspMeta(inlineHashes)}
 ${canonical}<meta name="theme-color" content="#0a0b09">
 <meta name="robots" content="${robotsVal}">
 <meta name="author" content="${esc(CFG.advisor.name)}">
-
+${GSC_TOKEN && url === SITE + "/" ? `<meta name="google-site-verification" content="${esc(GSC_TOKEN)}">
+` : ""}
 <meta property="og:type" content="${ogType}">
 <meta property="og:locale" content="hu_HU">
 <meta property="og:site_name" content="${esc(BRAND)}">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}">
-${url ? `<meta property="og:url" content="${url}">\n` : ""}${articleMeta}<meta property="og:image" content="${SITE}/assets/img/arrow-hero.png">
-<meta property="og:image:width" content="900">
-<meta property="og:image:height" content="900">
+${url ? `<meta property="og:url" content="${url}">\n` : ""}${articleMeta}<meta property="og:image" content="${SITE}/assets/img/og-cover.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="${esc(BRAND)} — pénzügyi tanácsadás">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(desc)}">
-<meta name="twitter:image" content="${SITE}/assets/img/arrow-hero.png">
+<meta name="twitter:image" content="${SITE}/assets/img/og-cover.jpg">
 
+<!-- favicon.ico (16/32/48 px) a gyökérben: amelyik kereső/eszköz nem kér SVG-t,
+     az ezt keresi. A Google legalább 48 px-es ikont használ a találatok mellett. -->
+<link rel="icon" href="${up}favicon.ico" sizes="48x48">
 <link rel="icon" href="${up}assets/brand/logo-mark.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="${up}assets/img/arrow-hero.png">
+<link rel="apple-touch-icon" href="${up}assets/brand/apple-touch-icon.png">
 
 <!-- A betűk saját domainről, magyar karakterkészletre vágva (css/fonts.css).
      Nincs harmadik fél, nincs külön DNS/TLS, és nincs stíluslap-lánc. -->
@@ -501,6 +514,7 @@ function footer(depth = 0) {
         <ul class="footer__list">
           <li><a href="${up}penzugyi-tanacsadas/">Pénzügyi tanácsadás</a></li>
           <li><a href="${up}penzugyi-tervezes/">Pénzügyi tervezés</a></li>
+          <li><a href="${up}szolgaltatas/">Összes szolgáltatás</a></li>
           <li><a href="${up}penzugyi-tanacsadas/varosok/">Tanácsadás városonként</a></li>
           <li><a href="${up}tudastar/">Tudástár</a></li>
           <li><a href="${up}rolam/">Rólam</a></li>
@@ -816,16 +830,18 @@ function homePage() {
     (s) => `<span class="marquee__item"><span class="dot"></span>${esc(s.navTitle)}</span>`
   ).join("\n        ");
 
-  /* A főoldal a MÁRKA és a tanácsadó oldala (navigációs + entitás-szándék).
-     A generikus „pénzügyi tanácsadás / tanácsadó” kifejezés elsődleges
-     céloldala a /penzugyi-tanacsadas/ pillar — ha a főoldal címe is azzal
-     kezdődne, a két oldal egymás elől venné el a helyet (kannibalizáció).
+  /* Főoldal címe (2026-11 audit): a márkanévre még senki nem keres, ezért a
+     cím a TRANZAKCIÓS szándékot célozza („díjmentes … online”), a márka a
+     végén marad. A generikus, tájékozódó „pénzügyi tanácsadás” (mennyibe
+     kerül, hogyan működik) elsődleges céloldala továbbra is a
+     /penzugyi-tanacsadas/ pillar — a módosító szó („Díjmentes”, „online”)
+     választja el a kettőt, hogy ne egymás elől vegyék el a helyet.
      Lásd SEO-KEYWORD-MAP.md. */
   return `${head({
-    title: `${BRAND} | ${CFG.advisor.name} pénzügyi tanácsadó`,
+    title: `Díjmentes pénzügyi tanácsadás online | ${BRAND}`,
     desc:
-      "Nyugdíj, lakáshitel, biztosítás, 20% adókedvezmények egy helyen — díjmentes pénzügyi " +
-      "tanácsadás online, országosan. A Pénzügyi Térkép 1 perc alatt megmutatja, hol kezdd.",
+      "Díjmentes pénzügyi tanácsadás online, országosan: nyugdíj, lakáshitel, biztosítás, " +
+      "20% adókedvezmények. Az 1 perces Pénzügyi Térkép megmutatja, hol kezdd.",
     url: SITE + "/",
     depth: 0,
     schema,
@@ -987,8 +1003,7 @@ ${nav(0)}
     <div class="wrap about">
       <div class="about__photo" data-photo-wrap data-reveal="left">
         <img data-cfg-src="advisor.photo" src="assets/brand/portre.webp" width="1400" height="781"
-             alt="${esc(CFG.advisor.name)} ${esc(CFG.advisor.role)}" loading="lazy" decoding="async"
-             onerror="this.closest('[data-photo-wrap]').classList.add('no-photo')">
+             alt="${esc(CFG.advisor.name)} ${esc(CFG.advisor.role)}" loading="lazy" decoding="async">
       </div>
       <div data-reveal="right">
         <span class="label">04 — Rólam</span>
@@ -1198,7 +1213,10 @@ function servicePage(s) {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Főoldal", item: SITE + "/" },
-          { "@type": "ListItem", position: 2, name: CATEGORIES[s.cat].label, item: SITE + "/#szolgaltatasok" },
+          /* Korábban a 2. szint a /#szolgaltatasok fragment volt — a Google a
+             fragmentet levágja, így a morzsa a főoldalra mutatott kétszer.
+             Most a valódi gyűjtőoldal (/szolgaltatas/). */
+          { "@type": "ListItem", position: 2, name: "Szolgáltatások", item: SITE + "/szolgaltatas/" },
           { "@type": "ListItem", position: 3, name: s.title, item: url },
         ],
       },
@@ -1228,7 +1246,7 @@ ${nav(1)}
       <div>
         <nav class="crumb" aria-label="Morzsamenü">
           <a href="../">Főoldal</a> <span>/</span>
-          <a href="../#szolgaltatasok">${esc(CATEGORIES[s.cat].label)}</a> <span>/</span>
+          <a href="./">Szolgáltatások</a> <span>/</span>
           <span class="lime">${esc(s.navTitle)}</span>
         </nav>
         <div class="row" style="gap:1rem;align-items:center">
@@ -1239,6 +1257,13 @@ ${nav(1)}
              a rövid title marad a kártyán, a menüben és a morzsamenüben. -->
         <h1 class="h1" style="margin-top:1.25rem" data-lines>${esc(s.h1 || s.title)}</h1>
         <p class="lead" style="margin-top:1.25rem">${esc(s.hook)}</p>
+        <!-- Szerző + frissítés (YMYL bizalmi jel). A dátumot a writePage()
+             tölti ki: az a nap, amikor az oldal tartalma utoljára változott —
+             ugyanaz, ami a sitemap lastmod-jában áll. -->
+        <p class="byline" style="margin-top:1rem">
+          <span>Írta: <a href="../rolam/" rel="author">${esc(CFG.advisor.name)}</a>, ${esc(CFG.advisor.role)}</span>
+          <span>Frissítve: ${LASTMOD_SLOT}</span>
+        </p>
 
         <!-- Elsődleges: visszahívás a témával előre kijelölve; másodlagos:
              hívás. A kalkulátoros funnel (jobbra / alatta) harmadlagos út.
@@ -1496,6 +1521,18 @@ ${nav(0)}
       illetve <a href="https://apps.mnb.hu/regiszter/" target="_blank" rel="noopener" style="color:var(--lime)">apps.mnb.hu/regiszter</a>.
     </p>
 
+    <h2 class="h3">5. Tárhelyszolgáltató</h2>
+    <p>
+      Az elektronikus kereskedelmi szolgáltatásokról szóló 2001. évi CVIII. törvény (Ekertv.)
+      4. § szerint: a weboldal tárhelyét az alábbi szolgáltató biztosítja (GitHub Pages).
+    </p>
+    <dl>
+      <dt>Név</dt><dd>GitHub, Inc.</dd>
+      <dt>Cím</dt><dd>88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, Amerikai Egyesült Államok</dd>
+      <dt>Elérhetőség</dt><dd><a href="https://support.github.com/contact" target="_blank" rel="noopener" style="color:var(--lime)">support.github.com/contact</a></dd>
+      <dt>Domain-regisztráció</dt><dd>Rackhost Zrt. (a domain bejegyzője; a tárhelyet nem ő adja)</dd>
+    </dl>
+
     <h2 class="h3">Ki mivel áll szemben — egy bekezdésben</h2>
     <ul>
       <li><strong>Az oldal és a márkanév</strong> ${esc(cfg("business.shortName"))} tulajdona.</li>
@@ -1644,8 +1681,25 @@ ${nav(0)}
       törlődik). Marketing- vagy méréscélú sütiket a hozzájárulásod nélkül nem helyezünk el.
       A böngésződben tárolt adatok a böngésző beállításaiból bármikor törölhetők.
     </p>
+    ${
+      ANALYTICS_ON
+        ? `<p>
+      <strong>Látogatottságmérés (Google Analytics 4).</strong> Ha a süti-bannerben a
+      „Rendben” gombot választod, az oldal betölti a Google Analytics 4 mérőkódját
+      (szolgáltató: Google Ireland Ltd., Gordon House, Barrow Street, Dublin 4, Írország).
+      Ez összesített statisztikát készít arról, melyik oldalt hányan nézik meg, honnan
+      érkeznek a látogatók, és melyik gombot (pl. telefonszám, visszahívás-kérés) használják.
+      Név, telefonszám, e-mail cím vagy üzenet <strong>soha nem kerül</strong> a mérésbe.
+      Jogalap: a hozzájárulásod (GDPR 6. cikk (1) a)), amelyet a böngésző tárolójának
+      törlésével bármikor visszavonhatsz; a „Csak a szükséges” választásnál mérőkód nem
+      töltődik be. Megőrzés: a Google Analytics beállítása szerint legfeljebb 14 hónap.
+      A Google az adatokat az EU–USA adatvédelmi keretrendszer alapján az Egyesült
+      Államokba is továbbíthatja.
+    </p>`
+        : ""
+    }
     <p>
-      Az oldal <strong>nem tölt be tartalmat harmadik fél kiszolgálójáról</strong>: a betűtípusok
+      Az oldal ${ANALYTICS_ON ? "a fenti, hozzájáruláshoz kötött mérésen kívül " : ""}<strong>nem tölt be tartalmat harmadik fél kiszolgálójáról</strong>: a betűtípusok
       és a 3D megjelenítés kódja is erről a domainről érkezik, így böngészés közben az IP-címed
       nem jut el idegen szolgáltatóhoz. Egyetlen kimenő kérés van, és az is csak akkor, ha te
       küldesz be űrlapot: ilyenkor az adatok a Google Apps Script végpontjára mennek (lásd az
@@ -1708,7 +1762,7 @@ ${nav("root")}
       megvan: itt van mind a 13 téma — vagy kérj visszahívást, és megbeszéljük, mit kerestél.
     </p>
     <div style="display:flex;justify-content:center">${ctaGroup(upOf("root"), { location: "404" })}</div>
-    <p class="cta-alt">Inkább böngésznél? <a href="${BASE}/#szolgaltatasok">Mind a 13 téma</a> ·
+    <p class="cta-alt">Inkább böngésznél? <a href="${BASE}/szolgaltatas/">Mind a 13 téma</a> ·
       <a href="${BASE}/#terkep">Pénzügyi Térkép — 1 perc</a></p>
   </div>
 </main>
@@ -1724,6 +1778,7 @@ ${scripts("root", false)}`;
 
 const HU_DATE = new Intl.DateTimeFormat("hu-HU", { year: "numeric", month: "long", day: "numeric" });
 const huDate = (iso) => HU_DATE.format(new Date(`${iso}T12:00:00Z`));
+const LASTMOD_SLOT = "<time data-lastmod></time>";
 const depthOf = (p) => p.split("/").filter(Boolean).length;
 const svcBySlug = (slug) => SERVICES.find((s) => s.slug === slug);
 const articleBySlug = (slug) => ARTICLES.find((a) => a.slug === slug);
@@ -2348,8 +2403,8 @@ function knowledgeHubPage() {
   const html = `${head({
     title: "Tudástár — pénzügyi útmutatók, kalkulátorokkal | Érték Pont",
     desc:
-      "Pénzügyi útmutatók érthetően: tanácsadó ellenőrzése, háztartási költségvetés, vésztartalék, " +
-      "valamint 13 téma kalkulátorral — nyugdíj, hitel, biztosítás, adókedvezmények.",
+      "Pénzügyi útmutatók érthetően: tanácsadó ellenőrzése, háztartási költségvetés, " +
+      "vésztartalék, és 13 téma kalkulátorral — nyugdíj, hitel, biztosítás.",
     url,
     depth,
     schema,
@@ -2410,6 +2465,111 @@ ${finalCta(up, {
   h: "Olvasás helyett inkább beszélnél?",
   p: "Kérj visszahívást, és a te számaiddal nézzük meg, melyik útmutató vonatkozik rád.",
   location: "blog",
+})}
+</main>
+${footer(depth)}
+${stickyCta(depth)}
+${scripts(depth, false)}`;
+  return relLinks(html, up);
+}
+
+/* --- /szolgaltatas/ — gyűjtőoldal a 13 szolgáltatásról -------------------
+   Korábban a mappa 404-et adott, és a szolgáltatás-oldalak morzsamenüje a
+   főoldal #szolgaltatasok fragmentjére mutatott (a Google ezt a főoldalnak
+   veszi). Most valódi szülőoldal: kategóriánként csoportosítva, ItemList-tel. */
+function servicesHubPage() {
+  const path = "szolgaltatas/";
+  const depth = depthOf(path);
+  const up = upOf(depth);
+  const url = `${SITE}/${path}`;
+  const crumbs = [
+    { name: "Főoldal", path: "" },
+    { name: "Szolgáltatások", path },
+  ];
+  const schema = ldScript([
+    {
+      "@type": "CollectionPage",
+      "@id": `${url}#oldal`,
+      name: "Pénzügyi szolgáltatások — 13 téma",
+      url,
+      inLanguage: "hu-HU",
+      isPartOf: { "@id": `${SITE}/#weboldal` },
+      breadcrumb: { "@id": `${url}#morzsa` },
+      about: { "@id": ORG_ID },
+      mainEntity: {
+        "@type": "ItemList",
+        numberOfItems: SERVICES.length,
+        itemListElement: SERVICES.map((sv, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: sv.title,
+          url: `${SITE}/szolgaltatas/${sv.slug}.html`,
+        })),
+      },
+    },
+    businessSchema(),
+    personSchema(),
+    crumbSchema(crumbs, url),
+  ]);
+  const html = `${head({
+    title: "Pénzügyi szolgáltatások — 13 téma egy helyen | Érték Pont",
+    desc:
+      "Nyugdíj- és gyerekmegtakarítás, 20% adókedvezmény, biztosítás, KGFB, Otthon Start, " +
+      "lakáshitel, személyi kölcsön, bankszámla — díjmentes tanácsadással.",
+    url,
+    depth,
+    schema,
+    pageType: "service_hub",
+  })}
+${nav(depth, "szolg")}
+
+<main id="main">
+  <section class="page-hero">
+    <div class="wrap">
+      ${crumbsHtml(crumbs, up)}
+      <span class="label">Szolgáltatások</span>
+      <h1 class="h1" style="margin-top:.75rem">Pénzügyi szolgáltatások: 13 téma, egy tanácsadó</h1>
+      <p class="lead">Adókedvezmény, megtakarítás, biztosítás, hitel és bankügyek — mindegyikhez
+      részletes útmutató 2026-os számokkal, gyakori kérdésekkel és kalkulátorral. A tanácsadás
+      és az ajánlatkérés díjmentes; a szerződés a biztosítóval, bankkal vagy pénztárral jön létre.</p>
+      ${ctaGroup(up, { location: "hero", heroCta: true, lg: false })}
+    </div>
+  </section>
+${Object.values(CATEGORIES)
+  .map(
+    (c, ci) => `
+  <section class="section-sm${ci % 2 ? " on-paper" : ""}" id="${c.key}">
+    <div class="wrap">
+      <h2 class="h3" style="margin-bottom:.35rem">${esc(c.label)}</h2>
+      <p class="soft" style="margin-bottom:1.5rem">${esc(c.note)}</p>
+      <div class="related">
+        ${SERVICES.filter((sv) => sv.cat === c.key)
+          .map((sv, i) => svcMini(sv, up, i))
+          .join("\n        ")}
+      </div>
+    </div>
+  </section>`
+  )
+  .join("")}
+
+  <section class="section-sm">
+    <div class="wrap">
+      <div class="content">
+        <h2 class="h4" style="margin-bottom:1rem">Nem tudod, melyik vonatkozik rád?</h2>
+        ${linkList([
+          { href: "/#terkep", t: "Pénzügyi Térkép", n: "1 perc, megmutatja, hol kezdd" },
+          { href: "/penzugyi-tanacsadas/", t: "Pénzügyi tanácsadás", n: "hogyan működik, mennyibe kerül" },
+          { href: "/penzugyi-tervezes/", t: "Pénzügyi tervezés", n: "6 lépés, példával" },
+          { href: "/tudastar/", t: "Tudástár", n: "útmutatók, forrásokkal" },
+        ])}
+      </div>
+    </div>
+  </section>
+${finalCta(up, {
+  label: "Szolgáltatások",
+  h: "Átnézzük együtt, melyik téma hoz neked a legtöbbet?",
+  p: "Kérj visszahívást: a te számaid alapján megmondom, hol érdemes kezdeni — díjmentesen.",
+  location: "service_hub",
 })}
 </main>
 ${footer(depth)}
@@ -2661,7 +2821,11 @@ const OLD_LASTMOD = (() => {
   } catch {}
   return map;
 })();
-const normalize = (html) => html.replace(/\?v=[0-9a-z]+/g, "").replace(/'sha256-[^']+'/g, "");
+/* A látható „Frissítve” dátum helye (szolgáltatás-oldalak). Az összevetésből
+   kiesik, különben a dátum maga tenné „változottá” az oldalt. */
+const LASTMOD_RE = /<time data-lastmod[^>]*>[^<]*<\/time>/g;
+const normalize = (html) =>
+  html.replace(/\?v=[0-9a-z]+/g, "").replace(/'sha256-[^']+'/g, "").replace(LASTMOD_RE, "<time data-lastmod></time>");
 const PAGES = [];
 
 function writePage(rel, html, loc) {
@@ -2669,8 +2833,10 @@ function writePage(rel, html, loc) {
   let prev = null;
   try { prev = read(rel); } catch {}
   const changed = prev === null || normalize(prev) !== normalize(html);
+  const lastmod = changed ? TODAY : OLD_LASTMOD[loc] || TODAY;
+  html = html.replace(LASTMOD_RE, `<time data-lastmod datetime="${lastmod}">${huDate(lastmod)}</time>`);
   write(rel, html);
-  if (loc) PAGES.push({ rel, loc, lastmod: changed ? TODAY : OLD_LASTMOD[loc] || TODAY });
+  if (loc) PAGES.push({ rel, loc, lastmod });
 }
 
 writePage("index.html", homePage(), SITE + "/");
@@ -2702,13 +2868,40 @@ ARTICLES.forEach((a) => {
 SERVICES.forEach((s) =>
   writePage(`szolgaltatas/${s.slug}.html`, servicePage(s), `${SITE}/szolgaltatas/${s.slug}.html`)
 );
+writePage("szolgaltatas/index.html", servicesHubPage(), `${SITE}/szolgaltatas/`);
 writePage("impresszum.html", imprintPage(), SITE + "/impresszum.html");
 writePage("adatkezeles.html", privacyPage(), SITE + "/adatkezeles.html");
 writePage("404.html", notFoundPage(), null); // noindex — nem kerül a sitemapbe
 
-/* A GitHub Pages alapból Jekyll-en futtatja a repót, ami kihagyja az
-   aláhúzással kezdődő fájlokat/mappákat. Ez a fájl kikapcsolja. */
-write(".nojekyll", "");
+/* Publikálás: a GitHub Pages a repó MINDEN fájlját kiszolgálja. Korábban
+   .nojekyll volt itt, így a belső dokumentáció (README, SEO-/CRO-*.md,
+   docs/, build/, .gitignore) bárki számára letölthető volt — a robots.txt
+   tiltás csak a keresőt kéri meg, nem rejt el semmit.
+   Most a Jekyll fut (az alapértelmezett GitHub Pages build), és a
+   _config.yml `exclude` listája kihagyja ezeket a kimenetből → 404.
+   Biztonságos, mert:
+   - egyik kiszolgált HTML/CSS/JS sem kezdődik front matterrel (`---`), így
+     a Jekyll érintetlenül, statikus fájlként másolja őket (Liquid nem fut);
+   - nincs aláhúzással kezdődő kiszolgálandó fájl (azokat a Jekyll kihagyná);
+   - a ponttal kezdődő fájlokat (.gitignore) a Jekyll magától kihagyja.
+   Új belső jegyzetet a gyökérbe .md-ként nyugodtan tehetsz: a *.md minta
+   kizárja. */
+try { fs.unlinkSync(path.join(ROOT, ".nojekyll")); } catch {}
+write(
+  "_config.yml",
+  `# GENERÁLT (build/generate.mjs) — a GitHub Pages Jekyll-buildjének beállítása.
+# Az oldal tiszta statikus HTML; a Jekyll csak másol, és kihagyja a belső fájlokat.
+exclude:
+  - "*.md"
+  - docs/
+  - build/
+  - .gitignore
+  - .claude/
+  - .playwright-mcp/
+  - _source/
+  - node_modules/
+`
+);
 
 /* sitemap — csak loc + lastmod: a changefreq-et és a priority-t a Google
    hivatalosan figyelmen kívül hagyja, a pontos lastmod-ot viszont használja. */

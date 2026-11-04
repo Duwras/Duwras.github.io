@@ -176,6 +176,37 @@
     s.src = "https://www.googletagmanager.com/gtm.js?id=" + encodeURIComponent(GTM_ID);
     document.head.appendChild(s);
   }
+  /* GA4 közvetlenül (config.analytics.ga4Id = "G-…"), ha nincs GTM. A
+     track() a window.gtag-en át küldi az eseményeket; a gtag.js a dataLayer
+     `arguments`-parancsait olvassa, a sima objektumokat (GTM-formátum)
+     figyelmen kívül hagyja, így nincs dupla esemény. */
+  const GA4_ID = String((CFG.analytics && CFG.analytics.ga4Id) || "").trim();
+  const GA4_ON = !GTM_ID && /^G-[A-Z0-9]{4,}$/.test(GA4_ID);
+  let gaLoaded = false;
+  function loadGa4() {
+    if (gaLoaded || !GA4_ON) return;
+    gaLoaded = true;
+    window.gtag = gtagCmd;
+    gtagCmd("consent", "update", { analytics_storage: "granted" });
+    gtagCmd("js", new Date());
+    gtagCmd("config", GA4_ID, { page_type: root.dataset.pageType || "other" });
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(GA4_ID);
+    document.head.appendChild(s);
+  }
+  if (GA4_ON) {
+    gtagCmd("consent", "default", {
+      ad_storage: "denied",
+      ad_user_data: "denied",
+      ad_personalization: "denied",
+      analytics_storage: "denied",
+    });
+    if (consented()) loadGa4();
+    document.addEventListener("ep:consent", (e) => {
+      if (e.detail === "all") loadGa4();
+    });
+  }
   if (GTM_ID) {
     gtagCmd("consent", "default", {
       ad_storage: "denied",

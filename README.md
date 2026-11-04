@@ -58,7 +58,7 @@ impresszum.html             ← generált
 adatkezeles.html            ← generált (GDPR)
 404.html                    ← generált hibaoldal (a hosting szolgálja ki)
 sitemap.xml, robots.txt     ← generált
-.nojekyll                   ← generált (a GitHub Pages ne Jekyll-ezzen)
+_config.yml                 ← generált: a Jekyll kihagyja a belső fájlokat (*.md, docs/, build/)
 .gitignore                  ← mi NEM kerül fel a GitHubra (_source/, .claude/)
 
 css/site.css                ← GENERÁLT: a css/*.css egy fájlban (ezt tölti a böngésző)

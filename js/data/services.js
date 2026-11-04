@@ -182,7 +182,7 @@ const SERVICES = [
     metric: "akár 280 000 Ft / év",
     hook: "Az állam évente akár 280 ezer forintot ad vissza az adódból, ha a nyugdíjadra teszel félre. Ez a legjobban fizető szabály a magyar adórendszerben.",
     seo: {
-      title: "Nyugdíj-megtakarítás 2026 — akár 280 000 Ft adójóváírás évente",
+      title: "Nyugdíj-megtakarítás 2026 — akár 280 000 Ft adójóváírás",
       desc: "Nyugdíjbiztosítás, önkéntes nyugdíjpénztár és NYESZ 2026-ban: 20% adójóváírás, max. 130 000 / 150 000 / 100 000 Ft. Számold ki, mennyit kapsz vissza.",
     },
     facts: [
@@ -368,7 +368,7 @@ const SERVICES = [
     metric: "cél → havi összeg",
     hook: "Nem minden célod a nyugdíj. Autó, lakásfelújítás, tartalék, üzleti indulás — ehhez olyan megtakarítás kell, amihez hozzáférsz, amikor kell.",
     seo: {
-      title: "Szabad felhasználású megtakarítás 2026 — tervezés célösszegre",
+      title: "Szabad felhasználású megtakarítás — tervezés célösszegre",
       desc: "Rövid és középtávú célok: vésztartalék, autó, felújítás, önerő. Számold ki, havi mennyi kell a célösszeghez, és milyen eszközök jöhetnek szóba.",
     },
     facts: [
@@ -506,7 +506,7 @@ const SERVICES = [
     metric: "30 nap az évfordulóig",
     hook: "Az évfordulós értesítőben szereplő új díj szinte mindig magasabb, mint amit ma új szerződésként kapnál. A váltás pár perc — de van egy határidő, amit nem lehet átlépni.",
     seo: {
-      title: "KGFB és casco 2026 — évfordulós váltás, teljes piaci összehasonlítás",
+      title: "KGFB- és casco-váltás 2026 — határidő, bónusz, önrész",
       desc: "Kötelező biztosítás váltás 2026-ban: 30 napos felmondási határidő, bónusz megőrzése, casco önrész és kizárások. Nézzük át együtt a szerződésedet.",
     },
     facts: [
@@ -706,8 +706,8 @@ const SERVICES = [
     metric: "max. 150 000 Ft / év",
     hook: "Szemüveg, tanszer, iskolakezdés, babaápolási termékek, nőgyógyászat, gyógyszer. Ezeket a család amúgy is kifizeti — a különbség csak az, hogy honnan.",
     seo: {
-      title: "20% adókedvezmény egészségpénztárral 2026 — gyerek és női kiadások",
-      desc: "Egészség- és önsegélyező pénztár 2026: 20% adójóváírás max. 150 000 Ft-ig, iskolakezdési támogatás gyermekenként, gyógyszer, szemüveg, nőgyógyászat. Számold ki.",
+      title: "Egészségpénztár 20% adójóváírás 2026 — gyerek, női kiadások",
+      desc: "Egészség- és önsegélyező pénztár 2026: 20% adójóváírás max. 150 000 Ft-ig, iskolakezdési támogatás, gyógyszer, szemüveg, nőgyógyászat. Számold ki.",
     },
     facts: [
       { v: "150 000 Ft", l: "maximális éves adójóváírás (a befizetés 20%-a)" },
@@ -853,7 +853,7 @@ const SERVICES = [
     metric: "akár 232 000 Ft / év két adóssal",
     hook: "A lakáshiteledet úgy is törlesztheted, hogy közben a NAV visszaad 20%-ot a befizetésből. Ugyanaz a törlesztő, kevesebb saját pénz.",
     seo: {
-      title: "Lakáshitel-törlesztés 20% adókedvezménnyel 2026 — önsegélyező pénztár",
+      title: "Lakáshitel-törlesztés 20% adójóváírással 2026 — pénztárral",
       desc: "2026-ban havi 48 420 Ft-ig fordítható önsegélyező pénztári megtakarítás lakáshitel-törlesztésre, 20% adójóváírással. Adóstárssal duplázható. Számold ki.",
     },
     facts: [
@@ -1528,7 +1528,7 @@ const SERVICES = [
     metric: "max. 50 M Ft, 25 év",
     hook: "Az Otthon Start fix 3%-a nem akció, hanem jogszabály. A kérdés csak az, hogy megfelelsz-e a feltételeknek — és ezt 10 perc alatt kiderítjük.",
     seo: {
-      title: "Otthon Start és támogatott hitelek 2026 — fix 3%, max. 50 millió Ft",
+      title: "Otthon Start és támogatott hitelek 2026 — fix 3% kamat",
       desc: "Otthon Start Program 2026: fix 3% kamat, max. 50 millió Ft, 25 év futamidő, első lakás, TB-jogviszony feltétel. Nézzük meg, jogosult vagy-e.",
     },
     facts: [
@@ -1677,7 +1677,7 @@ const SERVICES = [
     metric: "kiváltás: megtérül vagy nem",
     hook: "Ugyanarra a hitelre bankonként több millió forint különbség jöhet ki a futamidő végére. Nem a törlesztőt kell nézni, hanem a teljes visszafizetést.",
     seo: {
-      title: "Piaci lakáshitel és hitelkiváltás 2026 — teljes banki összehasonlítás",
+      title: "Lakáshitel és hitelkiváltás 2026 — banki összehasonlítás",
       desc: "Lakáshitel, szabad felhasználású jelzálog, hitelkiváltás 2026-ban: THM, kamatperiódus, JTM. Számold ki, mennyit hoz 1% kamatcsökkenés.",
     },
     facts: [
@@ -1819,7 +1819,7 @@ const SERVICES = [
     metric: "THM-összehasonlítás egy helyen",
     hook: "Fedezet nélkül, gyorsan — de a THM-ek között két-háromszoros különbség is van. Ugyanarra az összegre.",
     seo: {
-      title: "Személyi kölcsön 2026 — teljes THM-összehasonlítás, hitelkiváltás",
+      title: "Személyi kölcsön 2026 — THM-összehasonlítás, hitelkiváltás",
       desc: "Személyi kölcsön 2026-ban: THM-összehasonlítás, hitelkártya- és áruhitel-kiváltás, JTM. Számold ki a törlesztőt és a teljes visszafizetést.",
     },
     facts: [
@@ -1972,8 +1972,8 @@ const SERVICES = [
     metric: "0 Ft számlavezetés is van",
     hook: "A bankköltség az a kiadás, amiért semmit nem kapsz. Van olyan számla, ahol feltétel nélkül 0 Ft a vezetés.",
     seo: {
-      title: "Díjmentes bankszámla 2026 — 0 Ft számlavezetés, rejtett díjak nélkül",
-      desc: "Ingyenes bankszámla 2026-ban: feltétel nélküli 0 Ft-os csomagok, jóváírás-feltételes ajánlatok, kártyadíj és utalási költségek. Számold ki, mennyit fizetsz ma.",
+      title: "Díjmentes bankszámla 2026 — 0 Ft, rejtett díjak nélkül",
+      desc: "Ingyenes bankszámla 2026-ban: feltétel nélküli 0 Ft-os csomagok, jóváírás-feltételes ajánlatok, kártya- és utalási díjak. Számold ki, mennyit fizetsz ma.",
     },
     facts: [
       { v: "0 Ft", l: "van feltétel nélküli számlavezetési díj is" },

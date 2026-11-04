@@ -20,8 +20,8 @@ export const ARTICLES = [
     modified: "2026-09-13",
     title: "Pénzügyi tanácsadó ellenőrzése — alkusz, ügynök, független",
     desc:
-      "Hogyan ellenőrizd a pénzügyi tanácsadót az MNB nyilvántartásában, mi a különbség ügynök, " +
-      "többes ügynök és alkusz között, és mit jelent valójában a „független” szó.",
+      "Így ellenőrizd a pénzügyi tanácsadót az MNB nyilvántartásában: ügynök, többes ügynök " +
+      "vagy alkusz, és mit jelent valójában a „független” szó.",
     h1: "Hogyan ellenőrizd a pénzügyi tanácsadót — és mit jelent a „független”?",
     lead:
       "Mielőtt bárkinek megadod a pénzügyi adataidat, két dolgot érdemes tudni: szerepel-e a " +

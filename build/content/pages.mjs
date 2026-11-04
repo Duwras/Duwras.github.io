@@ -66,10 +66,10 @@ export function pillarPage({ CFG, BRAND, CITIES }) {
   return {
     path: "penzugyi-tanacsadas/",
     nav: "tanacsadas",
-    title: "Pénzügyi tanácsadás — költség, folyamat, jó tanácsadó | Érték Pont",
+    title: "Pénzügyi tanácsadás — költség, folyamat, jó tanácsadó",
     desc:
-      "Mit ad a pénzügyi tanácsadás, mennyibe kerül, hogyan ellenőrizd a pénzügyi tanácsadót az " +
-      "MNB-nél, és mire figyelj a választásnál. Díjmentes konzultáció, online is.",
+      "Mit ad a pénzügyi tanácsadás, mennyibe kerül, hogyan ellenőrizd a tanácsadót az MNB-nél, " +
+      "és mire figyelj a választásnál. Díjmentes konzultáció, online is.",
     label: "Pénzügyi tanácsadás",
     h1: "Pénzügyi tanácsadás: hogyan működik, és kinek éri meg?",
     lead:
@@ -332,10 +332,10 @@ export function planningPage({ CFG }) {
   return {
     path: "penzugyi-tervezes/",
     nav: "tervezes",
-    title: "Pénzügyi tervezés lépésről lépésre — 6 lépés, példával | Érték Pont",
+    title: "Pénzügyi tervezés lépésről lépésre — 6 lépés, példával",
     desc:
       "Pénzügyi tervezés 6 lépésben: költségvetés, vésztartalék, védelem, hitelek, adókedvezményes " +
-      "megtakarítás, célok — szemléltető példával és díjmentes segítséggel.",
+      "megtakarítás, célok — példával, díjmentes segítséggel.",
     label: "Pénzügyi tervezés",
     h1: "Pénzügyi tervezés: így építsd fel lépésről lépésre",
     lead:
@@ -495,8 +495,8 @@ export function hubPage({ CITIES }) {
     nav: "tanacsadas",
     title: "Pénzügyi tanácsadás városonként — 8 nagyváros | Érték Pont",
     desc:
-      "Pénzügyi tanácsadás Budapesten személyesen, Debrecenben, Szegeden, Miskolcon, Pécsett, " +
-      "Győrben, Nyíregyházán és Kecskeméten online. Városonként a helyi pénzügyi kérdések.",
+      "Pénzügyi tanácsadás Budapesten személyesen; Debrecenben, Szegeden, Miskolcon, Pécsett, " +
+      "Győrben, Nyíregyházán és Kecskeméten online, díjmentesen.",
     label: "Tanácsadás városonként",
     h1: "Pénzügyi tanácsadás a nagyvárosokban",
     lead:

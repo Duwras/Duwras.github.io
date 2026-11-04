@@ -38,7 +38,7 @@ export const CITIES = [
       title: "Pénzügyi tanácsadó Budapesten — személyesen is | Érték Pont",
       desc:
         "Pénzügyi tanácsadás Budapesten: lakáshitel és Otthon Start a budapesti árakhoz, tartalék, " +
-        "nyugdíj-megtakarítás, biztosítás. Személyesen vagy online, díjmentesen.",
+        "nyugdíj, biztosítás. Személyesen vagy online, díjmentesen.",
     },
     h1: "Pénzügyi tanácsadás Budapesten",
     lead:
@@ -119,7 +119,7 @@ export const CITIES = [
     wikidata: "https://www.wikidata.org/wiki/Q79880",
     inPerson: false,
     seo: {
-      title: "Pénzügyi tanácsadó Debrecen — online konzultáció | Érték Pont",
+      title: "Pénzügyi tanácsadó Debrecen — online konzultáció",
       desc:
         "Pénzügyi tanácsadás Debrecenből, online: első fizetés és első lakás, Otthon Start, " +
         "nyugdíj-megtakarítás 25 év alatt is, KGFB. Díjmentes, visszahívással.",
@@ -202,10 +202,10 @@ export const CITIES = [
     wikidata: "https://www.wikidata.org/wiki/Q81581",
     inPerson: false,
     seo: {
-      title: "Pénzügyi tanácsadó Szeged — tervezés, hitel, pénztár | Érték Pont",
+      title: "Pénzügyi tanácsadó Szeged — tervezés, hitel, pénztár",
       desc:
-        "Pénzügyi tanácsadás Szegedről, online: fix bér melletti megtakarítás, egészségpénztár " +
-        "20% visszatérítéssel, gyerek egyetemi évei, életbiztosítás hitel mellé. Díjmentes.",
+        "Pénzügyi tanácsadás Szegedről, online: megtakarítás fix bér mellett, egészségpénztár " +
+        "20% visszatérítéssel, a gyerek egyetemi évei, életbiztosítás.",
     },
     h1: "Pénzügyi tanácsadás Szegeden, online",
     lead:
@@ -285,10 +285,10 @@ export const CITIES = [
     wikidata: "https://www.wikidata.org/wiki/Q102397",
     inPerson: false,
     seo: {
-      title: "Pénzügyi tanácsadó Miskolc — hitel, lakás, védelem | Érték Pont",
+      title: "Pénzügyi tanácsadó Miskolc — hitel, lakás, védelem",
       desc:
         "Pénzügyi tanácsadás Miskolcról, online: drága hitelek kiváltása, saját lakás Otthon " +
-        "Starttal, felújítás finanszírozása, baleset- és jövedelemvédelem. Díjmentesen.",
+        "Starttal, felújítás finanszírozása, jövedelemvédelem. Díjmentesen.",
     },
     h1: "Pénzügyi tanácsadás Miskolcon, online",
     lead:
@@ -370,7 +370,7 @@ export const CITIES = [
       title: "Pénzügyi tanácsadó Pécs — online konzultáció | Érték Pont",
       desc:
         "Pénzügyi tanácsadás Pécsről, online: régi ingatlan felújításának finanszírozása, " +
-        "egészségkiadások, nyugdíj előtti évek, unokáknak szóló megtakarítás. Díjmentes.",
+        "egészségkiadások, nyugdíj előtti évek, megtakarítás az unokáknak.",
     },
     h1: "Pénzügyi tanácsadás Pécsett, online",
     lead:
@@ -452,10 +452,10 @@ export const CITIES = [
        megerősíti, hogy Győrben személyesen is fogad, ez true lehet. */
     inPerson: false,
     seo: {
-      title: "Pénzügyi tanácsadó Győr — műszakpótlék, osztrák bér | Érték Pont",
+      title: "Pénzügyi tanácsadó Győr — műszakpótlék, osztrák bér",
       desc:
-        "Pénzügyi tanácsadás győrieknek: változó, pótlékos jövedelem tervezése, Ausztriában " +
-        "adózó bér és a 20% adójóváírás, munkáltatói pénztár, KGFB. Online, díjmentesen.",
+        "Pénzügyi tanácsadás győrieknek: pótlékos jövedelem tervezése, Ausztriában adózó bér " +
+        "és a 20% adójóváírás, munkáltatói pénztár. Online, díjmentesen.",
     },
     h1: "Pénzügyi tanácsadás Győrben, online",
     lead:
@@ -539,7 +539,7 @@ export const CITIES = [
       title: "Pénzügyi tanácsadó Nyíregyháza — online | Érték Pont",
       desc:
         "Pénzügyi tanácsadás Nyíregyházáról, online: családi költségvetés gyerekekkel, anyai " +
-        "szja-mentesség és megtakarítás, házépítés Otthon Starttal, szezonális bevétel.",
+        "szja-mentesség, házépítés Otthon Starttal, szezonális bevétel.",
     },
     h1: "Pénzügyi tanácsadás Nyíregyházán, online",
     lead:
@@ -618,10 +618,10 @@ export const CITIES = [
     wikidata: "https://www.wikidata.org/wiki/Q171357",
     inPerson: false,
     seo: {
-      title: "Pénzügyi tanácsadó Kecskemét — lakás, hitel, adóstárs | Érték Pont",
+      title: "Pénzügyi tanácsadó Kecskemét — lakás, hitel, adóstárs",
       desc:
-        "Pénzügyi tanácsadás Kecskemétről: új lakás vagy ház Otthon Starttal, két jövedelem és " +
-        "adóstárs, 20% vissza a lakáshitel-törlesztésből, ingázás Budapestre. Díjmentes.",
+        "Pénzügyi tanácsadás Kecskemétről: új lakás Otthon Starttal, két jövedelem és adóstárs, " +
+        "20% vissza a lakáshitel-törlesztésből, ingázás Budapestre.",
     },
     h1: "Pénzügyi tanácsadás Kecskeméten, online",
     lead:

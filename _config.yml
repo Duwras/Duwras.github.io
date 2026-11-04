@@ -1,0 +1,11 @@
+# GENERÁLT (build/generate.mjs) — a GitHub Pages Jekyll-buildjének beállítása.
+# Az oldal tiszta statikus HTML; a Jekyll csak másol, és kihagyja a belső fájlokat.
+exclude:
+  - "*.md"
+  - docs/
+  - build/
+  - .gitignore
+  - .claude/
+  - .playwright-mcp/
+  - _source/
+  - node_modules/

@@ -34,6 +34,9 @@
       el.href = (prefix || "") + v;
     });
     $$("[data-cfg-src]").forEach((el) => {
+      /* Hibás/hiányzó kép → helyettesítő. Korábban inline onerror="" volt,
+         de azt a CSP (script-src 'self') letiltja, így sosem futott le. */
+      el.addEventListener("error", () => el.closest("[data-photo-wrap]")?.classList.add("no-photo"), { once: true });
       const v = get(el.dataset.cfgSrc);
       if (!isTodo(v)) {
         /* A gyökér-előtagot a generátor írja ki (<html data-up>), így a kép

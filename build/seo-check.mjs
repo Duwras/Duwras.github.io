@@ -78,9 +78,10 @@ for (const loc of locs) {
   if (!/^index,follow/.test(robots)) err(file, `robots: ${robots}`);
   if (!/<html lang="hu"/.test(html)) err(file, "hiányzik a lang=hu");
 
-  if (title.length > 70) warn(file, `title ${title.length} karakter: „${title}”`);
+  // 2026-11 audit: a Google kb. 580 px-nél (≈60 kar.) vág, a leírást asztalon ≈155-nél.
+  if (title.length > 60) warn(file, `title ${title.length} karakter: „${title}”`);
   if (title.length < 30) warn(file, `title rövid (${title.length})`);
-  if (desc.length > 170 || desc.length < 110) warn(file, `description ${desc.length} karakter`);
+  if (desc.length > 155 || desc.length < 110) warn(file, `description ${desc.length} karakter`);
   titles.set(title, [...(titles.get(title) || []), file]);
   descs.set(desc, [...(descs.get(desc) || []), file]);
 

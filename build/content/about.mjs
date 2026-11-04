@@ -15,7 +15,7 @@ export function aboutPage({ CFG, BRAND, esc }) {
     title: `${CFG.advisor.name} pénzügyi tanácsadó — bemutatkozás | Érték Pont`,
     desc:
       `${CFG.advisor.name} pénzügyi tanácsadó: ki vagyok, mivel foglalkozom, miből élek, hogyan ` +
-      "ellenőrizheted a jogállásomat az MNB-nél. Online és Budapesten személyesen.",
+      "ellenőrizheted a jogállásomat az MNB-nél. Online és Budapesten.",
     label: "Rólam",
     h1: `${CFG.advisor.name} — pénzügyi tanácsadó`,
     lead:
@@ -140,7 +140,7 @@ export function contactPage({ CFG, esc }) {
     title: `Kapcsolat — ${CFG.advisor.name} pénzügyi tanácsadó | Érték Pont`,
     desc:
       `Kapcsolat: ${CFG.contact.phone}, ${CFG.contact.email}, Messenger. Díjmentes pénzügyi ` +
-      "konzultáció online az egész országban, Budapesten személyesen. Kérj visszahívást.",
+      "konzultáció online országosan, Budapesten személyesen is.",
     label: "Kapcsolat",
     h1: "Kapcsolat",
     /* Visszahívási időt nem ígérünk, amíg a tulajdonos nem erősíti meg

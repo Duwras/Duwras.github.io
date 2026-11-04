@@ -152,6 +152,16 @@ window.EP.CONFIG = {
      frissíteni kell (OWNER-DATA-NEEDED.md → Mérés).                     */
   analytics: {
     gtmId: "",
+    /* EGYSZERŰBB ÚT: GA4 közvetlenül, GTM nélkül. A GA4-tulajdon
+       „Adatfolyam” oldalán látható mérési azonosító, pl. "G-AB12CD34EF".
+       Ugyanúgy csak „Rendben” után töltődik be (Consent Mode v2), és a
+       generátor ekkor a CSP-t és az adatkezelési tájékoztatót is bővíti.
+       Ha a gtmId is ki van töltve, a GTM élvez elsőbbséget. */
+    ga4Id: "",
+    /* Search Console „HTML-címke” ellenőrzés: a kapott meta content-értéke
+       (csak a főoldalra kerül ki). DNS TXT rekorddal ellenőrizve üresen
+       hagyható — az a jobb, mert az egész domaint lefedi. */
+    searchConsole: "",
   },
 
   /* --- Ki készítette az oldalt (lábléc, minden lapon) ------------------
