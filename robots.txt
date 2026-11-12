@@ -3,5 +3,6 @@ Allow: /
 Disallow: /*.md$
 Disallow: /docs/
 Disallow: /build/
+Disallow: /content/
 
 Sitemap: https://ertekpontpenzugyek.hu/sitemap.xml

@@ -151,6 +151,40 @@ Városi oldalon személyes találkozó csak akkor szerepelhet, ha valós: `citie
 
 ---
 
+## Blog — egy cikk = egy fájl
+
+A `/blog/` szekció Markdown-fájlokból épül: **`content/blog/ÉÉÉÉ-HH-NN-slug.md`** (frontmatter +
+szöveg). Új cikkhez elég ezt az egy fájlt létrehozni — a lista, a cikkoldal, a kategória- és
+címkeoldalak, a borítókép, az RSS (`/blog/feed.xml`), a sitemap és a főoldali „Legfrissebb
+cikkek” szekció a buildből jön.
+
+```bash
+node build/generate.mjs      # épít (hibás cikkel leáll, semmit nem ír ki)
+node build/blog-check.mjs    # cikk-validátor  (npm run check:blog)
+node build/seo-check.mjs
+node build/cro-check.mjs     # a három együtt: npm run check
+```
+
+| Fájl | Mire való |
+|---|---|
+| `BLOG_AGENT.md` | a 2 naponta futó, ütemezett Claude-feladat teljes utasítása (témaválasztás, tényellenőrzés, stílus, jogi keretek, technikai lépések) |
+| `content/blog/*.md` | a cikkek — a formátum a `BLOG_AGENT.md` 7. pontjában |
+| `content/topic-backlog.md` | tartalék „evergreen” témák arra a napra, amikor nincs hír |
+| `content/agent-log.md` | az ütemezett feladat naplója (publikálva / kihagyva / teendő a tulajdonosnak) |
+| `build/blog.mjs` | frontmatter- és Markdown-értelmező, validálási szabályok, oldalsablonok, borító-SVG |
+| `build/blog-check.mjs` | validátor: mezők, 155 karakteres leírás, min. 2 forrás, 500–1200 szó, tiltott kifejezések, törött linkek |
+| `css/blog.css` | kártya, lapozó, cikkoldal |
+| `blog/**` | **generált** kimenet — kézzel ne szerkeszd; a GitHub Pages nem buildel, ezért commitolni kell |
+
+A `content/` mappa és a `package.json` nem kerül ki az oldalra (`_config.yml → exclude`).
+A tiltott kifejezések és a kategórialista helye: `build/blog.mjs → BLOG`.
+Piszkozat: `draft: true` a frontmatterben — a build kihagyja.
+
+A CSS/JS `?v=` bélyege a csomagok tartalmából képzett hash (korábban az építés időpontja volt):
+ha a stílus és a script nem változott, egy új cikk csak a bloghoz tartozó fájlokat módosítja.
+
+---
+
 ## Helyi megnyitás
 
 ```bash

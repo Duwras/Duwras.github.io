@@ -1,0 +1,13 @@
+{
+  "name": "ertekpont-penzugyek",
+  "private": true,
+  "description": "Érték Pont Pénzügyek — statikus weboldal. Nincs függőség: a scriptek csak a Node beépített moduljait használják.",
+  "scripts": {
+    "build": "node build/generate.mjs",
+    "check:blog": "node build/blog-check.mjs",
+    "check:seo": "node build/seo-check.mjs",
+    "check:cro": "node build/cro-check.mjs",
+    "check": "node build/blog-check.mjs && node build/seo-check.mjs && node build/cro-check.mjs",
+    "preview": "python -m http.server 5173"
+  }
+}

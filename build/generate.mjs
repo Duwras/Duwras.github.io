@@ -5,7 +5,9 @@
               adatkezeles.html, 404.html, sitemap.xml, robots.txt, _config.yml,
               valamint a tartalmi oldalak (build/content/*.mjs): pillar,
               tervezés, 8 városi oldal + hub, rólam, kapcsolat, tudástár
-   QA:        node build/seo-check.mjs
+              és a blog (content/blog/*.md → /blog/…, RSS; lásd build/blog.mjs)
+   QA:        node build/seo-check.mjs · node build/cro-check.mjs ·
+              node build/blog-check.mjs
    A kimenet tiszta statikus HTML — nem kell futtatókörnyezet a hostingon.
    ========================================================================== */
 
@@ -17,8 +19,21 @@ import { CITIES } from "./content/cities.mjs";
 import { pillarPage, planningPage, hubPage, UPDATED } from "./content/pages.mjs";
 import { aboutPage, contactPage } from "./content/about.mjs";
 import { ARTICLES } from "./content/articles.mjs";
+import { loadPosts, buildBlog } from "./blog.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+/* --- Blog: a Markdown-cikkek (content/blog/*.md) betöltése és ellenőrzése
+   MÉG az első írás előtt. Hibás cikkel a generátor nem épít — így érvénytelen
+   frontmatter, tiltott kifejezés vagy törött link nem kerülhet ki az oldalra.
+   Részletek: build/blog.mjs, BLOG_AGENT.md. */
+const BLOG_DATA = loadPosts(ROOT);
+if (BLOG_DATA.errors.length) {
+  console.error(
+    "\nBLOG — a build leállt, " + BLOG_DATA.errors.length + " hiba a cikkekben:\n  " + BLOG_DATA.errors.join("\n  ") + "\n"
+  );
+  process.exit(1);
+}
 
 /* --- adat betöltése (klasszikus scriptek window-ra írnak) -------------- */
 const win = { EP: {} };
@@ -77,7 +92,12 @@ function relLinks(html, up) {
 const icon = (paths, size = 22, sw = 1.6) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 
-const V = Date.now().toString(36); // cache-busting bélyeg
+/* Cache-busting bélyeg: a CSS/JS csomagok TARTALMÁBÓL képzett hash (lent,
+   a csomagolásnál kap értéket). Korábban az építés időpontja volt, ezért
+   minden build minden HTML-t módosított — az ütemezett blog-commitokban így
+   40+ fájl változott volna érdemi ok nélkül. Tartalom-hash-sel a bélyeg
+   pontosan akkor vált, amikor a csomag, a build pedig ismételhető. */
+let V = "";
 const ARROW = icon('<path d="M7 17 17 7M9 7h8v8"/>', 16, 2.2);
 const PHONE_ICON = icon(
   '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>',
@@ -348,6 +368,7 @@ ${url ? `<meta property="og:url" content="${url}">\n` : ""}${articleMeta}<meta p
 <link rel="icon" href="${up}favicon.ico" sizes="48x48">
 <link rel="icon" href="${up}assets/brand/logo-mark.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="${up}assets/brand/apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="${esc(BRAND)} — Blog" href="${SITE}/blog/feed.xml">
 
 <!-- A betűk saját domainről, magyar karakterkészletre vágva (css/fonts.css).
      Nincs harmadik fél, nincs külön DNS/TLS, és nincs stíluslap-lánc. -->
@@ -389,6 +410,7 @@ function nav(depth = 0, current = "") {
     ${link(`${up}penzugyi-tanacsadas/`, "Tanácsadás", "tanacsadas")}
     ${link(`${up}penzugyi-tervezes/`, "Tervezés", "tervezes")}
     ${link(`${home}#szolgaltatasok`, "Szolgáltatások", "szolg")}
+    ${link(`${up}blog/`, "Blog", "blog")}
     ${link(`${up}rolam/`, "Rólam", "rolam")}
     ${link(`${up}kapcsolat/`, "Kapcsolat", "kapcsolat")}
   </nav>
@@ -418,6 +440,7 @@ function nav(depth = 0, current = "") {
     <a class="menu__item" href="${up}penzugyi-tervezes/"><span>Pénzügyi tervezés</span><small>6 lépés</small></a>
     <a class="menu__item" href="${up}penzugyi-tanacsadas/varosok/"><span>Tanácsadás városonként</span><small>online, országosan</small></a>
     <a class="menu__item" href="${up}tudastar/"><span>Tudástár</span><small>útmutatók</small></a>
+    <a class="menu__item" href="${up}blog/"><span>Blog</span><small>friss cikkek</small></a>
     <a class="menu__item" href="${up}rolam/"><span>Rólam</span><small>bemutatkozás</small></a>
     <a class="menu__item" href="${up}kapcsolat/"><span>Kapcsolat</span><small>telefon, e-mail</small></a>
   </div>
@@ -517,6 +540,7 @@ function footer(depth = 0) {
           <li><a href="${up}szolgaltatas/">Összes szolgáltatás</a></li>
           <li><a href="${up}penzugyi-tanacsadas/varosok/">Tanácsadás városonként</a></li>
           <li><a href="${up}tudastar/">Tudástár</a></li>
+          <li><a href="${up}blog/">Blog</a></li>
           <li><a href="${up}rolam/">Rólam</a></li>
           <li><a href="${up}kapcsolat/">Kapcsolat</a></li>
         </ul>
@@ -1126,6 +1150,7 @@ ${nav(0)}
       : ""
   }
 
+${BLOG_OUT.homeSection}
   <!-- ============ GYIK (világos sáv) ============ -->
   <section class="section on-paper" id="gyik">
     <div class="wrap split">
@@ -2627,6 +2652,7 @@ const CSS_FILES = [
   "css/funnel.css",
   "css/motion.css",
   "css/content.css",
+  "css/blog.css",
   "css/cro.css",
 ];
 const JS_FILES = [
@@ -2800,9 +2826,19 @@ const banner = (name) =>
 
 console.log("\nÉrték Pont Pénzügyek — oldalgenerálás\n");
 
-write("css/site.css", banner("css/site.css") + CSS_FILES.map((f) => minifyCss(read(f))).join("\n"));
-write("js/app.js", banner("js/app.js") + JS_FILES.map((f) => minifyJs(read(f))).join("\n;\n"));
-write("js/3d.js", banner("js/3d.js") + JS_3D_FILES.map((f) => minifyJs(read(f))).join("\n;\n"));
+const BUNDLES = {
+  "css/site.css": banner("css/site.css") + CSS_FILES.map((f) => minifyCss(read(f))).join("\n"),
+  "js/app.js": banner("js/app.js") + JS_FILES.map((f) => minifyJs(read(f))).join("\n;\n"),
+  "js/3d.js": banner("js/3d.js") + JS_3D_FILES.map((f) => minifyJs(read(f))).join("\n;\n"),
+};
+for (const [rel, content] of Object.entries(BUNDLES)) write(rel, content);
+/* A sorvégeket egységesítjük a hash előtt: Windows- és Linux-gépen (az
+   ütemezett feladat bármelyiken futhat) ugyanaz a bélyeg jön ki. */
+V = crypto
+  .createHash("sha256")
+  .update(Object.values(BUNDLES).join("|").replace(/\r/g, ""), "utf8")
+  .digest("hex")
+  .slice(0, 8);
 
 /* --- Oldalak ------------------------------------------------------------
    Minden indexelhető oldal a PAGES listába kerül: ebből készül a sitemap,
@@ -2828,16 +2864,27 @@ const normalize = (html) =>
   html.replace(/\?v=[0-9a-z]+/g, "").replace(/'sha256-[^']+'/g, "").replace(LASTMOD_RE, "<time data-lastmod></time>");
 const PAGES = [];
 
-function writePage(rel, html, loc) {
+function writePage(rel, html, loc, fixedLastmod = "") {
   html = bakeCfg(html);
   let prev = null;
   try { prev = read(rel); } catch {}
   const changed = prev === null || normalize(prev) !== normalize(html);
-  const lastmod = changed ? TODAY : OLD_LASTMOD[loc] || TODAY;
+  /* fixedLastmod: blogcikknél a cikk saját (megjelenési / frissítési) dátuma —
+     egy új cikk a régiek „Kapcsolódó cikkek” blokkját is módosítja, de attól
+     a régi cikk tartalma nem lett frissebb. */
+  const lastmod = fixedLastmod || (changed ? TODAY : OLD_LASTMOD[loc] || TODAY);
   html = html.replace(LASTMOD_RE, `<time data-lastmod datetime="${lastmod}">${huDate(lastmod)}</time>`);
   write(rel, html);
   if (loc) PAGES.push({ rel, loc, lastmod });
 }
+
+/* --- Blog: sablonok a közös részekkel (head, nav, footer, CTA) --------- */
+const BLOG_OUT = buildBlog(BLOG_DATA.posts, {
+  SITE, BRAND, CFG, ARROW, ORG_ID, PERSON_ID, huDate,
+  head, nav, footer, stickyCta, scripts, finalCta, ctaGroup,
+  crumbsHtml, crumbSchema, ldScript, businessSchema, personSchema, partnerSchema,
+  relLinks, upOf, depthOf,
+});
 
 writePage("index.html", homePage(), SITE + "/");
 
@@ -2873,6 +2920,35 @@ writePage("impresszum.html", imprintPage(), SITE + "/impresszum.html");
 writePage("adatkezeles.html", privacyPage(), SITE + "/adatkezeles.html");
 writePage("404.html", notFoundPage(), null); // noindex — nem kerül a sitemapbe
 
+/* Blog: lista + lapozás, kategória- és címkeoldalak, cikkek, borítók, RSS.
+   A /blog/ mappa TELJES egészében generált: ami ebben a futásban nem készült
+   el (törölt vagy draft-ra állított cikk, megszűnt címke), azt töröljük,
+   különben árva oldalak maradnának kint. Kézzel ide ne tegyél fájlt. */
+const blogWritten = new Set();
+for (const p of BLOG_OUT.pages) {
+  writePage(p.rel, p.html, p.loc, p.lastmod || "");
+  blogWritten.add(p.rel);
+}
+for (const f of BLOG_OUT.files) {
+  write(f.rel, f.content);
+  blogWritten.add(f.rel);
+}
+(function prune(dir) {
+  const abs = path.join(ROOT, dir);
+  if (!fs.existsSync(abs)) return;
+  for (const e of fs.readdirSync(abs, { withFileTypes: true })) {
+    const rel = dir + "/" + e.name;
+    if (e.isDirectory()) {
+      prune(rel);
+      if (!fs.readdirSync(path.join(ROOT, rel)).length) fs.rmdirSync(path.join(ROOT, rel));
+    } else if (!blogWritten.has(rel)) {
+      fs.unlinkSync(path.join(ROOT, rel));
+      console.log("  – " + rel + " (törölve: már nincs hozzá cikk)");
+    }
+  }
+})("blog");
+if (BLOG_DATA.warnings.length) console.log("\n  BLOG figyelmeztetés:\n    " + BLOG_DATA.warnings.join("\n    "));
+
 /* Publikálás: a GitHub Pages a repó MINDEN fájlját kiszolgálja. Korábban
    .nojekyll volt itt, így a belső dokumentáció (README, SEO-/CRO-*.md,
    docs/, build/, .gitignore) bárki számára letölthető volt — a robots.txt
@@ -2900,6 +2976,8 @@ exclude:
   - .playwright-mcp/
   - _source/
   - node_modules/
+  - content/
+  - package.json
 `
 );
 
@@ -2924,7 +3002,7 @@ write(
     : /* A GitHub Pages a repó minden fájlját kiszolgálja — a belső
          dokumentáció (README, SEO-*.md, docs/, build/) ne kerüljön a
          keresőbe. Ez nem titkosítás: közvetlen címen elérhető marad. */
-      `User-agent: *\nAllow: /\nDisallow: /*.md$\nDisallow: /docs/\nDisallow: /build/\n\nSitemap: ${SITE}/sitemap.xml\n`
+      `User-agent: *\nAllow: /\nDisallow: /*.md$\nDisallow: /docs/\nDisallow: /build/\nDisallow: /content/\n\nSitemap: ${SITE}/sitemap.xml\n`
 );
 
 console.log(`\n${PAGES.length} indexelhető oldal + 404, sitemap, robots kész.`);
