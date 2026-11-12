@@ -4,7 +4,8 @@ Az oldalon minden konkrét szám ellenőrizhető forrásból származik. **Jogsz
 ezeket kell frissíteni**, egy helyen: `js/data/services.js` (a fájl tetején lévő konstansok +
 az egyes szolgáltatások `facts`, `how` és `calc` blokkjai).
 
-Utolsó ellenőrzés: **2026. augusztus**; a támogatott lakáshitel (Wekerle Plusz) adatai: **2026. november 12.**
+Utolsó ellenőrzés: **2026. augusztus**; a támogatott lakáshitel (Wekerle Plusz) adatai és a kalkulátorok
+jogszabályi pontjai (lásd „Kalkulátor-pontosítás, 2026. november” lent): **2026. november 12.**
 
 ---
 
@@ -17,7 +18,7 @@ Utolsó ellenőrzés: **2026. augusztus**; a támogatott lakáshitel (Wekerle Pl
 | `MAX_PENSION_FUND` | 150 000 Ft | önkéntes nyugdíjpénztár max. éves adójóváírás |
 | `MAX_NYESZ` | 100 000 Ft | NYESZ max. éves adójóváírás |
 | `MAX_PENSION_TOTAL` | 280 000 Ft | a három nyugdíjforma **együttes** felső korlátja (Szja tv. 44/A–44/C. §) |
-| `MAX_HEALTH_FUND` | 150 000 Ft | egészség-/önsegélyező pénztár max. éves adójóváírás |
+| `MAX_HEALTH_FUND` | 150 000 Ft | egészség-/önsegélyező pénztár max. éves adójóváírás — **közös keret** az önkéntes nyugdíjpénztárral (Szja tv. 44/A. § (1)) |
 | `HOUSING_MONTHLY_CAP` | 48 420 Ft | minimálbér 15%-a — havi max. lakáshitel-törlesztés pénztárból |
 | `WEKERLE_RATE_NEW` | 3% | Wekerle Plusz fix kamat új lakás vásárlására és építésre (rendelet 32. § a)) |
 | `WEKERLE_RATE_USED` | 5% | Wekerle Plusz fix kamat használt lakásra (32. § b)) |
@@ -42,6 +43,8 @@ Utolsó ellenőrzés: **2026. augusztus**; a támogatott lakáshitel (Wekerle Pl
 - <https://banknavigator.hu/egeszsegpenztar>
 
 **Lakáshitel-törlesztés önsegélyező pénztárból (20%)**
+- 1993. évi XCVI. törvény (Öpt.) 50/B. § (1) j) — a törlesztés támogatása havonta legfeljebb a tárgyév január 1-jén
+  érvényes minimálbér 15%-a (2026: 48 420 Ft). Ellenőrizve a Nemzeti Jogszabálytárban: 2026. november 12.
 - <https://tudastar.money.hu/ismerteto/onsegelyezo-penztar-lakashitel-torlesztes/>
 - <https://bank360.hu/blog/lakashitel-torlesztoreszlet-csokkentese-nyugdijpenztar-egeszsegpenztar->
 
@@ -107,7 +110,9 @@ Utolsó ellenőrzés: **2026. augusztus**; a támogatott lakáshitel (Wekerle Pl
 **KGFB / casco**
 - <https://grantis.hu/kotelezo-biztositas-valtas/>
 - <https://grantis.hu/kotelezo-biztositas/>
-- 2009. évi LXII. törvény 21. § — a felmondásnak az évfordulót megelőző **30. napig** be kell érkeznie
+- 2009. évi LXII. törvény (Gfbt.) **7. § (1)** — a szerződés a biztosítási időszak utolsó napjára, azt **legalább 30 nappal
+  megelőzően** mondható fel. (Korábban tévesen a 21. § szerepelt itt.) A kalkulátor az utolsó napot az évforduló előtti
+  napnak veszi, és ettől számol vissza 30 napot.
 - 21/2011. (VI. 10.) NGM rendelet — a **bónusz-malusz fokozatok** (A00, B01–B10, M01–M04) és
   a köztük való átsorolás szabályai. **A fokozathoz tartozó kedvezmény/pótlék MÉRTÉKE nem itt
   van, hanem a biztosító tarifájában** — ezért a kalkulátor csak a besorolást és annak irányát
@@ -125,6 +130,10 @@ Utolsó ellenőrzés: **2026. augusztus**; a támogatott lakáshitel (Wekerle Pl
   oldalon — ez hibás volt, javítva.**
 
 **Díjmentes bankszámla**
+- 2009. évi LXXXV. törvény (Pft.) 36/A. § (1) a), (4) — havonta az első két forintos készpénzfelvétel bármely
+  magyarországi ATM-ből **együttesen 300 000 Ft-ig** díj- és költségmentes, ha a fogyasztó erről a bankjánál nyilatkozatot
+  tett (egy kijelölt számlára). Korábban az oldalon 150 000 Ft és „saját bank ATM-je” szerepelt — elavult, javítva.
+  A kereten felüli díjat a kalkulátor továbbra is kb. 0,6%-kal **becsüli**.
 - <https://tudastar.money.hu/ismerteto/ingyenes-bankszamlak/>
 - <https://bank360.hu/bankszamla>
 
@@ -132,11 +141,35 @@ Utolsó ellenőrzés: **2026. augusztus**; a támogatott lakáshitel (Wekerle Pl
 - <https://www.pwc.com/hu/hu/sajtoszoba/2026/szja_kedvezmenyek_2026.html>
 - <https://nav.gov.hu/ado/szja/Ket_gyermeket_nevelo_anyak_kedvezmenye>
 
+**Személyi kölcsön — THM**
+- 2009. évi CLXII. törvény (Fhtv.) 17/A. § — a THM felső korlátja: jegybanki alapkamat + 24 százalékpont; hitelkártya,
+  fizetési számlához kapcsolódó hitel és közvetlen áruhitel esetén + 39 százalékpont.
+- A THM éves effektív ráta, ezért a kalkulátor a havi rátát (1 + THM)^(1/12) − 1 alakban számolja. Korábban a THM-et
+  nominális kamatként (THM / 12) tette az annuitásba, ami kissé túlbecsülte a törlesztőt — javítva.
+
 **Közvetítői szabályozás, MNB**
 - <https://www.mnb.hu/felugyelet/adatszolgaltatas/alkuszok-es-tobbes-ugynokok>
 - <https://apps.mnb.hu/regiszter/>
 
 ---
+
+## Kalkulátor-pontosítás, 2026. november
+
+Ellenőrizve 2026. november 12-én, a Nemzeti Jogszabálytár hatályos szövege és egy OVB tanácsadói eszköz
+kalkulátorai alapján (ez utóbbi csak keresztellenőrzés; belső adat az oldalra nem került).
+
+| Kalkulátor | Mi változott | Forrás | Típus |
+|---|---|---|---|
+| `dijmentes-bankszamla` | díjmentes ATM-keret 150 000 → **300 000 Ft**, bármely hazai ATM, nyilatkozattal | Pft. 36/A. § | hiba (elavult) |
+| `kgfb-casco` | jogszabályhely 21. § → **7. § (1)**; a határidő az időszak utolsó napjától (évforduló − 1 nap) − 30 nap, 1 nappal korábbi | Gfbt. 7. § (1) | hiba |
+| `szemelyi-kolcson` | THM → havi ráta `(1+THM)^(1/12)−1`; jegyzetben a törvényi THM-plafon | Fhtv. 17/A. § | hiba (képlet) |
+| `adokedvezmeny-lakashitel`, `adokedvezmeny-gyerek-no`, `nyugdij-megtakaritas` | a 150 000 Ft-os pénztári plafon **közös** a nyugdíj-, egészség- és önsegélyező pénztárra; a „limitek külön futnak” FAQ javítva | Szja tv. 44/A. § (1) | hiba |
+
+Változatlanul hagyva, mert egyezik vagy tudatos feltevés:
+- annuitás (`annuity`, havi kamat = éves / 12): forintra egyezik a tanácsadói eszköz jelzálog-kalkulátorával;
+- adójóváírási plafonok (130 000 / 150 000 / 100 000 / 280 000 Ft) és a 48 420 Ft-os törlesztési plafon: egyeznek a jogszabállyal;
+- Wekerle Plusz konstansok: egyeznek a 298/2026. Korm. rendelettel;
+- `PROGRAM_COEF`: a tanácsadói eszköz mai termékkalkulációjánál 0,7–3,8%-kal alacsonyabb (konzervatívabb) értéket ad — nem elavult.
 
 ## Frissítési emlékeztető
 

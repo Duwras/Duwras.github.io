@@ -22,3 +22,6 @@ npm-debug.log*
 
 # Playwright MCP munkafájlok (képernyőképek, snapshotok)
 .playwright-mcp/
+
+# Kalkulátor-pontosítás: OVB-portálról gyűjtött nyers munkaanyag (belső adat, SOHA ne kerüljön fel)
+.portal-munka/
