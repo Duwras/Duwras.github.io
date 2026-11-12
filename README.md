@@ -292,7 +292,7 @@ technikailag elvégezhető, az készen van:
 - **Címek és leírások** a keresett kifejezéssel az elején, nem a márkanévvel.
   A főoldal fő kifejezései: *pénzügyi tanácsadó*, *nyugdíj*, *lakáshitel*, *biztosítás*.
 - **H1 = a keresett kifejezés** az aloldalakon (`js/data/services.js → h1`, ha eltér a
-  kártyán látható rövid névtől). Például: „Otthon Start és támogatott lakáshitelek”.
+  kártyán látható rövid névtől). Például: „Wekerle Plusz és támogatott lakáshitelek”.
 - **Strukturált adat (JSON-LD)** összekötött gráfként: `FinancialService` + `Person` +
   `WebSite` + oldalanként `Service`, `FAQPage`, `BreadcrumbList`. Az `areaServed`
   mindenhol Magyarország — ez mondja meg a keresőnek, hogy nem csak budapesti a szolgáltatás.

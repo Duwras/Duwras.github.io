@@ -37,7 +37,7 @@ export const CITIES = [
     seo: {
       title: "Pénzügyi tanácsadó Budapesten — személyesen is | Érték Pont",
       desc:
-        "Pénzügyi tanácsadás Budapesten: lakáshitel és Otthon Start a budapesti árakhoz, tartalék, " +
+        "Pénzügyi tanácsadás Budapesten: lakáshitel és Wekerle Plusz a budapesti árakhoz, tartalék, " +
         "nyugdíj, biztosítás. Személyesen vagy online, díjmentesen.",
     },
     h1: "Pénzügyi tanácsadás Budapesten",
@@ -58,10 +58,10 @@ export const CITIES = [
     topicsTitle: "Amire Budapesten különösen érdemes figyelni",
     topics: [
       {
-        h: "Otthon Start budapesti négyzetméterárakkal",
-        t: "A fix 3%-os Otthon Start hitelhez a lakásnak is meg kell felelnie: legfeljebb 100 millió forint vételár és legfeljebb 1,5 millió Ft/m². Budapesten — főleg új építésű lakásoknál — ez a korlát gyakran szűkebb, mint vidéken, ezért érdemes a keresés ELŐTT kiszámolni, milyen lakás fér bele egyáltalán.",
+        h: "Wekerle Plusz budapesti négyzetméterárakkal",
+        t: "A Wekerle Plusz hitelhez (új lakásra fix 3%, használtra 5%) a lakásnak is meg kell felelnie: legfeljebb 100 millió forint vételár és legfeljebb 1,5 millió Ft/m². Budapesten — főleg új építésű lakásoknál, ahol a 3%-os kamat járna — ez a korlát gyakran szűkebb, mint vidéken, ezért érdemes a keresés ELŐTT kiszámolni, milyen lakás fér bele egyáltalán.",
         href: "/szolgaltatas/tamogatott-hitelek.html",
-        label: "Otthon Start feltételei és törlesztő",
+        label: "Wekerle Plusz feltételei és törlesztő",
       },
       {
         h: "Bérlés vagy vásárlás",
@@ -88,12 +88,12 @@ export const CITIES = [
         a: "A helyet és az időpontot az első telefonbeszélgetésnél egyeztetjük, a te napirendedhez igazítva. Ha neked egyszerűbb, az egész folyamat — összehasonlítás, számolás, ajánlatkérés — online is végigmegy, videóhíváson és e-mailben.",
       },
       {
-        q: "Mennyire szűk Budapesten az Otthon Start négyzetméterár-korlátja?",
+        q: "Mennyire szűk Budapesten a Wekerle Plusz négyzetméterár-korlátja?",
         a: "A korlát 1,5 millió Ft/m², és a vételár sem haladhatja meg a 100 millió forintot. Hogy egy konkrét lakás belefér-e, a hirdetési árból és az alapterületből egy perc alatt kiszámolható. Ha nem fér bele, megnézzük, milyen piaci vagy kombinált finanszírozás jöhet szóba — és az mennyivel drágább.",
       },
       {
         q: "Agglomerációban lakom. Nekem is tudsz segíteni?",
-        a: "Igen. Az online konzultáció lakóhelytől független, a személyes találkozó helyét pedig Budapesten egyeztetjük. A pénzügyi kérdések (hitel, megtakarítás, biztosítás) szempontjából a lakcím általában nem számít — az Otthon Start például az egész országban igénybe vehető.",
+        a: "Igen. Az online konzultáció lakóhelytől független, a személyes találkozó helyét pedig Budapesten egyeztetjük. A pénzügyi kérdések (hitel, megtakarítás, biztosítás) szempontjából a lakcím általában nem számít — a Wekerle Plusz például az egész országban igénybe vehető.",
       },
       {
         q: "Most bérelek. Érdemes egyáltalán lakáshitelben gondolkodnom?",
@@ -121,7 +121,7 @@ export const CITIES = [
     seo: {
       title: "Pénzügyi tanácsadó Debrecen — online konzultáció",
       desc:
-        "Pénzügyi tanácsadás Debrecenből, online: első fizetés és első lakás, Otthon Start, " +
+        "Pénzügyi tanácsadás Debrecenből, online: első fizetés és első lakás, Wekerle Plusz, " +
         "nyugdíj-megtakarítás 25 év alatt is, KGFB. Díjmentes, visszahívással.",
     },
     h1: "Pénzügyi tanácsadás Debrecenben, online",
@@ -147,10 +147,10 @@ export const CITIES = [
         label: "Díjmentes bankszámla — mennyit fizetsz ma?",
       },
       {
-        h: "Otthon Start az első lakáshoz",
-        t: "A fix 3%-os Otthon Start elsősorban első lakás megszerzésére való, és a hitelösszegtől függően 1–2 év folyamatos TB-jogviszonyt kér. Munkahelyváltásnál érdemes előre megnézni, hogy a jogviszony folyamatos maradt-e — a megszakítás hossza számíthat.",
+        h: "Wekerle Plusz az első lakáshoz",
+        t: "A Wekerle Plusz első lakás megszerzésére való: új lakásra fix 3%, használtra fix 5% a kamat, és 18 éves kortól igényelhető. Kétéves TB-jogviszony — az Otthon Starttal ellentétben — nem feltétel, így pályakezdőként sem kell kivárnod; a bank viszont rendszeres, igazolható jövedelmet kér, ezért munkahelyváltás előtt érdemes megnézni, mit fogad el.",
         href: "/szolgaltatas/tamogatott-hitelek.html",
-        label: "Jogosult vagy? Otthon Start kalkulátor",
+        label: "Jogosult vagy? Wekerle Plusz kalkulátor",
       },
       {
         h: "Nyugdíjcél 25 év alatt: nézd meg az szja-t",
@@ -175,8 +175,8 @@ export const CITIES = [
         a: "Csak akkor és annyi, amennyi szja-t ténylegesen fizetsz. A 25 év alattiak kedvezménye miatt a jövedelem egy része szja-mentes; ha emiatt nincs befizetett szja, jóváírás sem jár. A korai kezdésnek ilyenkor is lehet értelme, de más a számolás — ezt a konkrét béred alapján nézzük meg.",
       },
       {
-        q: "Új munkahelyem van. Mikor igényelhetek Otthon Start hitelt?",
-        a: "A hitelösszegtől függően 1–2 év folyamatos TB-jogviszony kell; a pontos szabályt és a kivételeket a bank a kérelemkor vizsgálja. Munkahelyváltásnál a jogviszony nem feltétlenül szakad meg, de a megszakítás hossza számít — ezért érdemes a váltás előtt vagy közvetlenül utána megnézni.",
+        q: "Új munkahelyem van. Mikor igényelhetek Wekerle Plusz hitelt?",
+        a: "A Wekerle Plusz rendelete nem ír elő TB-jogviszonyt — ez az Otthon Start feltétele volt. A bank viszont a saját hitelbírálatában rendszeres, igazolható jövedelmet kér, és a saját szabályai szerint azt is nézheti, mióta dolgozol a mostani helyeden. Ezért érdemes a váltás előtt vagy közvetlenül utána megnézni, melyik bank mit fogad el.",
       },
       {
         q: "Egyetemistaként van értelme pénzügyi tanácsadással foglalkozni?",
@@ -287,8 +287,8 @@ export const CITIES = [
     seo: {
       title: "Pénzügyi tanácsadó Miskolc — hitel, lakás, védelem",
       desc:
-        "Pénzügyi tanácsadás Miskolcról, online: drága hitelek kiváltása, saját lakás Otthon " +
-        "Starttal, felújítás finanszírozása, jövedelemvédelem. Díjmentesen.",
+        "Pénzügyi tanácsadás Miskolcról, online: drága hitelek kiváltása, saját lakás Wekerle " +
+        "Plusszal, felújítás finanszírozása, jövedelemvédelem. Díjmentesen.",
     },
     h1: "Pénzügyi tanácsadás Miskolcon, online",
     lead:
@@ -313,9 +313,9 @@ export const CITIES = [
       },
       {
         h: "Saját lakás vidéki árakon",
-        t: "Ahol alacsonyabbak a négyzetméterárak, az Otthon Start korlátai (legfeljebb 100 millió Ft vételár és 1,5 millió Ft/m²) ritkábban szűkítik a választékot. A kérdés inkább az, mekkora az önerő, és mekkora törlesztő fér bele a JTM-korlátba.",
+        t: "Ahol alacsonyabbak a négyzetméterárak, a Wekerle Plusz korlátai (lakásnál legfeljebb 100, családi háznál 150 millió Ft vételár és 1,5 millió Ft/m²) ritkábban szűkítik a választékot. A kérdés inkább az, mekkora az önerő, és mekkora törlesztő fér bele a JTM-korlátba.",
         href: "/szolgaltatas/tamogatott-hitelek.html",
-        label: "Otthon Start — jogosultság és törlesztő",
+        label: "Wekerle Plusz — jogosultság és törlesztő",
       },
       {
         h: "Felújítás: megtakarítás, jelzálog vagy kölcsön?",
@@ -539,7 +539,7 @@ export const CITIES = [
       title: "Pénzügyi tanácsadó Nyíregyháza — online | Érték Pont",
       desc:
         "Pénzügyi tanácsadás Nyíregyházáról, online: családi költségvetés gyerekekkel, anyai " +
-        "szja-mentesség, házépítés Otthon Starttal, szezonális bevétel.",
+        "szja-mentesség, házépítés Wekerle Plusszal, szezonális bevétel.",
     },
     h1: "Pénzügyi tanácsadás Nyíregyházán, online",
     lead:
@@ -564,9 +564,9 @@ export const CITIES = [
       },
       {
         h: "Házépítés vagy -vásárlás",
-        t: "Az Otthon Start lakóingatlan vásárlására és építésére is igénybe vehető, fix 3%-os kamattal. Építésnél a folyósítás ütemezése és az önerő időzítése legalább annyira fontos, mint a kamat.",
+        t: "A Wekerle Plusz lakás és családi ház vásárlására és építésére is igénybe vehető: építésre és új ingatlanra fix 3%, használtra fix 5% kamattal, 45 éves korig. Építésnél a folyósítás ütemezése és az önerő időzítése legalább annyira fontos, mint a kamat.",
         href: "/szolgaltatas/tamogatott-hitelek.html",
-        label: "Otthon Start építéshez is",
+        label: "Wekerle Plusz építéshez is",
       },
       {
         h: "Szezonális bevétel, egyenetlen hónapok",
@@ -591,8 +591,8 @@ export const CITIES = [
         a: "Azt, hogy a 20%-os adójóváírás — nyugdíjpénztár, nyugdíjbiztosítás, egészségpénztár — nálad csak a ténylegesen befizetett szja erejéig jár, vagyis kevesebb vagy nulla lehet. Ha a párod fizet szja-t, az ilyen megtakarítást érdemes az ő nevére tenni; a gyerekcélú megtakarítás pedig jóváírás nélkül is működik.",
       },
       {
-        q: "Házat építenénk. Használható erre az Otthon Start?",
-        a: "Igen, lakóingatlan építésére is igénybe vehető, fix 3%-os kamattal, legfeljebb 50 millió forintig. A feltételeket (első ingatlan, TB-jogviszony, értékhatárok) és a kivételeket a bank vizsgálja; előre érdemes megnézni, a te helyzeted belefér-e.",
+        q: "Házat építenénk. Használható erre a Wekerle Plusz?",
+        a: "Igen, az Otthon Startot felváltó Wekerle Plusz családi ház építésére is igénybe vehető, fix 3%-os kamattal, legfeljebb 50 millió forintig. A feltételeket (első ingatlan, 45 év alatti életkor, 150 millió forintos bekerülési és 1,5 millió Ft/m²-es határ, öt év bentlakás) és a kivételeket a bank vizsgálja; előre érdemes megnézni, a te helyzeted belefér-e.",
       },
       {
         q: "Mekkora vésztartalék kell, ha a bevételem szezonális?",
@@ -620,7 +620,7 @@ export const CITIES = [
     seo: {
       title: "Pénzügyi tanácsadó Kecskemét — lakás, hitel, adóstárs",
       desc:
-        "Pénzügyi tanácsadás Kecskemétről: új lakás Otthon Starttal, két jövedelem és adóstárs, " +
+        "Pénzügyi tanácsadás Kecskemétről: új lakás Wekerle Plusszal, két jövedelem és adóstárs, " +
         "20% vissza a lakáshitel-törlesztésből, ingázás Budapestre.",
     },
     h1: "Pénzügyi tanácsadás Kecskeméten, online",
@@ -641,9 +641,9 @@ export const CITIES = [
     topics: [
       {
         h: "Új építésű lakás vagy családi ház",
-        t: "Az Otthon Start fix 3%-os kamattal, legfeljebb 50 millió forintig vehető igénybe vásárlásra és építésre is. Új lakásnál a folyósítás az építés készültségéhez igazodik, ezért az önerő időzítését előre meg kell tervezni.",
+        t: "A Wekerle Plusz új lakásra és építésre fix 3%-os kamattal, legfeljebb 50 millió forintig vehető igénybe (használt lakásra 5% a kamat). Új lakásnál a folyósítás az építés készültségéhez igazodik, ezért az önerő időzítését előre meg kell tervezni.",
         href: "/szolgaltatas/tamogatott-hitelek.html",
-        label: "Otthon Start — feltételek és törlesztő",
+        label: "Wekerle Plusz — feltételek és törlesztő",
       },
       {
         h: "Két jövedelem, egy hitel: 20% vissza a törlesztésből",
@@ -675,7 +675,7 @@ export const CITIES = [
       },
       {
         q: "Új építésű lakásnál mire figyeljek a hitelnél?",
-        a: "Három dologra: a folyósítás ütemezésére (részletekben, az építés készültségéhez igazítva), az önerő időzítésére, és arra, hogy a lakás ára és négyzetméterára belefér-e az Otthon Start korlátaiba (100 millió Ft, illetve 1,5 millió Ft/m²).",
+        a: "Három dologra: a folyósítás ütemezésére (részletekben, az építés készültségéhez igazítva), az önerő időzítésére, és arra, hogy a lakás ára és négyzetméterára belefér-e a Wekerle Plusz korlátaiba (lakásnál 100 millió Ft, illetve 1,5 millió Ft/m²).",
       },
       {
         q: "Mennyibe kerül nekem a tanácsadás?",

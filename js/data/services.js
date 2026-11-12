@@ -15,8 +15,13 @@ const MAX_NYESZ = 100000;              // NYESZ max.
 const MAX_PENSION_TOTAL = 280000;      // a harom forma EGYUTTES felso korlatja
 const MAX_HEALTH_FUND = 150000;        // egészség-/önsegélyező pénztár max.
 const HOUSING_MONTHLY_CAP = Math.round(MINWAGE_2026 * 0.15); // 48 420 Ft
-const OTTHON_START_RATE = 0.03;        // fix 3%
-const OTTHON_START_MAX = 50_000_000;
+/* Wekerle Plusz lakásszerzési kölcsön — 298/2026. (X. 27.) Korm. rendelet */
+const WEKERLE_RATE_NEW = 0.03;         // új lakás, építés: fix 3%
+const WEKERLE_RATE_USED = 0.05;        // használt lakás: fix 5%
+const WEKERLE_MAX = 50_000_000;        // max. hitelösszeg
+const WEKERLE_PRICE_CAP_FLAT = 100_000_000;   // lakás max. vételára
+const WEKERLE_PRICE_CAP_HOUSE = 150_000_000;  // családi ház max. vételára
+const WEKERLE_SQM_CAP = 1_500_000;     // max. négyzetméterár
 
 const fmt = (n) =>
   new Intl.NumberFormat("hu-HU", { maximumFractionDigits: 0 }).format(Math.round(n));
@@ -1521,32 +1526,34 @@ const SERVICES = [
     cat: "hitel",
     icon: I.house,
     /* A H1 a keresett kifejezéssel; a kártyán és a menüben marad a rövid név. */
-    h1: "Otthon Start és támogatott lakáshitelek",
+    h1: "Wekerle Plusz és támogatott lakáshitelek",
     title: "Támogatott hitelek",
     navTitle: "Támogatott hitelek",
-    badge: "Fix 3%",
+    badge: "Fix 3% / 5%",
     metric: "max. 50 M Ft, 25 év",
-    hook: "Az Otthon Start fix 3%-a nem akció, hanem jogszabály. A kérdés csak az, hogy megfelelsz-e a feltételeknek — és ezt 10 perc alatt kiderítjük.",
+    hook: "A Wekerle Plusz fix kamata nem akció, hanem jogszabály: új lakásra 3%, használtra 5%. A kérdés csak az, hogy megfelelsz-e a feltételeknek — és ezt 10 perc alatt kiderítjük.",
     seo: {
-      title: "Otthon Start és támogatott hitelek 2026 — fix 3% kamat",
-      desc: "Otthon Start Program 2026: fix 3% kamat, max. 50 millió Ft, 25 év futamidő, első lakás, TB-jogviszony feltétel. Nézzük meg, jogosult vagy-e.",
+      title: "Wekerle Plusz lakáshitel 2026 — fix 3% vagy 5% kamat",
+      desc: "Wekerle Plusz lakáshitel: fix 3% új, 5% használt lakásra, max. 50 millió Ft, 25 év, 45 éves korig. Az Otthon Start utódja — nézzük meg, jogosult vagy-e.",
     },
     facts: [
-      { v: "3%", l: "fix kamat a teljes futamidőn" },
+      { v: "3% / 5%", l: "fix kamat új, illetve használt lakásra" },
       { v: "50 M Ft", l: "maximális hitelösszeg" },
       { v: "25 év", l: "maximális futamidő" },
     ],
     intro:
-      "A támogatott hitelek kamata jogszabályban rögzített, ezért drámaian alacsonyabb a piacinál. A 2026-ban futó Otthon Start Program fix 3%-os kamattal, legfeljebb 50 millió forintig, 25 éves futamidőre elérhető — házassági és gyermekvállalási feltétel nélkül, elsősorban az első lakás megszerzésére.",
+      "A támogatott hitelek kamata jogszabályban rögzített, ezért alacsonyabb a piacinál. Az Otthon Startot 2026 őszén a Wekerle Plusz lakásszerzési kölcsön váltotta: új lakás vásárlására vagy építésére legfeljebb évi 3%, használt lakásra legfeljebb évi 5% fix kamattal, legfeljebb 50 millió forintig, 25 éves futamidőre érhető el — 18 és 45 éves kor között, házassági és gyermekvállalási feltétel nélkül, annak, akinek még nincs saját lakása.",
     how: [
-      { h: "Alapfeltételek", t: "Elsősorban első lakás szerzése, folyamatos, legalább 1–2 éves TB-jogviszony (hitelösszegtől függően; elfogadható munkaviszony, vállalkozói jogviszony, bizonyos esetekben gyed/gyes). Számos kivételszabály van, ezért egyedileg kell megnézni." },
-      { h: "Mire használható", t: "Magyarországon lakóingatlan vásárlására vagy építésére. Az ingatlan bérbeadható, lakcímbejelentés nem feltétel, de 5 évig nem adható el." },
-      { h: "Egyedülállóként is", t: "Nem csak házaspároknak: bizonyos banki konstrukciókban egyedülállók és élettársak is részt vehetnek, ha első ingatlanszerzésről van szó." },
-      { h: "Kombinálás", t: "A támogatott hitel mellé piaci hitel, családi támogatások és az önerő tervezése is kérdés. A teljes szerkezetet együtt kell összeállítani, nem elemenként." },
+      { h: "Alapfeltételek", t: "18 éves kortól a 45. születésnapodig igényelheted, ha nincs és korábban sem volt 50%-os vagy nagyobb tulajdonod lakásban (kivétel például a 30 millió forintnál nem értékesebb ingatlan). Legalább 10% önerő kell. Kétéves TB-jogviszony — az Otthon Starttal ellentétben — nem feltétel, a bank viszont rendszeres, igazolható jövedelmet kér." },
+      { h: "Mire használható", t: "Magyarországon lakás vagy családi ház vásárlására, illetve építésére — bővítésre, felújításra és hitelkiváltásra nem. A lakás legfeljebb 100, a családi ház legfeljebb 150 millió forintba kerülhet, a négyzetméterár pedig legfeljebb 1,5 millió forint lehet." },
+      { h: "Beköltözés és bentlakás", t: "A folyósítás után 180 napon belül lakcímet kell létesítened, és öt évig életvitelszerűen ott kell laknod. Ez alatt az idő alatt a lakás nem adható bérbe, és elidegenítési tilalom terheli." },
+      { h: "Egyedülállóként is", t: "Egyedül is igényelheted. Házastársak és élettársak csak közösen, együttes igénylőként adhatják be a kérelmet; ha a jövedelmed nem elég, szülő vagy testvér adóstársként bevonható." },
+      { h: "Kombinálás", t: "Ha az 50 millió forint nem elég, piaci hitel felvehető mellé. Más kamattámogatott lakáshitellel viszont a rendelet szerint nem igényelhető együtt — ezért a teljes szerkezetet egyben kell összeállítani, nem elemenként." },
+      { h: "Mi lett az Otthon Starttal?", t: "Az Otthon Start igénylési határideje 2026. november 15., és ez is csak az október 31-ig megkötött adásvételi szerződésekre vonatkozik. Minden más lakásvásárlásra és építésre már a Wekerle Plusz szabályai érvényesek." },
     ],
     bullets: [
       "első lakást vásárolnál vagy építenél",
-      "van legalább 1–2 év folyamatos TB-jogviszonyod",
+      "18 és 45 év között vagy",
       "nem tudod, mennyi hitelre vagy jogosult",
       "a piaci hitel törlesztője túl magas lenne",
     ],
@@ -1558,21 +1565,20 @@ const SERVICES = [
           q: "Ez lenne az első saját lakásod?",
           type: "choice",
           opts: [
-            { v: "yes", label: "Igen", note: "Az Otthon Start alapfeltétele" },
-            { v: "part", label: "Van/volt kisebb részem ingatlanban", note: "Vannak kivételszabályok, megnézzük" },
-            { v: "no", label: "Nem, van saját ingatlanom", note: "Más támogatott vagy piaci megoldást keresünk" },
+            { v: "yes", label: "Igen", note: "A Wekerle Plusz alapfeltétele" },
+            { v: "part", label: "Van/volt kisebb részem ingatlanban", note: "50% alatti hányad vagy 30 millió Ft alatti érték nem kizáró ok" },
+            { v: "no", label: "Nem, van saját ingatlanom", note: "Piaci megoldást keresünk" },
           ],
         },
         {
-          id: "tb",
+          id: "age",
           kicker: "2. kérdés",
-          q: "Mennyi folyamatos TB-jogviszonyod van?",
+          q: "Hány éves vagy?",
           type: "choice",
           opts: [
-            { v: "2", label: "2 év vagy több", note: "A legnagyobb hitelösszeg is elérhető" },
-            { v: "1", label: "1–2 év", note: "Alacsonyabb összeg, de működhet" },
-            { v: "less", label: "Kevesebb mint 1 év", note: "Várni kell, vagy más út kell" },
-            { v: "gyed", label: "Gyed / gyes van", note: "Bizonyos esetekben beszámít" },
+            { v: "under", label: "18 és 43 év között", note: "Belefér az életkori határba" },
+            { v: "near", label: "44 éves vagyok", note: "A kérelmet a 45. születésnapodig be kell adni" },
+            { v: "over", label: "Elmúltam 45", note: "Wekerle Plusz helyett piaci hitelt nézünk" },
           ],
         },
         {
@@ -1581,22 +1587,46 @@ const SERVICES = [
           q: "Mit szeretnél?",
           type: "choice",
           opts: [
-            { v: "buy", label: "Használt lakást vásárolni" },
-            { v: "new", label: "Új építésűt vásárolni" },
-            { v: "build", label: "Építeni" },
+            { v: "buy", label: "Használt lakást vásárolni", note: "Fix 5% kamat" },
+            { v: "new", label: "Új építésűt vásárolni", note: "Fix 3% kamat" },
+            { v: "build", label: "Építeni", note: "Fix 3% kamat" },
           ],
         },
       ],
       calc: {
-        kicker: "Otthon Start kalkulátor",
-        title: "Otthon Start törlesztő, fix 3%",
+        kicker: "Wekerle Plusz kalkulátor",
+        title: "Wekerle Plusz törlesztő: fix 3% vagy 5%",
         help:
-          "Maximum 50 millió Ft, legfeljebb 25 év, fix 3% a teljes futamidőre. A számítás a jogszabályi korlátokat is jelzi.",
+          "Maximum 50 millió Ft, legfeljebb 25 év. Új lakásra és építésre 3%, használt lakásra 5% a fix kamat. A számítás a jogszabályi korlátokat is jelzi.",
         inputs: [
-          { key: "price", label: "Ingatlan vételára", type: "slider", min: 10000000, max: 120000000, step: 2500000, def: 60000000, unit: "Ft" },
-          { key: "sqm", label: "Alapterület", type: "slider", min: 25, max: 160, step: 5, def: 55, unit: " m²" },
+          {
+            key: "kind",
+            label: "Milyen ingatlan?",
+            type: "select",
+            def: "hasznalt-lakas",
+            options: [
+              { v: "hasznalt-lakas", label: "Használt lakás — fix 5%", short: "használt lakás" },
+              { v: "uj-lakas", label: "Új építésű lakás — fix 3%", short: "új lakás" },
+              { v: "hasznalt-haz", label: "Használt családi ház — fix 5%", short: "használt ház" },
+              { v: "uj-haz", label: "Új családi ház vagy építés — fix 3%", short: "új ház" },
+            ],
+            note: "Lakásnál 100, családi háznál 150 millió Ft a vételár felső határa.",
+          },
+          { key: "price", label: "Ingatlan vételára", type: "slider", min: 10000000, max: 160000000, step: 2500000, def: 60000000, unit: "Ft" },
+          { key: "sqm", label: "Alapterület", type: "slider", min: 25, max: 250, step: 5, def: 55, unit: " m²" },
           { key: "amount", label: "Igényelt hitelösszeg", type: "slider", min: 5000000, max: 50000000, step: 1000000, def: 35000000, unit: "Ft" },
           { key: "years", label: "Futamidő", type: "slider", min: 5, max: 25, step: 1, def: 25, unit: "év" },
+          {
+            key: "age",
+            label: "Életkorod",
+            type: "slider",
+            min: 18,
+            max: 60,
+            step: 1,
+            def: 30,
+            unit: "év",
+            note: "A kérelmet legkésőbb a 45. születésnapodon lehet beadni.",
+          },
           {
             key: "market",
             label: "Összehasonlítás piaci kamattal",
@@ -1610,58 +1640,76 @@ const SERVICES = [
         compute(v) {
           const sqmPrice = v.sqm > 0 ? v.price / v.sqm : 0;
 
-          /* Jogszabalyi korlatok (227/2025. Korm. rendelet): lakas max 100 M Ft,
-             m2-ar max 1,5 M Ft, onero min 10%, hitel max 50 M Ft, futamido max 25 ev.
-             A hitelt a veteларhoz is kotni kell: a ket csuszka egymastol fuggetlen,
+          /* Jogszabalyi korlatok (298/2026. Korm. rendelet): uj lakas es epites
+             max 3%, hasznalt lakas max 5%; lakas max 100 M Ft, csaladi haz max
+             150 M Ft, m2-ar max 1,5 M Ft; onero min 10%, hitel max 50 M Ft,
+             futamido max 25 ev; a kerelem a 45. szuletesnapig adhato be.
+             A hitelt a vetelarhoz is kotni kell: a ket csuszka egymastol fuggetlen,
              kulonben 10 M Ft-os lakasra 50 M Ft hitelt kerne a felhasznalo. */
-          const maxLoan = Math.min(OTTHON_START_MAX, v.price * 0.9);
+          const isNew = v.kind === "uj-lakas" || v.kind === "uj-haz";
+          const isHouse = v.kind === "uj-haz" || v.kind === "hasznalt-haz";
+          const rate = isNew ? WEKERLE_RATE_NEW : WEKERLE_RATE_USED;
+          const rateLabel = isNew ? "3%" : "5%";
+          const priceCap = isHouse ? WEKERLE_PRICE_CAP_HOUSE : WEKERLE_PRICE_CAP_FLAT;
+
+          const maxLoan = Math.min(WEKERLE_MAX, v.price * 0.9);
           const loan = Math.min(v.amount, maxLoan);
           const clamped = v.amount > maxLoan;
           const own = Math.max(0, v.price - loan);
           const ownPct = v.price > 0 ? (own / v.price) * 100 : 0;
 
-          const sub = annuity(loan, OTTHON_START_RATE, v.years);
+          const sub = annuity(loan, rate, v.years);
           const mkt = annuity(loan, v.market / 100, v.years);
           const diff = mkt - sub;
 
+          /* Kizaro okok: ezekkel a Wekerle Plusz nem igenyelheto. A hitelosszeg
+             levagasa (clamped) nem kizaro ok, csak a szamitast modositja. */
           const flags = [];
-          if (v.price > 100000000) flags.push("a vételár meghaladja a 100 millió Ft-os lakáshatárt");
-          if (sqmPrice > 1500000) flags.push("a négyzetméterár meghaladja az 1,5 millió Ft-ot");
-          if (clamped)
+          if (v.age >= 45) flags.push("a kérelmet legkésőbb a 45. születésnapodon lehet beadni");
+          if (v.price > priceCap)
             flags.push(
-              `ekkora vételárhoz legfeljebb ${ft(maxLoan)} hitel vehető fel (10% saját erő kötelező), ezért ezzel számolunk`
+              isHouse
+                ? "a vételár meghaladja a családi házakra vonatkozó 150 millió Ft-os határt"
+                : "a vételár meghaladja a lakásokra vonatkozó 100 millió Ft-os határt"
             );
+          if (sqmPrice > WEKERLE_SQM_CAP) flags.push("a négyzetméterár meghaladja az 1,5 millió Ft-ot");
+
+          const caption = flags.length
+            ? "Figyelem: " + flags.join("; ") + ". Így a Wekerle Plusz a jelenlegi feltételekkel nem jön szóba — de van rá más út."
+            : clamped
+            ? `Ekkora vételárhoz legfeljebb ${ft(maxLoan)} hitel vehető fel (10% saját erő kötelező), ezért ezzel számoltam. Ugyanez piaci ${pct(v.market)}-on ${ft(mkt)} lenne havonta.`
+            : `${ft(loan)} hitel ${v.years} év alatt. Ugyanez piaci ${pct(v.market)}-on ${ft(mkt)} lenne havonta.`;
 
           return {
             big: ft(sub),
-            bigLabel: "havi törlesztő fix 3%-kal",
-            caption: flags.length
-              ? "Figyelem: " + flags.join("; ") + ". Így ez az ingatlan a jelenlegi feltételekkel nem finanszírozható Otthon Starttal — de van rá más út."
-              : `${ft(loan)} hitel ${v.years} év alatt. Ugyanez piaci ${pct(v.market)}-on ${ft(mkt)} lenne havonta.`,
+            bigLabel: `havi törlesztő fix ${rateLabel}-kal`,
+            caption,
             rows: [
               ["Vételár", ft(v.price)],
               ["Négyzetméterár", ft(sqmPrice) + " / m²"],
               ["Figyelembe vett hitelösszeg", ft(loan)],
               ["Saját erő", ft(own) + " (" + ownPct.toFixed(0) + "%)"],
-              ["Támogatott törlesztő (3%)", ft(sub)],
+              [`Wekerle Plusz törlesztő (${rateLabel})`, ft(sub)],
               [`Piaci törlesztő (${pct(v.market)})`, ft(mkt)],
               ["Havi különbség", ft(diff)],
             ],
-            total: ["Megtakarítás a futamidő alatt", ft(diff * v.years * 12)],
+            total: ["Különbség a futamidő alatt", ft(diff * v.years * 12)],
             note:
-              "Tájékoztató annuitásos számítás, nem hitelajánlat és nem THM. A tényleges törlesztőt a bank határozza meg, a jogosultságot jogszabály szabályozza (227/2025. (VII. 31.) Korm. rendelet): első lakás, legalább 2 éves TB-jogviszony, min. 10% saját erő. A jövedelmi korlátot (JTM) is a bank vizsgálja.",
+              "Tájékoztató annuitásos számítás, nem hitelajánlat és nem THM. A tényleges törlesztőt a bank határozza meg, a jogosultságot jogszabály szabályozza (298/2026. (X. 27.) Korm. rendelet): 18–45 éves kor, nincs és nem volt 50%-os vagy nagyobb lakástulajdonod (kivételekkel), min. 10% saját erő, 5 év bentlakás. A jövedelmi korlátot (JTM) is a bank vizsgálja.",
           };
         },
       },
     },
     faq: [
-      { q: "Kell házasság vagy gyerek?", a: "Az Otthon Start esetében nem: a program házassági és gyermekvállalási feltétel nélkül elérhető. Más támogatásoknál (pl. családi kedvezmények) más a helyzet." },
-      { q: "Ki kell lakcímet létesítenem?", a: "A jelenlegi szabályozás szerint nem feltétel, és az ingatlan bérbe is adható — viszont 5 évig nem értékesíthető." },
-      { q: "Mennyi önerő kell?", a: "Ez banktól és ingatlantól függ, a hitelfedezeti és jövedelmi korlátok (JTM) alapján. Ezt konkrét számokkal, banki ajánlatokkal érdemes megnézni." },
-      { q: "Vállalkozóként is elérhető?", a: "Igen, a vállalkozói jogviszony beszámítható a TB-feltételbe. A jövedelemigazolás módja bankonként különbözik — ez az egyik pont, ahol sokat számít, melyik bankhoz megyünk." },
+      { q: "Kell házasság vagy gyerek?", a: "A Wekerle Plusznál nem: házassági és gyermekvállalási feltétel nélkül, egyedülállóként is elérhető. Házastársak és élettársak viszont csak közösen igényelhetik." },
+      { q: "Miben más, mint az Otthon Start?", a: "Három ponton: használt lakásra a kamat 5% (új lakásra és építésre maradt 3%), a kérelmet legkésőbb a 45. születésnapodig kell beadni, és kötelező beköltözni. Cserébe nem feltétel a kétéves TB-jogviszony. Az Otthon Start igénylési határideje 2026. november 15., és csak az október 31-ig megkötött adásvételi szerződésekre vonatkozik." },
+      { q: "Be kell költöznöm a lakásba?", a: "Igen. A folyósítás után 180 napon belül lakcímet kell létesítened, és öt évig életvitelszerűen ott kell laknod. Ez alatt az idő alatt a lakás nem adható bérbe." },
+      { q: "Mennyi önerő kell?", a: "A rendelet szerint legalább 10%. A bank a jövedelmed és az ingatlan értéke alapján ennél többet is kérhet — ezt konkrét számokkal, banki ajánlatokkal érdemes megnézni." },
+      { q: "Vállalkozóként is elérhető?", a: "Igen. A Wekerle Plusznál nincs TB-jogviszonyra vonatkozó feltétel, a bank viszont rendszeres, igazolható jövedelmet kér. A jövedelemigazolás módja bankonként különbözik — ez az egyik pont, ahol sokat számít, melyik bankhoz megyünk." },
+      { q: "Elmúltam 45 éves. Mit tehetek?", a: "A Wekerle Plusz ekkor már nem igényelhető. Marad a piaci lakáshitel, ahol a bankok ajánlatai között komoly különbségek lehetnek — ezt konkrét számokkal nézzük meg együtt." },
     ],
     legal:
-      "A támogatott hitelek feltételeit jogszabály határozza meg (Otthon Start: 227/2025. (VII. 31.) Korm. rendelet). Az itt szereplő számítás tájékoztató jellegű, nem hitelajánlat.",
+      "A támogatott hitelek feltételeit jogszabály határozza meg (Wekerle Plusz lakásszerzési kölcsön: 298/2026. (X. 27.) Korm. rendelet). Az itt szereplő számítás tájékoztató jellegű, nem hitelajánlat.",
   },
 
   /* 11 ----------------------------------------------------------------- */
@@ -2112,4 +2160,4 @@ const SERVICES = [
 const bySlug = (slug) => SERVICES.find((s) => s.slug === slug);
 const byCat = (cat) => SERVICES.filter((s) => s.cat === cat);
 
-Object.assign(window.EP, { MINWAGE_2026, MAX_PENSION_INS, MAX_PENSION_FUND, MAX_NYESZ, MAX_PENSION_TOTAL, MAX_HEALTH_FUND, HOUSING_MONTHLY_CAP, OTTHON_START_RATE, OTTHON_START_MAX, PROGRAM_YIELDS, fmt, ft, pct, annuity, futureValue, programValue, programMonthlyFor, programNetRate, programNetYield, CATEGORIES, SERVICES, bySlug, byCat });
+Object.assign(window.EP, { MINWAGE_2026, MAX_PENSION_INS, MAX_PENSION_FUND, MAX_NYESZ, MAX_PENSION_TOTAL, MAX_HEALTH_FUND, HOUSING_MONTHLY_CAP, WEKERLE_RATE_NEW, WEKERLE_RATE_USED, WEKERLE_MAX, WEKERLE_PRICE_CAP_FLAT, WEKERLE_PRICE_CAP_HOUSE, WEKERLE_SQM_CAP, PROGRAM_YIELDS, fmt, ft, pct, annuity, futureValue, programValue, programMonthlyFor, programNetRate, programNetYield, CATEGORIES, SERVICES, bySlug, byCat });
