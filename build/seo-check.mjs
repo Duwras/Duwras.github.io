@@ -156,6 +156,8 @@ const inMap = new Set(locs.map(locToFile));
    ellenőrizzük, hogy tényleg noindex, és nincs canonicalja. */
 for (const f of walk("")) {
   if (f === "404.html" || inMap.has(f)) continue;
+  /* Google Search Console tulajdonjog-igazoló fájl (googleXXXX.html): nem tartalom, nem kerül a sitemapbe. */
+  if (/^google[0-9a-f]{8,}\.html$/.test(f)) continue;
   const h = read(f);
   if (/<meta name="robots" content="noindex/.test(h)) {
     if (/rel="canonical"/.test(h)) err(f, "noindex oldal canonicallal");
