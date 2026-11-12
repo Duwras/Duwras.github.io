@@ -83,7 +83,9 @@ portfolio.hu, hvg.hu, telex.hu, vg.hu, bankmonitor.hu, money.hu, adozona.hu.
 
 - van benne **konkrét változás** (szabály, kamat, határidő, díj, összeg), nem csak vélemény vagy előrejelzés;
 - legalább egy **hivatalos forrás** megerősíti (2. pont);
-- lefordítható forintra és élethelyzetre („ha 30 milliós hiteled van…”).
+- lefordítható forintra és élethelyzetre („ha 30 milliós hiteled van…”);
+- **kérdéssé fogalmazható**: mit kérdezne erről egy átlagos olvasó? („Engem érint?”, „Mennyibe kerül?”,
+  „Mi lesz, ha…?”). A hír csak az apropó — a cikk **az olvasó kérdésére** válaszol (5. pont).
 
 **Ne ismételj.** Vesd össze a jelöltet a meglévő cikkekkel (cím, címke, dátum):
 
@@ -137,8 +139,9 @@ Ha a 48 órában nincs olyan hír, amely az 1–2. pont feltételeinek megfelel:
    `- [x] ~~Téma~~ → 2026-11-14, a-cikk-slugja`
 4. ha 5-nél kevesebb téma maradt, írj a lista végére 10 újat ugyanabban a formátumban.
 
-Az evergreen cikk bevezetője ne tegyen úgy, mintha hír lenne: indíts egy tipikus helyzettel vagy
-kérdéssel.
+Az evergreen cikk is az 5. pont szerint épül (nyitójelenet, „Röviden:”, kérdés-válasz szakasz). Ne tegyen
+úgy, mintha hír lenne: a nyitójelenet egy tipikus, időtlen helyzet legyen (nincs „most”, „ma”,
+„ezekben a napokban”).
 
 ---
 
@@ -158,33 +161,95 @@ kérdéssel.
 
 ## 5. Stílus és szerkezet
 
-**Hang:** magyar, közvetlen, természetes — egy profi tanácsadó, aki érthetően beszél, nem prospektus.
+**Alapelv: minden cikk egy történet, amely egy olvasói kérdésre válaszol.** Az olvasó nem „hírt”
+keres, hanem választ arra, ami aggasztja vagy érdekli („Mennyibe kerül?”, „Kit érint?”, „Mi lesz, ha…?”).
+A cikk egy hétköznapi helyzettel kezd, amelyben az olvasó magára ismer, aztán rövid, őszinte,
+forintra lefordított választ ad. A hangnem mintája az **O2 Tanácsadó** (o2tanacsado.hu): tegező,
+közvetlen, bizalmas; az olvasó helyzetéből indul, nem a termékből vagy a rendeletből.
 
-- **Tegezés**, egyes szám első személy („megnéztem”, „szerintem ezt érdemes ellenőrizni”). Nem „mi”,
-  nem „cégünk”, nem „szakértőink”.
-- Rövid mondatok, konkrét számok, hétköznapi szavak. A szakszót (THM, JTM, önrész) első előforduláskor
-  fél mondatban magyarázd el.
+### Hang
+
+- **Tegezés, egyes szám első személy** („megnéztem”, „szerintem érdemes végigszámolni”). Nem „mi”, nem
+  „cégünk”, nem „szakértőink” — a szerző egy ember. Személyes élményt, ügyfél-tapasztalatot **nem
+  találsz ki** (lásd 6. pont).
+- **Érzelmi belépés.** Az első mondatok az olvasó helyzetére és érzésére reagálnak (bizonytalanság,
+  időnyomás, „ezt ki látja át?”), nem a jogszabályra. Ismerd el, hogy a téma tényleg bonyolult vagy
+  kellemetlen — aztán mutasd meg, hogy van rá világos válasz. Ez a megnyugtatás **tényekre épül**
+  (szám, szabály, határidő), nem ígéretre.
+- **Őszinteség.** Ha valami nem éri meg, vagy attól függ, mondd ki. Ha a támogatott konstrukció egy
+  helyzetben rosszabb, mint a piaci, ez is a cikkbe tartozik.
+- **Ritmus.** Rövid, ütős mondatok és címsorok váltakoznak hosszabb, magyarázó bekezdésekkel. A
+  kulcsmondatot (szám, határidő, feltétel) szedd **félkövérrel** — szakaszonként legfeljebb 1–2
+  helyen, hogy átfutva is követhető legyen.
+- Hétköznapi szavak, konkrét számok. A szakszót (THM, JTM, önrész) első előforduláskor fél mondatban
+  magyarázd el. A szókincs a döntés nyugalmáról szóljon (tervezhetőség, tartalék, biztonság,
+  mozgástér) — riogatás és túlzás nélkül.
 - **Nincs sablonos, mesterkélt mondat.** Kerülendő: „A mai rohanó világban…”, „Nem mindegy, hogy…”,
-  „Összefoglalva elmondható…”, „Merüljünk el…”, „Fontos kiemelni, hogy…”, költői kérdések sorozata,
-  hármas felsorolások megszokásból, üres zárómondat.
+  „Összefoglalva elmondható…”, „Merüljünk el…”, „Fontos kiemelni, hogy…”, üres zárómondat,
+  hármas felsorolás megszokásból. (A cikkben a kérdések nem költői kérdéssorozatok: az olvasó
+  **valódi kérdéseire** adsz közvetlen választ.)
 - Nincs kattintásvadász cím, nincs csupa nagybetű, nincs felkiáltójel-halmozás, nincs emoji.
 - Pénzösszeg: `30 millió forint`, `142 ezer forint`, `30 000 forint`; százalék: `3%`; dátum:
   `november 15.`; gondolatjel: ` – `.
 
-**Szerkezet:**
+### Szerkezet — ebben a sorrendben
 
-1. **Bevezető** (1 bekezdés, 40–70 szó, címsor nélkül): mi történt, kit érint, miért most. Hírértékű,
-   a lényeg az első mondatban.
-2. **3–5 `##` szakasz.** Tipikusan: mi történt pontosan → a szabályok / számok → mi változott a
-   korábbihoz képest → **Mit jelent ez neked?** → mire figyelj.
-3. Kötelező szakasz, pontosan ezzel a címmel: **`## Mit jelent ez neked?`** — gyakorlati tanulság
+1. **Cím = az olvasó kérdése**, ahogy beírná a keresőbe vagy elmondaná: „Mennyivel drágább a használt
+   lakás hitele a Wekerle Plusszal?”. Kérdőjelre végződik, a fő kifejezés elöl áll, 6–11 szó, lehetőleg
+   60 karakter alatt.
+2. **Nyitójelenet** (címsor nélkül, 2–4 mondat, jelen idejű): egy hétköznapi helyzet, amelyben az
+   olvasó magára ismer — konkrét részlettel (nap, összeg, egy mondat, amit a családban vagy a bankban
+   hallhat). Második személyben („Péntek délután van, …”) vagy „Képzeld el…” fordulattal. A jelenet
+   **illusztráció**, és úgy is kell bevezetni (6. pont). A végén fogalmazódjon meg a kérdés, amire a
+   cikk válaszol.
+3. **`**Röviden:**` bekezdés** (1–3 mondat, közvetlenül a nyitójelenet után): a címben feltett kérdés
+   válasza a legfontosabb számmal, határidővel vagy feltétellel. Aki csak eddig olvas, már tudja,
+   érinti-e a téma.
+4. **2–3 `##` szakasz a történet továbbvitelével:** mi történt pontosan (hírnél) → a szabályok és
+   számok → mi változott a korábbihoz képest. A címsorok többsége **kérdés vagy töprengő mondat**
+   („Miért éppen november 15.?”, „Mennyit jelent ez havonta?”), nem száraz főcím. Ha van
+   **vezérpélda** (pl. 30 millió forintos hitel), vezesd végig a cikken, hogy az olvasó lássa, hogyan
+   változik a szám.
+5. **`## Kérdések, amik ilyenkor felmerülnek`** — **kötelező**, pontosan ezzel a címmel. 3–5 valódi
+   olvasói kérdés `### …?` alcímként, az olvasó saját hangján („Muszáj beköltöznöm?”, „Mi van, ha
+   elmúltam 45?”). Alattuk 2–4 mondatos, közvetlen válasz: **az első mondat maga a válasz** (igen /
+   nem / attól függ — és mitől), utána a miért és szükség esetén egy szám. Ha a válasz „attól függ”,
+   mondd meg, mitől, és kihez érdemes fordulni (bank, NAV, könyvelő). A kérdések ötlete jöhet abból,
+   amit az emberek keresnek és kérdeznek (keress rá a téma kulcsszavára, nézd meg a találatok és a
+   banki GYIK-oldalak kérdéseit) — a **válasz** viszont csak ellenőrzött forrásból (2. pont).
+6. **`## Mit jelent ez neked?`** — **kötelező**, pontosan ezzel a címmel: gyakorlati tanulság
    **forintban** és **élethelyzetekben** (legalább 2–3 helyzet: „ha most veszel lakást…”, „ha már
-   van hiteled…”, „ha 45 fölött vagy…”).
-4. **Zárás:** egy konkrét, természetes felhívás — 1–2 mondat, benne egy link a `/kapcsolat/` oldalra
+   van hiteled…”, „ha 45 fölött vagy…”). Itt kerülnek össze a vezérpélda számai.
+7. **Zárás:** egy konkrét, természetes felhívás — 1–2 mondat, benne egy link a `/kapcsolat/` oldalra
    („kérj visszahívást”). Nem nyomulás: azt mondd meg, miben segít a beszélgetés. (Alatta a sablon
    automatikusan kiteszi a CTA-blokkot, a forrásokat és a jogi tájékoztatót — ezeket ne írd bele.)
 
-**Terjedelem:** **600–900 szó** a cél. (A validátor 500 alatt és 1200 fölött megbuktat.)
+Minta-váz:
+
+```markdown
+Péntek délután van, és a bankos visszahív: „…”. Te pedig azt kérdezed magadtól: …?
+
+**Röviden:** … (a kérdés válasza, 1–3 mondat)
+
+## Mi történt pontosan?
+…
+## Mennyit jelent ez havonta?
+…
+## Kérdések, amik ilyenkor felmerülnek
+### Muszáj beköltöznöm a lakásba?
+Igen. …
+### Mi van, ha elmúltam 45 éves?
+…
+### Mennyibe kerül a hitel elintézése?
+…
+## Mit jelent ez neked?
+…
+Záró felhívás [/kapcsolat/](/kapcsolat/) linkkel.
+```
+
+**Terjedelem:** **700–1000 szó** a cél. (A validátor 500 alatt és 1200 fölött megbuktat. A kérdés-válasz
+szakasz hiánya, vagy ha 3–5-nél kevesebb/több „?”-es alcím van benne, **hiba**; a hiányzó
+„Röviden:” bekezdés és a nem kérdés-formájú cím figyelmeztetés — de pótolandó.)
 
 **Belső linkek:** 1–3 darab, ott, ahol tényleg segít. Mindig gyökértől írd (`/…`). Választható célok:
 
@@ -233,8 +298,17 @@ Ezek nem stíluskérdések — bármelyik megsértése esetén a cikk nem jelenh
 - **Minden terméktípusnál ott a kockázat:** hitelnél, hogy hosszú távú kötelezettség, és a törlesztőt
   jövedelemcsökkenés esetén is fizetni kell; befektetésnél, hogy az érték csökkenhet; biztosításnál,
   hogy a feltételek és a kizárások döntenek.
-- **Nincs ügyfélnév, ügyféltörténet, személyes adat.** Kitalált „ügyfelem, Kata” sincs. Példának
-  „egy 30 milliós hitelnél” típusú, személytelen számolást használj.
+- **Nincs valós ügyfél-történet, ügyfélnév, személyes adat — és nincs kitalált „tapasztalat” sem.**
+  A történetmesélés eszköze az **illusztráció**: névtelen, képzeletbeli helyzet („Képzeld el…”,
+  „Vegyünk egy példát: egy két gyerekes család…”, vagy az olvasó saját, második személyű jelenete).
+  Szabályok:
+  1. Mindig derüljön ki, hogy ez példa, nem megtörtént eset. **Soha**: „az egyik ügyfelem”, „tegnap
+     hívott egy ügyfél”, „megtörtént eset”, „valós példa”.
+  2. Nincs kitalált keresztnév, idézet vagy vélemény valakitől, és nincs kitalált **eredmény** („így
+     spórolt meg 2 milliót”). A példa számai ellenőrzött szabályokból, tényleg kiszámolva jöjjenek.
+  3. A példa nem ígér: azt mutatja meg, **hogyan számolhat az olvasó**, nem azt, mit fog elérni.
+  4. A szerző saját élményét sem találod ki („múlt héten egy bankban jártam”, „szoktam látni…” típusú,
+     nem igazolható személyes állítás). „Én ezt szoktam megnézni” jellegű szakmai szempont rendben van.
 - **Nincs politikai állásfoglalás.** Kormányzati döntésről tényszerűen: mi változott, kit érint.
   Nem minősítünk pártot, kormányt, politikust, és nem találgatunk a szándékaikról.
 - **Ne állítsd, hogy a cikk az OVB hivatalos közleménye,** és ne írj az OVB nevében. A szerző
@@ -286,7 +360,7 @@ Szöveg…
 
 | Mező | Szabály |
 |---|---|
-| `title` | 15–70 karakter, lehetőleg **60 alatt**; a keresett kifejezés az elején; idézőjelben, ha kettőspont van benne |
+| `title` | **az olvasó kérdése, kérdőjellel végződik**; 15–70 karakter, lehetőleg **60 alatt**; a keresett kifejezés az elején; idézőjelben, ha kettőspont vagy kérdőjel van benne |
 | `slug` | ékezet nélkül, kisbetű, kötőjel (`a-z`, `0-9`, `-`), max. 80 karakter, **egyedi**; 3–6 szó |
 | `date` | ISO: `2026-11-12` (vagy `2026-11-12T08:00:00+01:00`); nem lehet jövőbeli |
 | `description` | **110–155 karakter** (155 fölött hiba); önálló, a címet nem ismétlő mondat; idézőjelben |
@@ -424,8 +498,12 @@ Csak akkor commitolj, ha **mindegyikre** igen a válasz:
 - [ ] Minden szám és állítás mögött legalább 2 független forrás áll, köztük hivatalos; a forrás-URL-eket megnyitottam, működnek, és a cikk megjelenési dátumát (évszám!) ellenőriztem.
 - [ ] Amiben bizonytalan voltam, kihagytam.
 - [ ] Nincs másolt mondat; idézet legfeljebb 15 szó.
-- [ ] Van hírértékű bevezető, 3–5 `##` szakasz, köztük a „Mit jelent ez neked?” forintban és élethelyzetekkel, a végén természetes felhívás `/kapcsolat/` linkkel.
-- [ ] 600–900 szó; tegezés, egyes szám első személy; nincs sablonmondat.
+- [ ] A cím az olvasó kérdése (kérdőjellel), és a cikk tényleg erre válaszol.
+- [ ] Van nyitójelenet (2–4 mondat, jelen idő, az olvasó helyzetéből), utána „**Röviden:**” válasz.
+- [ ] Van `## Kérdések, amik ilyenkor felmerülnek` 3–5 „### …?” alcímmel; minden válasz első mondata maga a válasz; a válaszok ellenőrzött forrásból vannak.
+- [ ] Van `## Mit jelent ez neked?` forintban és élethelyzetekkel, a végén természetes felhívás `/kapcsolat/` linkkel.
+- [ ] A történet nyilvánvalóan illusztráció: nincs „az egyik ügyfelem”, kitalált név/idézet/eredmény, kitalált személyes élmény.
+- [ ] 700–1000 szó; tegezés, egyes szám első személy; kulcsmondatok félkövérrel; nincs sablonmondat.
 - [ ] Nincs hozamígéret, személyre szabott tanács, termék- vagy szolgáltatóajánlás, ügyféladat, politikai állásfoglalás, OVB-közleménynek látszó megfogalmazás, visszahívási időígéret.
 - [ ] A kockázat ott van, ahol terméktípusról írok.
 - [ ] `node build/generate.mjs` és mindhárom ellenőrzés hibátlan.

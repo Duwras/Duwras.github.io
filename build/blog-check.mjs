@@ -16,6 +16,8 @@
      „kockázatmentes” … — a teljes lista: build/blog.mjs → BLOG.banned);
    - törött belső link, nem létező horgony vagy kép, relatív link, külső kép;
    - H1 vagy H4+ címsor a törzsben, címsor-ugrás, hiányzó bevezető;
+   - hiányzik a „## Kérdések, amik ilyenkor felmerülnek” szakasz, vagy nincs
+     benne 3–5 „### …?” alcím (kérdés-válasz szerkezet; BLOG_AGENT.md → 5. pont);
    - a generált kimenet nem friss (a cikknek nincs oldala, hiányzik a
      sitemapből vagy az RSS-ből) — ilyenkor: node build/generate.mjs.
 

@@ -430,7 +430,7 @@ export function loadPosts(root) {
     /* --- törzs --- */
     const md = renderMarkdown(body);
     if (md.words < BLOG.words.min || md.words > BLOG.words.max)
-      E(`a szöveg ${md.words} szó (megengedett: ${BLOG.words.min}–${BLOG.words.max}; cél: 600–900)`);
+      E(`a szöveg ${md.words} szó (megengedett: ${BLOG.words.min}–${BLOG.words.max}; cél: 700–1000)`);
     for (const h of md.headings) {
       if (h.level === 1) E(`H1 a törzsben („# ${h.text}”) — a cím a frontmatter title mezője, a törzs ## -vel kezdődjön`);
       if (h.level > 3) E(`H${h.level} címsor („${h.text}”) — csak ## és ### használható`);
@@ -440,6 +440,22 @@ export function loadPosts(root) {
     if (!md.intro.trim()) E("hiányzik a bevezető: az első ## előtt legyen legalább egy bekezdés");
     if (md.headings.length && !md.headings.some((h) => /mit jelent ez neked/i.test(h.text)))
       W("nincs „Mit jelent ez neked?” szakasz");
+
+    /* Szerkezet: minden cikk egy olvasói kérdésre válaszol (BLOG_AGENT.md → 5. pont).
+       - kötelező a „Kérdések…” H2 szakasz, alatta legalább 3 kérdés-alcímmel (H3, „?”-re végződik);
+       - a cím legyen kérdés; a bevezetőt kövesse egy „Röviden:” válasz. */
+    {
+      const qi = md.headings.findIndex((h) => h.level === 2 && /kérdés/i.test(h.text));
+      if (qi < 0) E("hiányzik a kérdés-válasz szakasz: legyen egy „## Kérdések, amik ilyenkor felmerülnek” H2 szakasz");
+      else {
+        let n = 0;
+        for (let i = qi + 1; i < md.headings.length && md.headings[i].level === 3; i++)
+          if (/\?\s*$/.test(md.headings[i].text)) n++;
+        if (n < 3 || n > 6) E(`a kérdés-válasz szakaszban ${n} db „### …?” alcím van (kell: 3–5, mindegyik „?”-re végződjön)`);
+      }
+      if (!/^\s*\*\*röviden[:.]?\*\*/im.test(body)) W("hiányzik a „**Röviden:**” bekezdés (a címben feltett kérdés rövid válasza, a bevezető után)");
+      if (!/\?\s*$/.test(title)) W("a cím nem kérdés — az olvasó kérdését kérdőjellel fogalmazd meg (pl. „Mennyivel drágább …?”)");
+    }
     let last = 1;
     for (const h of md.headings) {
       if (h.level > last + 1) E(`címsor-ugrás: H${last} → H${h.level} („${h.text}”)`);
