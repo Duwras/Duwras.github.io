@@ -37,7 +37,7 @@ export function aboutPage({ CFG, BRAND, esc }) {
         title: "Mivel foglalkozom — és mivel nem",
         html: `
         <p>Pénzügyi tanácsadással és közvetítéssel, 13 területen: nyugdíj- és gyerekcélú megtakarítás,
-        20%-os adókedvezmények, élet-, baleset- és egészségbiztosítás, KGFB és casco, Otthon Start és
+        20%-os adókedvezmények, élet-, baleset- és egészségbiztosítás, KGFB és casco, Wekerle Plusz és
         piaci lakáshitel, személyi kölcsön, díjmentes bankszámla. Az első lépés mindig egy
         <a href="/penzugyi-tervezes/">pénzügyi tervezés</a> jellegű helyzetfelmérés.</p>
         <ul>

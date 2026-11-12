@@ -36,7 +36,7 @@ blokk) legerősebb tényezője — ezt csak a tulajdonos tudja beállítani, fi�
 
 **Leírás-javaslat:**
 > Pénzügyi tanácsadás és pénzügyi tervezés egy helyen: nyugdíj- és gyerekcélú megtakarítás,
-> 20%-os adókedvezmények, élet-, baleset- és egészségbiztosítás, KGFB és casco, Otthon Start és
+> 20%-os adókedvezmények, élet-, baleset- és egészségbiztosítás, KGFB és casco, Wekerle Plusz és
 > piaci lakáshitel, személyi kölcsön, díjmentes bankszámla. A tanácsadás díjmentes, online az
 > egész országban, Budapesten személyesen is. Az első beszélgetés 30–45 perc; jelentkezés után
 > visszahívlak, jellemzően hétköznap 9 és 19 óra között. A közvetítést az OVB Vermögensberatung
@@ -50,7 +50,7 @@ blokk) legerősebb tényezője — ezt csak a tulajdonos tudja beállítani, fi�
 A 13 szolgáltatás-oldal címével egyezően, mindegyikhez a saját URL (UTM-mel):
 Nyugdíj-megtakarítás · Gyerek-megtakarítás · Szabad felhasználású megtakarítás · 20%
 adókedvezmény egészségpénztárral · Lakáshitel-törlesztés önsegélyező pénztárral · Életbiztosítás ·
-Baleset-biztosítás · Egészségbiztosítás · KGFB és casco · Otthon Start és támogatott hitelek ·
+Baleset-biztosítás · Egészségbiztosítás · KGFB és casco · Wekerle Plusz és támogatott hitelek ·
 Lakáshitel és hitelkiváltás · Személyi kölcsön · Díjmentes bankszámla.
 **Ne** vegyél fel: befektetési tanácsadás, hiteltanácsadás, független tanácsadás.
 

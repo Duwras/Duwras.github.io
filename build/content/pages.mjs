@@ -122,7 +122,7 @@ export function pillarPage({ CFG, BRAND, CITIES }) {
           <thead><tr><th>Élethelyzet</th><th>Tipikus kérdés</th><th>Hol kezdd</th></tr></thead>
           <tbody>
             <tr><td>Első munkahely, első fizetés</td><td>Milyen bankszámla, mennyi tartalék, mikor kezdjem a nyugdíjcélt?</td><td><a href="/penzugyi-tervezes/">Pénzügyi tervezés</a></td></tr>
-            <tr><td>Első lakás</td><td>Jogosult vagyok az Otthon Startra? Mekkora hitel fér bele?</td><td><a href="/szolgaltatas/tamogatott-hitelek.html">Otthon Start</a></td></tr>
+            <tr><td>Első lakás</td><td>Jogosult vagyok a Wekerle Pluszra? Mekkora hitel fér bele?</td><td><a href="/szolgaltatas/tamogatott-hitelek.html">Wekerle Plusz</a></td></tr>
             <tr><td>Gyerek születése</td><td>Mekkora életbiztosítás kell? Érdemes gyerekcélra félretenni?</td><td><a href="/szolgaltatas/elet-biztositas.html">Életbiztosítás</a>, <a href="/szolgaltatas/gyerek-megtakaritas.html">gyerek-megtakarítás</a></td></tr>
             <tr><td>Több hitel egyszerre</td><td>Kiváltható olcsóbban? Mennyi a teljes visszafizetés?</td><td><a href="/szolgaltatas/szemelyi-kolcson.html">Hitelkiváltás</a></td></tr>
             <tr><td>45–55 év között</td><td>Elég lesz a nyugdíj? Hogyan szerezzem vissza az adóm 20%-át?</td><td><a href="/szolgaltatas/nyugdij-megtakaritas.html">Nyugdíj-megtakarítás</a></td></tr>
@@ -246,7 +246,7 @@ export function pillarPage({ CFG, BRAND, CITIES }) {
           <thead><tr><th>Téma</th><th>Jellemzően szükséges</th></tr></thead>
           <tbody>
             <tr><td>Első beszélgetés</td><td>Meglévő szerződések (hitel, biztosítás, pénztár) — ha kéznél vannak</td></tr>
-            <tr><td>Lakáshitel, Otthon Start</td><td>Személyi okmányok, jövedelemigazolás, bankszámlakivonatok, adásvételi szerződés vagy előszerződés, a TB-jogviszony igazolása</td></tr>
+            <tr><td>Lakáshitel, Wekerle Plusz</td><td>Személyi okmányok, jövedelemigazolás, bankszámlakivonatok, adásvételi szerződés vagy előszerződés</td></tr>
             <tr><td>Hitelkiváltás</td><td>A kiváltandó hitelek szerződése és aktuális tartozásigazolása</td></tr>
             <tr><td>KGFB, casco</td><td>Forgalmi engedély, a jelenlegi kötvény és az évforduló dátuma, bónuszfokozat</td></tr>
             <tr><td>Nyugdíj- és egészségpénztár</td><td>Meglévő pénztári tagság adatai; a jóváíráshoz az szja-bevallásban tett rendelkező nyilatkozat</td></tr>
@@ -409,7 +409,7 @@ export function planningPage({ CFG }) {
           <thead><tr><th>Életszakasz</th><th>Fő kérdés</th><th>Tipikus első lépés</th></tr></thead>
           <tbody>
             <tr><td>20–30 év</td><td>Hogyan kezdjem jól?</td><td>Díjmentes bankszámla, első tartalék, korai nyugdíjcél (ha fizetsz szja-t)</td></tr>
-            <tr><td>30–45 év</td><td>Lakás, család, hitel</td><td>Otthon Start vagy piaci hitel, életbiztosítás a hitel mellé, gyerekcélú megtakarítás</td></tr>
+            <tr><td>30–45 év</td><td>Lakás, család, hitel</td><td>Wekerle Plusz (45 éves korig) vagy piaci hitel, életbiztosítás a hitel mellé, gyerekcélú megtakarítás</td></tr>
             <tr><td>45–60 év</td><td>Elég lesz a nyugdíj?</td><td>Az adójóváírási keretek kihasználása, meglévő szerződések költségeinek átnézése</td></tr>
             <tr><td>60 év felett</td><td>Biztonság és hozzáférhetőség</td><td>Alacsony kockázat, elérhető tartalék, egészségkiadások tervezése</td></tr>
           </tbody>
@@ -451,7 +451,7 @@ export function planningPage({ CFG }) {
       },
       {
         q: "Előbb a hitelt törlesszem, vagy megtakarítsak?",
-        a: "Drága hitelnél (hitelkártya, magas THM-ű kölcsön) általában előbb a hitel, mert a kamata többe kerül, mint amit egy megtakarítás hoz. Olcsó, fix kamatú lakáshitelnél (például Otthon Start) már más a kép: ott a tartalék és az adójóváírásos megtakarítás többet érhet, mint az előtörlesztés.",
+        a: "Drága hitelnél (hitelkártya, magas THM-ű kölcsön) általában előbb a hitel, mert a kamata többe kerül, mint amit egy megtakarítás hoz. Olcsó, fix kamatú lakáshitelnél (például egy 3%-os támogatott hitelnél) már más a kép: ott a tartalék és az adójóváírásos megtakarítás többet érhet, mint az előtörlesztés.",
       },
       {
         q: "Mennyit kell havonta félretenni?",
@@ -481,7 +481,7 @@ export function planningPage({ CFG }) {
 
 export function hubPage({ CITIES }) {
   const focus = {
-    budapest: "Otthon Start a budapesti négyzetméterárakkal, bérlés vagy vásárlás",
+    budapest: "Wekerle Plusz a budapesti négyzetméterárakkal, bérlés vagy vásárlás",
     debrecen: "első fizetés, első lakás, nyugdíjcél 25 év alatt",
     szeged: "fix bér melletti megtakarítás, egészségpénztár, gyerek egyetemi évei",
     miskolc: "drága hitelek kiváltása, felújítás, jövedelemvédelem",
@@ -540,7 +540,7 @@ export function hubPage({ CITIES }) {
           (lakáshitelnél a bank ezt jellemzően kéri), annak módját előre egyeztetjük.</li>
         </ol>
         <p>Az összehasonlítás, a számolás és az ajánlatkérés teljesen online intézhető. A lakcím a
-        legtöbb pénzügyi kérdésnél nem számít: az adókedvezmények és az Otthon Start az egész országban
+        legtöbb pénzügyi kérdésnél nem számít: az adókedvezmények és a Wekerle Plusz az egész országban
         ugyanúgy működnek.</p>`,
       },
     ],

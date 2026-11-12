@@ -74,7 +74,7 @@
         </div>
         <div class="stat" data-reveal style="--reveal-delay:160ms">
           <div class="stat__value">3<span class="stat__unit">%</span></div>
-          <p class="stat__label">fix kamat az Otthon Start támogatott lakáshitelnél, 25 évre</p>
+          <p class="stat__label">fix kamat új lakásra a Wekerle Plusz támogatott hitelnél (használtra 5%)</p>
         </div>
         <div class="stat" data-reveal style="--reveal-delay:240ms">
           <div class="stat__value">13</div>

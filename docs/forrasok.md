@@ -4,7 +4,7 @@ Az oldalon minden konkrét szám ellenőrizhető forrásból származik. **Jogsz
 ezeket kell frissíteni**, egy helyen: `js/data/services.js` (a fájl tetején lévő konstansok +
 az egyes szolgáltatások `facts`, `how` és `calc` blokkjai).
 
-Utolsó ellenőrzés: **2026. augusztus**.
+Utolsó ellenőrzés: **2026. augusztus**; a támogatott lakáshitel (Wekerle Plusz) adatai: **2026. november 12.**
 
 ---
 
@@ -19,8 +19,12 @@ Utolsó ellenőrzés: **2026. augusztus**.
 | `MAX_PENSION_TOTAL` | 280 000 Ft | a három nyugdíjforma **együttes** felső korlátja (Szja tv. 44/A–44/C. §) |
 | `MAX_HEALTH_FUND` | 150 000 Ft | egészség-/önsegélyező pénztár max. éves adójóváírás |
 | `HOUSING_MONTHLY_CAP` | 48 420 Ft | minimálbér 15%-a — havi max. lakáshitel-törlesztés pénztárból |
-| `OTTHON_START_RATE` | 3% | Otthon Start fix kamat |
-| `OTTHON_START_MAX` | 50 000 000 Ft | Otthon Start max. hitelösszeg |
+| `WEKERLE_RATE_NEW` | 3% | Wekerle Plusz fix kamat új lakás vásárlására és építésre (rendelet 32. § a)) |
+| `WEKERLE_RATE_USED` | 5% | Wekerle Plusz fix kamat használt lakásra (32. § b)) |
+| `WEKERLE_MAX` | 50 000 000 Ft | Wekerle Plusz max. hitelösszeg (31. § (1)) |
+| `WEKERLE_PRICE_CAP_FLAT` | 100 000 000 Ft | lakás max. vételára (14. § (2) a)) |
+| `WEKERLE_PRICE_CAP_HOUSE` | 150 000 000 Ft | családi ház, tanya, birtokközpont max. vételára / bekerülési költsége (14. § (2) b)) |
+| `WEKERLE_SQM_CAP` | 1 500 000 Ft | max. négyzetméterár; 2028. január 1-jétől évente indexálódik (15. §) |
 
 ---
 
@@ -41,10 +45,30 @@ Utolsó ellenőrzés: **2026. augusztus**.
 - <https://tudastar.money.hu/ismerteto/onsegelyezo-penztar-lakashitel-torlesztes/>
 - <https://bank360.hu/blog/lakashitel-torlesztoreszlet-csokkentese-nyugdijpenztar-egeszsegpenztar->
 
-**Otthon Start / támogatott hitelek**
-- <https://www.portfolio.hu/bank/20260114/otthon-start-2026-a-3-os-lakashitel-feltetelei-reszletei-tudnivaloi-egy-helyen-811005>
-- <https://net.jogtar.hu/jogszabaly?docid=a2500227.kor> — 227/2025. (VII. 31.) Korm. rendelet
-- <https://tudastar.money.hu/ismerteto/otthon-start-hitel-feltetelei-3-szazalek-lakashitel/>
+**Wekerle Plusz lakásszerzési kölcsön / támogatott hitelek** (ellenőrizve: 2026. november 12.)
+- <https://njt.jog.gov.hu/jogszabaly/2026-298-20-22> — 298/2026. (X. 27.) Korm. rendelet (elsődleges forrás).
+  Az oldalon használt pontok: 2. § 4. pont és 4. § (életkor: 18 éves kortól a 45. születésnapig; egy
+  alkalommal; házastársak/élettársak csak együtt; szülő vagy testvér adóstársként), 9. § (más
+  kamattámogatott lakáshitellel nem igényelhető együtt), 11. § (korábbi tulajdon: 50% alatt, illetve
+  30 M Ft-ig kivétel), 14–15. § (árkorlátok), 19–20. § (180 napon belüli lakcím, 5 év bentlakás,
+  bérbe nem adható), 28. § (elidegenítési és terhelési tilalom), 31–32. § (50 M Ft, 25 év, 3% / 5%),
+  35. § (min. 10% önerő), 34. § (7) (hitelkiváltásra nem), 40. § (díjkorlátok).
+- <https://wekerle.kormany.hu/> — hivatalos kormányzati programoldal (indulás: 2026. október 28.;
+  TB-jogviszony, házasság, gyerek nem feltétel; az Otthon Start átmeneti határidői).
+- <https://www.erstebank.hu/hu/ebh-nyito/hitelek-es-otthon/lakascelu-tamogatasok/wekerle-plusz-program/wekerle-plusz-lakasszerzesi-kolcson>
+  — banki terméktájékoztató, a rendeleti számok keresztellenőrzésére. **Az oldalon bankot nem nevezünk
+  meg ajánlásként** — ez csak forrás.
+- <https://www.portfolio.hu/bank/20261110/negy-banknal-erheto-mar-el-a-wekerle-plusz-lakashitel-itt-vannak-a-feltetelek-875422>
+  — piaci körkép (a kamat minden banknál azonos, a THM a díjak miatt tér el; piaci hitel felvehető mellé).
+
+**Otthon Start (kifutott konstrukció)**
+- 227/2025. (VII. 31.) Korm. rendelet — a 298/2026. Korm. rendelet 62. §-a **2026. november 16-ával
+  hatályon kívül helyezi**. Kérelmet 2026. november 15-ig lehetett beadni, és csak október 31-ig
+  megkötött adásvételi szerződéssel (forrás: wekerle.kormany.hu, banki tájékoztató).
+- Az oldal az Otthon Startot már csak összehasonlításként említi (mi változott), élő konstrukcióként nem.
+- **Nem ellenőrzött:** a 298/2026. Korm. rendelet 58. §-a (átmeneti rendelkezés) csak november 16-án lép
+  hatályba, a szövege a Nemzeti Jogszabálytárban addig nem olvasható. A már folyósított Otthon Start
+  hitelekről ezért az oldal nem állít semmit — hatálybalépés után érdemes megnézni.
 
 **Gyerek-megtakarítás**
 - Az oldal **szándékosan nem foglalkozik a Babakötvénnyel és a Start-számlával**, ezért
@@ -120,15 +144,31 @@ Utolsó ellenőrzés: **2026. augusztus**.
 
 1. minimálbér → ezzel változik a `HOUSING_MONTHLY_CAP` és az iskolakezdési keret,
 2. adójóváírási plafonok,
-3. Otthon Start (vagy az azt felváltó program) feltételei,
+3. Wekerle Plusz lakásszerzési kölcsön (298/2026. Korm. rendelet) — a hatályos szöveget a Nemzeti
+   Jogszabálytárban kell megnézni, nem cikkből:
+   - kamat új / használt lakásra (`WEKERLE_RATE_NEW`, `WEKERLE_RATE_USED`),
+   - max. hitelösszeg és futamidő (`WEKERLE_MAX`, 25 év),
+   - életkori határ (45. születésnap) — a kalkulátor `age` csúszkája és a Pénzügyi Térkép
+     `over45` ténye (`js/data/quiz.js`) is erre épül,
+   - árkorlátok (`WEKERLE_PRICE_CAP_FLAT`, `WEKERLE_PRICE_CAP_HOUSE`, `WEKERLE_SQM_CAP`) — **a
+     négyzetméterár-korlát 2028. január 1-jétől évente változik**,
+   - önerő, bentlakás, korábbi tulajdonra vonatkozó kivételek,
+   - elindult-e a program többi eleme (lakástakarék: 2027. január; felújítási támogatás és hitel:
+     2027. február–március) — ezekről az oldal egyelőre nem ír,
 4. magán egészségbiztosítás adóterhelése,
 5. a `PROGRAM_COEF` költséggörbe — ha a tanácsadói eszközben frissül a
    `COEF8` / `COEF9` sor, ide is át kell vezetni.
 
-Módosítás után futtasd újra a generátort:
+A támogatott hitel szövegei több fájlban élnek — ha a program változik, mindet át kell nézni:
+`js/data/services.js` (`tamogatott-hitelek`), `js/data/quiz.js` (`ELIGIBLE`, `REASON`, `buildNotes`),
+`js/config.js` és `js/site.js` (főoldali stat blokk), `build/generate.mjs` (főoldali témalista, meta),
+`build/content/cities.mjs`, `build/content/pages.mjs`, `build/content/about.mjs`.
+
+Módosítás után futtasd újra a generátort és az ellenőrzéseket:
 
 ```bash
 node build/generate.mjs
+node build/blog-check.mjs && node build/seo-check.mjs && node build/cro-check.mjs
 ```
 
 ---
@@ -143,7 +183,7 @@ ellenőrizhetők, és nem kell hozzájuk igazolás. Ha lesz igazolható saját a
 |---|---|
 | 280 000 Ft | max. éves adójóváírás nyugdíjcélra, a három forma kombinálásával |
 | 150 000 Ft | max. éves adójóváírás egészség-/önsegélyező pénztári befizetésre |
-| 3% | Otthon Start fix kamat 25 évre |
+| 3% | Wekerle Plusz fix kamat új lakásra és építésre (használt lakásra 5%) — 298/2026. Korm. rendelet 32. § |
 | 13 | a lefedett pénzügyi területek száma |
 
 ---
@@ -163,8 +203,9 @@ Ezt követi az oldal is. Két szabály:
    Helyette a kalkulátor azt számolja, ami tényszerű: a **felmondási határidőt**
    (évforduló − 30 nap) és a **bónuszfokozat** jogszabályi kedvezményét.
 2. **Ami számítható, azt jogszabályból számítjuk**, és a limitet is kiírjuk: adójóváírási
-   plafonok, a befizetett szja korlátja, annuitás, Otthon Start jogosultsági korlátok
-   (100 M Ft vételár, 1,5 M Ft/m², 10% saját erő, 50 M Ft / 25 év).
+   plafonok, a befizetett szja korlátja, annuitás, Wekerle Plusz jogosultsági korlátok
+   (lakásnál 100, családi háznál 150 M Ft vételár, 1,5 M Ft/m², 10% saját erő, 50 M Ft / 25 év,
+   45. születésnap; új lakásra 3%, használtra 5%).
 
 ### Amit ellenőrizhetetlenként kivettünk az oldalról
 

@@ -730,7 +730,7 @@ function businessSchema() {
     description:
       "Pénzügyi tanácsadás és pénzügyi tervezés egy helyen, online az egész országban: " +
       "nyugdíj- és gyerekmegtakarítás, 20% adókedvezmények, élet-, egészség- és vagyonbiztosítás, " +
-      "KGFB, Otthon Start és piaci lakáshitel, személyi kölcsön, díjmentes bankszámla.",
+      "KGFB, Wekerle Plusz és piaci lakáshitel, személyi kölcsön, díjmentes bankszámla.",
     telephone: CFG.contact.phone,
     email: CFG.contact.email,
     address: {
@@ -1103,7 +1103,7 @@ ${nav(0)}
       <h3 class="h4" style="margin-bottom:1rem">A legtöbbet keresett témák 2026-ban</h3>
       <ul class="seo-links">
         ${[
-          ["tamogatott-hitelek", "Otthon Start lakáshitel", "fix 3% kamat, max. 50 millió Ft, 25 év"],
+          ["tamogatott-hitelek", "Wekerle Plusz lakáshitel", "fix 3% új, 5% használt lakásra, max. 50 millió Ft"],
           ["piaci-hitelek", "Lakáshitel és hitelkiváltás", "THM-összehasonlítás több banktól"],
           ["nyugdij-megtakaritas", "Nyugdíj-megtakarítás", "évi 280 000 Ft adójóváírásig"],
           ["gyerek-megtakaritas", "Gyerek-megtakarítás", "havi 20 e Ft-ból 18 év alatt ~7,9 M Ft"],
@@ -2539,7 +2539,7 @@ function servicesHubPage() {
   const html = `${head({
     title: "Pénzügyi szolgáltatások — 13 téma egy helyen | Érték Pont",
     desc:
-      "Nyugdíj- és gyerekmegtakarítás, 20% adókedvezmény, biztosítás, KGFB, Otthon Start, " +
+      "Nyugdíj- és gyerekmegtakarítás, 20% adókedvezmény, biztosítás, KGFB, Wekerle Plusz, " +
       "lakáshitel, személyi kölcsön, bankszámla — díjmentes tanácsadással.",
     url,
     depth,

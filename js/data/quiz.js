@@ -11,8 +11,9 @@ window.EP = window.EP || {};
                      Ez a réteg azért van, mert egy magas pontszám korábban
                      olyan terméket is a lista élére tett, amit az illető
                      jogilag nem tud igénybe venni (pl. 20%-os adójóváírás
-                     annak, aki nem fizet szja-t; Otthon Start annak, akinek
-                     már van lakása; KGFB annak, akinek nincs autója).
+                     annak, aki nem fizet szja-t; Wekerle Plusz annak, akinek
+                     már van lakása vagy elmúlt 45; KGFB annak, akinek
+                     nincs autója).
      3. INDOKLÁS   — minden javaslathoz a saját válaszaiból vezetett mondat,
                      plusz a `notes()`, ami KIMONDJA, mit hagytunk ki és miért.
 
@@ -38,9 +39,14 @@ function facts(a) {
     household: a.life === "couple" || a.life === "smallkids" || a.life === "schoolkids",
     mortgage: a.home === "loan",
     buying: a.home === "plan",
-    /* első lakás: az Otthon Start alapfeltétele. Akinek már van ingatlana
-       (akár hitellel), az erre nem jogosult. */
+    /* első lakás: a Wekerle Plusz alapfeltétele (298/2026. Korm. rendelet
+       11. §). Akinek már van ingatlana (akár hitellel), az erre nem jogosult. */
     firstHome: a.home === "rent" || a.home === "plan" || a.home === "withparents",
+    /* életkor: a Wekerle Plusz kérelme legkésőbb a 45. születésnapig adható
+       be. A kérdőív pontos életkort nem kérdez; az egyetlen biztos jel az
+       „50 felett” élethelyzet — őket kizárjuk, a többieknél az indoklás
+       mondja ki a 45 éves határt. */
+    over45: a.life === "mature",
     property: a.home === "own" || a.home === "loan",
     consumerDebt: consumer,
     expensiveDebt: debt.includes("card") || debt.includes("other"),
@@ -59,9 +65,11 @@ const ELIGIBLE = {
   /* Kötelező gépjármű-felelősségbiztosítás autó nélkül értelmezhetetlen. */
   "kgfb-casco": (a, f) => f.hasCar,
 
-  /* Otthon Start: elsősorban ELSŐ lakás szerzésére. Akinek van ingatlana
-     (227/2025. Korm. rendelet szerinti kivételeken túl), az nem cél. */
-  "tamogatott-hitelek": (a, f) => f.firstHome,
+  /* Wekerle Plusz (298/2026. Korm. rendelet): ELSŐ lakás szerzésére, a 45.
+     születésnapig. Akinek van ingatlana (a rendelet szerinti kivételeken
+     túl) vagy elmúlt 45, annak nem cél. TB-jogviszony — az Otthon Starttal
+     ellentétben — nem feltétel, ezért azt nem is vizsgáljuk. */
+  "tamogatott-hitelek": (a, f) => f.firstHome && !f.over45,
 
   /* Piaci jelzáloghitel: kell hozzá ingatlan — vagy fedezetnek (kiváltás,
      szabad felhasználás), vagy megvásárlandó célnak. Albérlőnek, akinek
@@ -178,11 +186,13 @@ const REASON = {
         ? "20 éven és 30 millión már 1% kamatkülönbség is milliós tétel a teljes visszafizetésben. Ezt konkrét számokkal nézzük meg — ha nem jön ki, azt mondom meg."
         : "Egy néhány éve felvett lakáshitel gyakran cserélhető kedvezőbbre. A kiváltás költségeit (végtörlesztés, értékbecslés, közjegyző) előre kiszámoljuk — ha nem jön ki, azt mondom meg."
       : f.buying
-      ? "Ha nem férsz bele az Otthon Start feltételeibe vagy nagyobb összeg kell, itt a bankok közti szórás milliós tétel a futamidő végére."
+      ? f.over45
+        ? "A Wekerle Plusz támogatott hitel 45 éves korig igényelhető, ezért lakásvásárláshoz nálad a piaci hitel az út — itt a bankok közti szórás milliós tétel a futamidő végére."
+        : "Ha nem férsz bele a Wekerle Plusz feltételeibe vagy nagyobb összeg kell, itt a bankok közti szórás milliós tétel a futamidő végére."
       : "Saját ingatlan fedezetként felújításra vagy nagyobb célra jóval olcsóbb pénzt jelent, mint a fedezetlen hitel.",
 
   "tamogatott-hitelek": (a, f) =>
-    "Az Otthon Start fix 3%-a nem akció, hanem jogszabály — és első lakás szerzésére szól, ami rád illik. A kérdés csak a jogosultság: TB-jogviszony, ingatlanárak, saját erő.",
+    "A Wekerle Plusz fix kamata nem akció, hanem jogszabály: új lakásra 3%, használtra 5% — és első lakás szerzésére szól, ami rád illik. A kérdés csak a jogosultság: 45 év alatti életkor, ingatlanárak, saját erő, öt év bentlakás.",
 
   "kgfb-casco": (a, f) =>
     a.car === "buy"
@@ -235,10 +245,17 @@ function buildNotes(a, f) {
     );
 
   /* Csak annak mondjuk el, aki tényleg finanszírozást keres — akinek már
-     fut a lakáshitele, az nem várta az Otthon Startot, ott ez csak zaj. */
+     fut a lakáshitele, az nem várta a Wekerle Pluszt, ott ez csak zaj. */
   if (f.property && !f.firstHome && a.pain === "money")
     out.push(
-      "Az Otthon Start első lakás szerzésére szól, ezért nálad nem szerepel. Piaci hitelnél viszont a bankok közti különbség milliós tétel — ott van mit nézni."
+      "A Wekerle Plusz támogatott hitel első lakás szerzésére szól, ezért nálad nem szerepel. Piaci hitelnél viszont a bankok közti különbség milliós tétel — ott van mit nézni."
+    );
+
+  /* 45 év fölött a támogatott hitel kiesik — kimondjuk, hogy ez szabály,
+     nem tévedés. Csak annak, aki tényleg lakást venne. */
+  if (f.over45 && f.buying)
+    out.push(
+      "A Wekerle Plusz támogatott lakáshitel kérelmét legkésőbb a 45. születésnapig lehet beadni, ezért nálad nem szerepel. Lakásvásárláshoz a piaci hitel jöhet szóba — ott a bankok ajánlatai között komoly különbség lehet."
     );
 
   if (a.pain === "nosave" && f.anyDebt)
@@ -323,7 +340,7 @@ const QUIZ = {
         {
           v: "plan",
           label: "Most vásárolnék elsőként",
-          note: "Otthon Start-terület",
+          note: "Első lakás: támogatott vagy piaci hitel",
           w: { "tamogatott-hitelek": 5, "piaci-hitelek": 2, "szabad-felhasznalasu-megtakaritas": 2, "elet-biztositas": 1 },
         },
         {
@@ -476,7 +493,7 @@ const QUIZ = {
           v: "money",
           label: "Most kell pénz egy célra",
           note: "Finanszírozás",
-          /* Az Otthon Start SZÁNDÉKOSAN nincs itt: az nem „kell most pénz”
+          /* A Wekerle Plusz SZÁNDÉKOSAN nincs itt: az nem „kell most pénz”
              típusú igény, hanem lakásszerzés. Korábban innen kapott pontot,
              és emiatt eladósodott albérlőknek is a lakásvásárlás került a
              listájára — ez a valóságban rossz tanács. */

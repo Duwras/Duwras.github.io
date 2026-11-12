@@ -124,7 +124,7 @@ window.EP.CONFIG = {
   stats: [
     { value: 280000, suffix: " Ft", label: "maximális éves adójóváírás nyugdíjcélra" },
     { value: 150000, suffix: " Ft", label: "éves adójóváírás pénztári befizetésre" },
-    { value: 3, suffix: "%", label: "fix kamat az Otthon Start lakáshitelnél, 25 évre" },
+    { value: 3, suffix: "%", label: "fix kamat új lakásra a Wekerle Plusz hitelnél (használtra 5%)" },
     { value: 13, suffix: "", label: "pénzügyi terület, egy helyen, egy emberrel" },
   ],
 
