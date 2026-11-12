@@ -9,3 +9,5 @@ exclude:
   - .playwright-mcp/
   - _source/
   - node_modules/
+  - content/
+  - package.json

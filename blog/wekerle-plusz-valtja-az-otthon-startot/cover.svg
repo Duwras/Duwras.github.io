@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-labelledby="t">
+<title id="t">Wekerle Plusz váltja az Otthon Startot: mi változik?</title>
+<defs>
+<radialGradient id="g" cx="88%" cy="6%" r="75%"><stop offset="0" stop-color="#c2ff72" stop-opacity=".26"/><stop offset=".55" stop-color="#c2ff72" stop-opacity=".05"/><stop offset="1" stop-color="#c2ff72" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="1200" height="630" fill="#0a0b09"/>
+<rect width="1200" height="630" fill="url(#g)"/>
+<g fill="none" stroke="#c2ff72" stroke-opacity=".13" stroke-width="58" transform="translate(770 150) scale(.92)"><path d="M138 374 366 146"/><path d="M172 132C232 178 300 172 366 146"/><path d="M392 344C348 288 356 210 366 146"/></g>
+<g transform="translate(72 64)"><rect width="52" height="52" rx="12" fill="#c2ff72"/><g fill="none" stroke="#0a0b09" stroke-width="66" transform="scale(.1016)"><path d="M138 374 366 146"/><path d="M172 132C232 178 300 172 366 146"/><path d="M392 344C348 288 356 210 366 146"/></g>
+<text x="70" y="23" font-family="'Inter Tight','Inter','Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif" font-size="21" font-weight="800" fill="#f2f5ec">Érték Pont</text>
+<text x="70" y="45" font-family="'JetBrains Mono',ui-monospace,'Cascadia Mono','SF Mono',Menlo,Consolas,monospace" font-size="13" letter-spacing="2.6" fill="#7f8a75">PÉNZÜGYEK · BLOG</text></g>
+<text x="72" y="166" font-family="'JetBrains Mono',ui-monospace,'Cascadia Mono','SF Mono',Menlo,Consolas,monospace" font-size="19" letter-spacing="3.4" fill="#c2ff72">HITEL ÉS LAKÁS</text>
+<text font-family="'Inter Tight','Inter','Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif" font-size="68" font-weight="800" letter-spacing="-1.6" fill="#f2f5ec"><tspan x="72" y="252">Wekerle Plusz váltja az</tspan><tspan x="72" y="330">Otthon Startot: mi</tspan><tspan x="72" y="408">változik?</tspan></text>
+<rect x="72" y="548" width="1056" height="1" fill="#ffffff" fill-opacity=".1"/>
+<text x="72" y="584" font-family="'JetBrains Mono',ui-monospace,'Cascadia Mono','SF Mono',Menlo,Consolas,monospace" font-size="17" letter-spacing="1.4" fill="#b9c2ad">ertekpontpenzugyek.hu/blog</text>
+<text x="1128" y="584" text-anchor="end" font-family="'JetBrains Mono',ui-monospace,'Cascadia Mono','SF Mono',Menlo,Consolas,monospace" font-size="17" letter-spacing="1.4" fill="#7f8a75">2026. november 12.</text>
+</svg>

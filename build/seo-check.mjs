@@ -151,7 +151,18 @@ const walk = (d) =>
     return e.name.endsWith(".html") ? [rel] : [];
   });
 const inMap = new Set(locs.map(locToFile));
-for (const f of walk("")) if (f !== "404.html" && !inMap.has(f)) err(f, "HTML-fájl, ami nincs a sitemapben");
+/* Kivétel: a szándékosan noindex oldal (blog-címkeoldalak — gyűjtő, önálló
+   tartalom nélkül). Annak NEM szabad a sitemapben lennie; cserébe itt
+   ellenőrizzük, hogy tényleg noindex, és nincs canonicalja. */
+for (const f of walk("")) {
+  if (f === "404.html" || inMap.has(f)) continue;
+  const h = read(f);
+  if (/<meta name="robots" content="noindex/.test(h)) {
+    if (/rel="canonical"/.test(h)) err(f, "noindex oldal canonicallal");
+    continue;
+  }
+  err(f, "HTML-fájl, ami nincs a sitemapben");
+}
 
 for (const [t, fs_] of titles) if (fs_.length > 1) err(fs_.join(", "), `ismétlődő title: „${t}”`);
 for (const [d, fs_] of descs) if (fs_.length > 1) err(fs_.join(", "), `ismétlődő description`);

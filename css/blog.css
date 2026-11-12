@@ -1,0 +1,251 @@
+/* ==========================================================================
+   BLOG — lista, kártya, cikkoldal (build/blog.mjs sablonjaihoz).
+   Csak a meglévő tokenekre épül (tokens.css): új szín vagy betű nincs.
+   A hosszú szöveg tipográfiája a content.css `.content` szabályaiból jön.
+   ========================================================================== */
+
+/* --- Kártyarács -------------------------------------------------------- */
+
+.post-grid {
+  display: grid;
+  gap: clamp(1rem, 1.6vw, 1.4rem);
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+}
+
+.post-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+.post-card__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--ink-700);
+}
+.post-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--space-3);
+  padding: clamp(1.2rem, 2vw, 1.6rem);
+}
+.post-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.9rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+.post-card__cat { color: var(--lime-text); }
+.post-card__title { color: var(--text); }
+/* Az egész kártya kattintható, de csak EGY link van benne (a cím): a
+   képernyőolvasó nem hallja háromszor ugyanazt a célt. */
+.post-card__title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.post-card__title a:focus-visible { outline: none; }
+.post-card:focus-within {
+  outline: 2px solid var(--lime);
+  outline-offset: 3px;
+}
+.post-card:hover .post-card__title a { color: var(--lime-text); }
+.post-card__desc {
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+}
+.post-card .link-arrow {
+  margin-top: auto;
+  padding-top: var(--space-2);
+}
+.post-card:hover .link-arrow svg { transform: translate(4px, -4px); }
+
+.post-foot { margin-top: var(--space-6); }
+.post-foot a {
+  color: var(--lime-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* --- Kategória- és címkesor ------------------------------------------- */
+
+.chips,
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.chips { margin-top: var(--space-6); }
+.chips .chip,
+.post-tags .chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+}
+.chip[aria-current="page"] {
+  border-color: var(--lime-text);
+  color: var(--lime-text);
+  background: rgba(194, 255, 114, 0.08);
+}
+.content .post-tags { margin-top: var(--space-5); }
+.content .post-tags a.chip {
+  color: var(--text-soft);
+  text-decoration: none;
+}
+.content .post-tags a.chip:hover { color: var(--lime-text); }
+
+/* --- Lapozó ------------------------------------------------------------ */
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-7);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line-soft);
+  font-size: var(--fs-sm);
+}
+.pager__pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.pager__pages a {
+  display: grid;
+  place-items: center;
+  min-width: 40px;
+  height: 40px;
+  padding-inline: 0.5rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono);
+  color: var(--text-soft);
+}
+.pager__pages a:hover,
+.pager__pages a[aria-current="page"] {
+  border-color: var(--lime-text);
+  color: var(--lime-text);
+}
+.pager__step {
+  font-weight: 620;
+  color: var(--lime-text);
+}
+.pager__step[aria-disabled="true"] {
+  color: var(--text-mute);
+  opacity: 0.6;
+}
+
+/* --- Cikk-fejléc ------------------------------------------------------- */
+
+.post-hero__grid {
+  display: grid;
+  gap: clamp(2rem, 4vw, 4rem);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+}
+/* A cím itt mondat hosszúságú (40–70 karakter), ezért a H1 egy fokozattal
+   kisebb, mint a rövid címkéjű tartalmi oldalakon. */
+.post-hero .h1 {
+  font-size: clamp(2rem, 4.4vw, 3.5rem);
+  max-width: 24ch;
+}
+.post-hero a.label:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* A borító a címet ismétli: telefonon elvenné a helyet a szöveg elől, ezért
+   csak széles kijelzőn látszik (rejtve a lazy kép le sem töltődik). */
+.post-hero__cover {
+  display: none;
+  width: 100%;
+  height: auto;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line-soft);
+}
+@media (min-width: 1000px) {
+  .post-hero__grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); }
+  .post-hero__cover { display: block; }
+}
+
+/* --- Cikk-törzs: ami a .content-ben nincs meg -------------------------- */
+
+.post > p:first-child {
+  font-size: var(--fs-lead);
+  line-height: 1.55;
+  color: var(--text);
+}
+.post > p + section,
+.post > ul + section,
+.post > ol + section { margin-top: clamp(3rem, 6vw, 4.5rem); }
+.post h3 { scroll-margin-top: 100px; }
+.post blockquote {
+  margin-block: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  border-left: 3px solid var(--lime-text);
+  background: var(--surface);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+}
+.post blockquote p { color: var(--text); }
+.post code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 0.1em 0.35em;
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+.post hr {
+  margin-block: var(--space-6);
+  border: 0;
+  border-top: 1px solid var(--line-soft);
+}
+.post img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--r-md);
+}
+.post ul + p,
+.post ol + p,
+.post p + .table-wrap,
+.post .table-wrap + p { margin-top: var(--space-4); }
+/* A content.css táblázata legalább 540 px széles (4 oszlopra készült): egy
+   3 oszlopos összehasonlítás telefonon így kilógna, és épp az utolsó oszlop
+   nem látszana. Cikkben a táblázat a hasáb szélességéhez igazodik; ha a
+   tartalma tényleg nem fér ki, a .table-wrap továbbra is görgethető. */
+.post .table-wrap table { min-width: 0; }
+.post .table-wrap th,
+.post .table-wrap td { padding: 0.7rem 0.8rem; }
+/* Sorfejléc (összehasonlító táblázat első oszlopa): fejléc-szerep, de a
+   törzs színeivel — csak a felső fejléc sor kap kiemelt hátteret. */
+.post .table-wrap tbody th {
+  font-weight: 560;
+  color: var(--text-soft);
+  background: none;
+}
+.post .table-wrap thead td {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line-soft);
+}
+.post .table-wrap tr:last-child th { border-bottom: 0; }
+.post .sources { margin-bottom: var(--space-4); }
+.post .sources li { font-size: var(--fs-sm); }
+
+/* Fix jogi tájékoztató minden cikk alján. */
+.post-legal {
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--lime-text);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  background: var(--surface);
+  font-size: var(--fs-sm);
+}
+.post-legal p + p { margin-top: var(--space-3); }
