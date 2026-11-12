@@ -212,7 +212,7 @@ const SERVICES = [
       },
       {
         h: "A három együtt is használható",
-        t: "A limitek külön-külön élnek, ezért a formák kombinálásával összesen évi ~280 000 Ft adójóváírás érhető el. Hogy neked melyik mix a logikus, az a jövedelmedtől, a hátralévő időtől és a kockázattűrésedtől függ.",
+        t: "A három forma plafonja külön él, ezért kombinálva összesen legfeljebb évi 280 000 Ft adójóváírás érhető el. Az önkéntes pénztári 150 000 Ft viszont közös keret: az egészség- és önsegélyező pénztári befizetés is ebből fogy. Hogy neked melyik mix a logikus, az a jövedelmedtől, a hátralévő időtől és a kockázattűrésedtől függ.",
       },
     ],
     warn:
@@ -655,14 +655,16 @@ const SERVICES = [
             ? "alapfokozat, még nincs kedvezmény"
             : years + " kármentes év → kedvezmény";
 
-          /* Az évfordulót megelőző 30. nap a felmondás beérkezési határideje
-             (2009. évi LXII. tv. 21. §). A következő ilyen dátumot keressük. */
+          /* Gfbt. (2009. évi LXII. tv.) 7. § (1): a szerződés a biztosítási
+             időszak utolsó napjára, azt legalább 30 nappal megelőzően mondható
+             fel. Utolsó nap = az évforduló (új időszak kezdete) előtti nap;
+             a határidő ennél 30 nappal korábbi. A következő ilyen dátumot keressük. */
           const now = new Date();
           let anniv = new Date(now.getFullYear(), v.month - 1, 1);
-          let deadline = new Date(anniv.getTime() - 30 * 864e5);
+          let deadline = new Date(now.getFullYear(), v.month - 1, 1 - 1 - 30);
           if (deadline < now) {
             anniv = new Date(now.getFullYear() + 1, v.month - 1, 1);
-            deadline = new Date(anniv.getTime() - 30 * 864e5);
+            deadline = new Date(now.getFullYear() + 1, v.month - 1, 1 - 1 - 30);
           }
           const days = Math.max(0, Math.ceil((deadline - now) / 864e5));
           const dstr = deadline.toLocaleDateString("hu-HU", { year: "numeric", month: "long", day: "numeric" });
@@ -674,7 +676,7 @@ const SERVICES = [
             big: dstr,
             bigSmall: true,
             bigLabel: "eddig kell beérkeznie a felmondásnak",
-            caption: `Még ${days} nap. Az évfordulód ${annivStr}, és a felmondásnak az azt megelőző 30. napig meg kell érkeznie a biztosítóhoz.`,
+            caption: `Még ${days} nap. Az új biztosítási időszakod ${annivStr} kezdődik, a mostani tehát az előtte lévő napon zárul — a felmondásnak ennél legalább 30 nappal korábban meg kell érkeznie a biztosítóhoz.`,
             rows: [
               ["Évfordulós hónap", annivMonth],
               ["Hátralévő idő a felmondásig", days + " nap"],
@@ -832,7 +834,7 @@ const SERVICES = [
             ],
             total: ["Tényleges éves jóváírás", ft(credit)],
             note:
-              "A jóváírást a NAV a pénztári számlára utalja, tehát újra elszámolható kiadásra fordítható. Az elszámolható szolgáltatások körét jogszabály és a pénztár szabályzata határozza meg; a számítás tájékoztató jellegű.",
+              "A jóváírást a NAV a pénztári számlára utalja, tehát újra elszámolható kiadásra fordítható. A 150 000 Ft-os plafon az összes önkéntes pénztári befizetésre (nyugdíj-, egészség- és önsegélyező pénztár) együtt vonatkozik (Szja tv. 44/A. §) — ha önkéntes nyugdíjpénztárba is fizetsz, a kettő osztozik rajta. Az elszámolható szolgáltatások körét jogszabály és a pénztár szabályzata határozza meg; a számítás tájékoztató jellegű.",
           };
         },
       },
@@ -965,7 +967,7 @@ const SERVICES = [
             ],
             total: ["Hátralévő hitelidő alatt összesen", ft(credit * v.years)],
             note:
-              "A törlesztő összege nem változik: a pénz egy részét a pénztár fizeti, amiből 20%-ot az állam adott — ugyanahhoz a törlesztéshez kevesebb saját pénz kell. Az önsegélyező pénztári szolgáltatások körét jogszabály és a pénztár szabályzata határozza meg; a számítás tájékoztató jellegű.",
+              "A törlesztő összege nem változik: a pénz egy részét a pénztár fizeti, amiből 20%-ot az állam adott — ugyanahhoz a törlesztéshez kevesebb saját pénz kell. A 150 000 Ft-os plafon személyenként az összes önkéntes pénztári befizetésre (nyugdíj-, egészség- és önsegélyező pénztár) együtt vonatkozik (Szja tv. 44/A. §): ha valaki önkéntes nyugdíjpénztárba is fizet, a kettő osztozik rajta. Az önsegélyező pénztári szolgáltatások körét jogszabály és a pénztár szabályzata határozza meg; a számítás tájékoztató jellegű.",
           };
         },
       },
@@ -974,7 +976,7 @@ const SERVICES = [
       { q: "Ez csökkenti a törlesztőrészletemet?", a: "Nem közvetlenül. A törlesztő ugyanannyi marad, de a pénz egy részét a pénztár fizeti, amiből 20%-ot az állam adott. Vagyis ugyanahhoz a törlesztéshez kevesebb saját pénz kell." },
       { q: "Bármelyik lakáshitelre működik?", a: "Lakáscélú hitelekre, a pénztári szabályzat és a jogszabály keretei között. A konkrét szerződésedet meg kell nézni — ez egy 10 perces feladat." },
       { q: "Mi van, ha előbb kifizetem a hitelt?", a: "Akkor a pénztári egyenleg megmarad és más elszámolható célra használható (egészségügyi kiadás, iskolakezdés stb.), tehát nem veszik el." },
-      { q: "Kombinálható a nyugdíjcélú kedvezménnyel?", a: "Igen, a limitek külön futnak. Épp ezért érdemes egyszerre nézni a nyugdíj- és a pénztári keretet — így jön ki a maximum." },
+      { q: "Kombinálható a nyugdíjcélú kedvezménnyel?", a: "Részben. Az évi 150 000 Ft-os pénztári keret közös: az önkéntes nyugdíjpénztári, az egészség- és az önsegélyező pénztári befizetés együtt legfeljebb ennyi jóváírást hoz. A nyugdíjbiztosítás és a NYESZ ezen felül jön, de az összes jóváírás legfeljebb évi 280 000 Ft. Ezért érdemes egyszerre nézni a nyugdíj- és a pénztári keretet — így jön ki a maximum." },
     ],
     legal:
       "Az önsegélyező pénztári szolgáltatások körét és korlátait jogszabály, valamint a pénztár szabályzata határozza meg. A számítás tájékoztató jellegű.",
@@ -1963,10 +1965,17 @@ const SERVICES = [
           },
         ],
         compute(v) {
-          const m = annuity(v.amount, v.thm / 100, v.years);
+          /* A THM éves EFFEKTÍV ráta (a THM-képlet éves kamatos kamattal
+             diszkontál), nem a havi kamat tizenkétszerese. Ezért a havi rátát
+             (1+THM)^(1/12)-1 alakban kapjuk, és azt tesszük az annuitásba.
+             Ha a THM-et nominális kamatként kezelnénk, a törlesztő kissé
+             magasabbra jönne ki a valóságosnál. */
+          const thmMonthly = (thm) => Math.pow(1 + thm / 100, 1 / 12) - 1;
+          const annuityThm = (p, thm, years) => annuity(p, thmMonthly(thm) * 12, years);
+          const m = annuityThm(v.amount, v.thm, v.years);
           const total = m * v.years * 12;
           const hasOld = v.thmOld > 0;
-          const mOld = hasOld ? annuity(v.amount, v.thmOld / 100, v.years) : 0;
+          const mOld = hasOld ? annuityThm(v.amount, v.thmOld, v.years) : 0;
           const totalOld = mOld * v.years * 12;
           const gain = totalOld - total;
           return {
@@ -1992,7 +2001,7 @@ const SERVICES = [
             ],
             total: ["Teljes visszafizetendő", ft(total)],
             note:
-              "Tájékoztató számítás a megadott THM-mel, nem hitelajánlat. A JTM-szabály szerint a törlesztő a jövedelmedhez képest korlátozott. A hitel felvétele kockázattal járó pénzügyi döntés.",
+              "Tájékoztató számítás a megadott THM-mel, nem hitelajánlat: a THM-et éves effektív rátaként kezeljük, így a díjak hatását átlagosan tartalmazza, de a tényleges törlesztőt a bank szerződése adja. A THM-et törvény korlátozza (Fhtv. 17/A. §: személyi kölcsönnél a jegybanki alapkamat + 24, hitelkártyánál és áruhitelnél + 39 százalékpont). A JTM-szabály szerint a törlesztő a jövedelmedhez képest korlátozott. A hitel felvétele kockázattal járó pénzügyi döntés.",
           };
         },
       },
@@ -2110,14 +2119,14 @@ const SERVICES = [
             options: [0, 1, 2, 4],
             def: 2,
             unit: " db",
-            note: "Havi 2 alkalommal, összesen 150 000 Ft-ig a saját bankod ATM-jéből díjmentes (jogszabály).",
+            note: "Havonta az első 2 felvétel együttesen 300 000 Ft-ig bármely hazai ATM-ből díjmentes, ha a bankodnál erről nyilatkozatot tettél (Pft. 36/A. §).",
           },
           { key: "cashAmount", label: "Egy felvétel átlagos összege", type: "slider", min: 10000, max: 300000, step: 10000, def: 60000, unit: "Ft" },
         ],
         compute(v) {
           const FREE_COUNT = 2;
-          const FREE_LIMIT = 150000;
-          const CASH_RATE = 0.006; // kb. 0,6% + tranzakcios illetek a dijmentes kereten felul
+          const FREE_LIMIT = 300000; // Pft. 36/A. § (1) a): havi elso 2 felvetel egyutt 300 000 Ft-ig dijmentes
+          const CASH_RATE = 0.006; // becsles: kb. 0,6% a dijmentes kereten feluli osszegre
           const account = v.monthlyFee * 12;
           const transfers = v.transfers * v.trFee * 12;
           const extraCash = Math.max(0, v.cashCount - FREE_COUNT) * v.cashAmount;
@@ -2140,7 +2149,7 @@ const SERVICES = [
             ],
             total: ["Évente elhagyható költség", ft(yearly)],
             note:
-              "A készpénzfelvétel díját kb. 0,6%-kal becsüljük a jogszabályi díjmentes kereten (havi 2 alkalom, összesen 150 000 Ft) felüli összegre. A tényleges díjakat a bank kondíciós listája tartalmazza; a számítás tájékoztató jellegű.",
+              "A készpénzfelvétel díját kb. 0,6%-kal becsüljük a jogszabályi díjmentes kereten (havi első 2 felvétel, együtt 300 000 Ft, bármely hazai ATM, nyilatkozat alapján — Pft. 36/A. §) felüli összegre. A tényleges díjakat a bank kondíciós listája tartalmazza; a számítás tájékoztató jellegű.",
           };
         },
       },
