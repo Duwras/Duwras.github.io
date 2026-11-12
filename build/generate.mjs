@@ -1026,7 +1026,7 @@ ${nav(0)}
   <section class="section" id="rolam">
     <div class="wrap about">
       <div class="about__photo" data-photo-wrap data-reveal="left">
-        <img data-cfg-src="advisor.photo" src="assets/brand/portre.webp" width="1400" height="781"
+        <img data-cfg-src="advisor.photo" src="assets/brand/portre.webp" width="1200" height="1500"
              alt="${esc(CFG.advisor.name)} ${esc(CFG.advisor.role)}" loading="lazy" decoding="async">
       </div>
       <div data-reveal="right">
@@ -2114,7 +2114,7 @@ function contentPage(p, { crumbs, pageType = "WebPage", article = null, extraGra
   const hero = p.profile
     ? `<div class="wrap about">
         <div class="about__photo" data-photo-wrap>
-          <img src="${up}${esc(CFG.advisor.photo)}" width="1400" height="781"
+          <img src="${up}${esc(CFG.advisor.photo)}" width="1200" height="1500"
                alt="${esc(CFG.advisor.name)}, ${esc(CFG.advisor.role)}" loading="eager" decoding="async" fetchpriority="high">
         </div>
         <div>${heroInner}</div>
