@@ -19,7 +19,7 @@ háztartási költségvetés és vésztartalék.
 
 ---
 
-- [ ] **TBSZ közérthetően: hogyan működik a tartós befektetési számla?** — Megtakarítás és nyugdíj · a 3 és 5 éves szabály, mi történik, ha előbb veszed ki a pénzt · belső link: `/szolgaltatas/szabad-felhasznalasu-megtakaritas.html`
+- [x] ~~TBSZ közérthetően: hogyan működik a tartós befektetési számla?~~ → 2026-11-13, tbsz-mikor-adomentes-a-hozam
 - [ ] **Önkéntes nyugdíjpénztár, nyugdíjbiztosítás, NYESZ: mi a különbség?** — Megtakarítás és nyugdíj · adójóváírás, hozzáférés, költségek egymás mellett · belső link: `/szolgaltatas/nyugdij-megtakaritas.html`
 - [ ] **20% adójóváírás: így kerül vissza a pénz a bevallás után** — Adó és támogatások · ki jogosult, mik a határidők, hova utal a NAV · belső link: `/szolgaltatas/adokedvezmeny-gyerek-no.html`
 - [ ] **Egészségpénztár: mire költhető, és mennyi jár vissza?** — Adó és támogatások · elszámolható kiadások, tipikus hibák · belső link: `/szolgaltatas/egeszsegbiztositas.html`
