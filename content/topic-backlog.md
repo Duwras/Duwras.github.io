@@ -21,7 +21,7 @@ háztartási költségvetés és vésztartalék.
 
 - [x] ~~TBSZ közérthetően: hogyan működik a tartós befektetési számla?~~ → 2026-11-13, tbsz-mikor-adomentes-a-hozam
 - [ ] **Önkéntes nyugdíjpénztár, nyugdíjbiztosítás, NYESZ: mi a különbség?** — Megtakarítás és nyugdíj · adójóváírás, hozzáférés, költségek egymás mellett · belső link: `/szolgaltatas/nyugdij-megtakaritas.html`
-- [ ] **20% adójóváírás: így kerül vissza a pénz a bevallás után** — Adó és támogatások · ki jogosult, mik a határidők, hova utal a NAV · belső link: `/szolgaltatas/adokedvezmeny-gyerek-no.html`
+- [x] ~~20% adójóváírás: így kerül vissza a pénz a bevallás után~~ → 2026-11-15, adojovairas-nyugdijra-hogyan-kapod-vissza
 - [ ] **Egészségpénztár: mire költhető, és mennyi jár vissza?** — Adó és támogatások · elszámolható kiadások, tipikus hibák · belső link: `/szolgaltatas/egeszsegbiztositas.html`
 - [ ] **KGFB-váltás lépésről lépésre: határidők, felmondás, buktatók** — Biztosítás · évforduló, 30 napos felmondás, bonus-malus · belső link: `/szolgaltatas/kgfb-casco.html`
 - [ ] **Casco önrész: hogyan válassz, és mikor éri meg egyáltalán?** — Biztosítás · önrész és díj összefüggése, mit nem térít · belső link: `/szolgaltatas/kgfb-casco.html`
