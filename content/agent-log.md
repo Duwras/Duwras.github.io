@@ -9,6 +9,8 @@ Formátum és szabályok: `BLOG_AGENT.md` → 10. pont.
 
 ---
 
+- 2026-11-17 · PUBLIKÁLVA · `kgfb-valtas-meddig-mondhatod-fel` · hír (év végi KGFB-kampány, december 1-i felmondási határidő) · 8 forrás (3 hivatalos: MABISZ, MNB ×2) · a Wekerle Plusz banki indulása (nov. 16.) kimaradt: a témát nov. 12-én már tárgyaltuk
+- 2026-11-17 · TEENDŐ · `/szolgaltatas/kgfb-casco.html`: „az évfordulós értesítőben szereplő új díj szinte mindig magasabb” — forrás nélküli állítás, az MNB kgfb-indexe (2026 Q2: 55 521 Ft, −2,7% éves alapon) és a közvetítői kampányadatok idén csökkenő átlagdíjat mutatnak — ellenőrizendő
 - 2026-11-15 · PUBLIKÁLVA · `adojovairas-nyugdijra-hogyan-kapod-vissza` · evergreen (backlog) · 4 forrás (4 hivatalos: 2 NAV, 2 MNB) · a 48 órás hírek (pénzcentrumos nyugdíjtémák, bankos Wekerle Plusz akciók) nem feleltek meg a hivatalos forrás / 2 független forrás feltételnek
 - 2026-11-15 · TEENDŐ · `/szolgaltatas/nyugdij-megtakaritas.html`: a „120% visszafizetés” kivételnél mindhárom formát egyként kezeli, az MNB ezt a NYESZ-re (10 adóév előtti megszüntetés) írja; a „három forma plafonja külön él” mellett 280 000 Ft összesített határt is állít (130+150+100 = 380), az MNB szerint a három termék együtt 280 000 Ft — ellenőrizendő
 - 2026-11-13 · PUBLIKÁLVA · `tbsz-mikor-adomentes-a-hozam` · evergreen (backlog) · 3 forrás (3 hivatalos) · a friss hírek (Wekerle Plusz lakástakarék: csak bejelentés, rendelet nélkül; októberi infláció: 3 napos) nem feleltek meg a 48 órás / 2 független forrás feltételnek

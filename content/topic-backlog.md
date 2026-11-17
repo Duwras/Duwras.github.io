@@ -23,7 +23,7 @@ háztartási költségvetés és vésztartalék.
 - [ ] **Önkéntes nyugdíjpénztár, nyugdíjbiztosítás, NYESZ: mi a különbség?** — Megtakarítás és nyugdíj · adójóváírás, hozzáférés, költségek egymás mellett · belső link: `/szolgaltatas/nyugdij-megtakaritas.html`
 - [x] ~~20% adójóváírás: így kerül vissza a pénz a bevallás után~~ → 2026-11-15, adojovairas-nyugdijra-hogyan-kapod-vissza
 - [ ] **Egészségpénztár: mire költhető, és mennyi jár vissza?** — Adó és támogatások · elszámolható kiadások, tipikus hibák · belső link: `/szolgaltatas/egeszsegbiztositas.html`
-- [ ] **KGFB-váltás lépésről lépésre: határidők, felmondás, buktatók** — Biztosítás · évforduló, 30 napos felmondás, bonus-malus · belső link: `/szolgaltatas/kgfb-casco.html`
+- [x] ~~KGFB-váltás lépésről lépésre: határidők, felmondás, buktatók~~ → 2026-11-17, kgfb-valtas-meddig-mondhatod-fel
 - [ ] **Casco önrész: hogyan válassz, és mikor éri meg egyáltalán?** — Biztosítás · önrész és díj összefüggése, mit nem térít · belső link: `/szolgaltatas/kgfb-casco.html`
 - [ ] **Alulbiztosított lakás: miért fizethet kevesebbet a biztosító?** — Biztosítás · biztosítási összeg, újjáépítési érték, éves felülvizsgálat · belső link: `/penzugyi-tervezes/`
 - [ ] **Életbiztosítás lakáshitel mellé: mekkora összeg az észszerű?** — Biztosítás · hiteltartozás, eltartottak, futamidő · belső link: `/szolgaltatas/elet-biztositas.html`
