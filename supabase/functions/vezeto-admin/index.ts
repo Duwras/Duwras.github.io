@@ -14,8 +14,24 @@
 import { createClient } from "jsr:@supabase/supabase-js@2.118.0";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// A Supabase automatikusan adja a kulcsokat. Régi (legacy) projekteknél
+// SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY néven, az új kulcsrendszerben
+// SUPABASE_PUBLISHABLE_KEYS / SUPABASE_SECRET_KEYS (JSON: {"default": "sb_…"}).
+function envKey(legacy: string, modern: string): string {
+  const v = Deno.env.get(legacy);
+  if (v) return v;
+  const raw = Deno.env.get(modern) ?? "";
+  try {
+    const obj = JSON.parse(raw);
+    if (typeof obj === "string") return obj;
+    return obj.default ?? Object.values(obj)[0] ?? "";
+  } catch {
+    return raw;
+  }
+}
+const ANON_KEY = envKey("SUPABASE_ANON_KEY", "SUPABASE_PUBLISHABLE_KEYS");
+const SERVICE_KEY = envKey("SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEYS");
+if (!SUPABASE_URL || !ANON_KEY || !SERVICE_KEY) console.error("vezeto-admin: hiányzó Supabase környezeti változó (URL / anon / service kulcs).");
 // Vesszővel elválasztva, pl. "https://ertekpontpenzugyek.hu,http://localhost:5173"
 const ALLOWED_ORIGINS = (Deno.env.get("VP_ALLOWED_ORIGINS") ?? "https://ertekpontpenzugyek.hu")
   .split(",").map((s) => s.trim()).filter(Boolean);
