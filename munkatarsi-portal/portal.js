@@ -234,7 +234,15 @@
     return String(text || "").split(/\*\*(.+?)\*\*/g).map((part, i) => (i % 2 ? h("strong", null, part) : part));
   }
 
+  /* A még hiányzó link ("TODO" az adatban): jelzés, kattintható gomb nélkül. */
+  const isTodo = (u) => u === "TODO";
+  const soon = (label) =>
+    h("span", { class: "soon", title: label ? `${label}: a link hamarosan felkerül` : null },
+      icon(["M12 7v5l3 2", "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"], 13),
+      h("span", null, "Link hamarosan"));
+
   function extLink(url, label, cls) {
+    if (isTodo(url)) return soon(label);
     const href = safeUrl(url);
     if (!href) return h("span", { class: cls + " is-broken" }, label);
     return h(
@@ -401,6 +409,10 @@
       update();
     });
 
+    /* Kiemelt kártyák (pl. Dia) a lista fölött */
+    if (data.checklistFeature && data.checklistFeature.length) {
+      sec.el.append(h("div", { class: "cards cards--feature" }, data.checklistFeature.map((it) => card(sec, it))));
+    }
     sec.el.append(h("div", { class: "ckp" }, meter, txt, reset), ol);
     update();
     return sec;
@@ -443,10 +455,308 @@
   function renderSection(s, num) {
     const sec = sectionShell(s.id, num, s.title, s.intro);
     sec.nav = s.nav;
-    const grid = h("div", { class: "cards" });
-    for (const it of s.items) grid.append(card(sec, it));
-    sec.el.append(grid);
+    if (s.type === "timeline") renderTimeline(sec, s);
+    else if (s.type === "week") renderWeek(sec, s);
+    else if (s.type === "plan") renderPlan(sec, s);
+    if (s.items && s.items.length) {
+      const grid = h("div", { class: "cards" });
+      for (const it of s.items) grid.append(card(sec, it));
+      sec.el.append(grid);
+    }
     return sec;
+  }
+
+  /* --- Idővonal (hétvégi adminisztráció) -------------------------------- */
+  function renderTimeline(sec, s) {
+    const ol = h("ol", { class: "tl" });
+    s.steps.forEach((st, i) => {
+      const subs = [];
+      let det = null;
+      if (st.details) {
+        const ul = h("ul", { class: "tl__list" });
+        for (const t of st.details.items) {
+          const li = h("li", null, rich(t));
+          ul.append(li);
+          subs.push({ el: li, text: norm(t) });
+        }
+        det = h("details", { class: "more" }, h("summary", null, st.details.summary), ul);
+      }
+      const hasWarn = st.warn && st.warn.length;
+      const li = h(
+        "li",
+        { class: "tl__step" + (hasWarn ? " tl__step--warn" : "") },
+        h("span", { class: "tl__dot", "aria-hidden": "true" }, String(i + 1)),
+        h("div", { class: "tl__body" },
+          h("p", { class: "tl__when" }, st.when),
+          h("h3", { class: "tl__title" }, st.title),
+          st.text ? h("p", { class: "tl__text" }, rich(st.text)) : null,
+          hasWarn
+            ? h("ul", { class: "tl__warn", "aria-label": "Határidő és büntetés" },
+                st.warn.map((w) => h("li", null,
+                  icon(["M12 9v4", "M12 17h.01", "M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"], 15),
+                  h("span", null, rich(w)))))
+            : null,
+          st.url ? h("div", { class: "tl__cta" }, extLink(st.url, st.cta || "Megnyitás", "open open--inline")) : null,
+          det)
+      );
+      ol.append(li);
+      register(sec, li, [st.when, st.title, st.text, ...(st.warn || []), st.details && st.details.summary], subs);
+    });
+    sec.el.append(ol);
+  }
+
+  /* --- Bedolgozási terv: szakaszonként lenyíló lista --------------------- */
+  function renderPlan(sec, s) {
+    const total = s.phases.reduce((n, p) => n + p.points.length, 0);
+    const wrap = h("div", { class: "plan" },
+      h("p", { class: "plan__meta" }, `${s.phases.length} szakasz · ${total} pont`));
+    for (const p of s.phases) {
+      const subs = [];
+      const ol = h("ol", { class: "plan__points" });
+      for (const t of p.points) {
+        const li = h("li", null, t);
+        ol.append(li);
+        subs.push({ el: li, text: norm(t) });
+      }
+      const box = h("div", { class: "plan__phase" },
+        h("details", { class: "more plan__det" },
+          h("summary", null, h("span", { class: "plan__title" }, p.title), h("span", { class: "plan__count" }, `${p.points.length} pont`)),
+          ol));
+      wrap.append(box);
+      register(sec, box, [p.title, "bedolgozás terv szb"], subs);
+    }
+    sec.el.append(wrap);
+  }
+
+  /* --- Heti ritmus: naptárrács + .ics ----------------------------------- */
+  const LS_WEEK = "ep-portal-week";
+  const DAYS = ["Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat", "Vasárnap"];
+  const DAYS_SHORT = ["H", "K", "Sze", "Cs", "P", "Szo", "V"];
+  const hm = (t) => t.replace(/^0/, "");
+  const span = (e) => `${hm(e.start)}–${hm(e.end)}`;
+  const addMin = (t, m) => {
+    const [a, b] = t.split(":").map(Number);
+    const x = Math.min(a * 60 + b + m, 23 * 60 + 59);
+    return String(Math.floor(x / 60)).padStart(2, "0") + ":" + String(x % 60).padStart(2, "0");
+  };
+
+  function renderWeek(sec, s) {
+    const saved = readJson("localStorage", LS_WEEK, {});
+    const st = {
+      picks: Array.isArray(saved.picks) ? saved.picks.filter((id) => s.trainings.some((t) => t.id === id)).slice(0, s.pick) : [],
+      szbDay: Number.isInteger(saved.szbDay) && saved.szbDay >= 1 && saved.szbDay <= 7 ? saved.szbDay : 0,
+      szbTime: /^\d{2}:\d{2}$/.test(saved.szbTime || "") ? saved.szbTime : "",
+      szbDur: [30, 45, 60, 90, 120].includes(saved.szbDur) ? saved.szbDur : 60,
+    };
+    const persist = () => store.set("localStorage", LS_WEEK, JSON.stringify(st));
+    const szbSlot = () => (st.szbDay && st.szbTime
+      ? { id: "szb", title: s.szb.title, day: st.szbDay, start: st.szbTime, end: addMin(st.szbTime, st.szbDur), desc: s.szb.desc }
+      : null);
+
+    if (s.trainingsIntro) sec.el.append(h("p", { class: "week__lead" }, rich(s.trainingsIntro)));
+
+    /* Rács: H–V oszlopok (mobilon napok szerinti lista) */
+    const grid = h("div", { class: "week", role: "list", "aria-label": "Heti naptár" });
+    const six = h("ol", { class: "six" });
+    const drawGrid = () => {
+      const szb = szbSlot();
+      const evs = [
+        ...s.fixed.map((f) => ({ ...f, kind: "must" })),
+        ...s.trainings.map((t) => ({ ...t, kind: st.picks.includes(t.id) ? "picked" : "pick" })),
+        ...(szb ? [{ ...szb, kind: "own" }] : []),
+      ];
+      grid.replaceChildren(...DAYS.map((name, i) => {
+        const day = evs.filter((e) => e.day === i + 1).sort((a, b) => a.start.localeCompare(b.start));
+        return h("div", { class: "week__day" + (day.length ? "" : " is-free"), role: "listitem" },
+          h("h3", { class: "week__name" }, h("span", { class: "week__long" }, name), h("span", { class: "week__short", "aria-hidden": "true" }, DAYS_SHORT[i])),
+          day.length
+            ? h("ul", { class: "week__evs" }, day.map((e) => h("li", { class: "wev wev--" + e.kind },
+                h("p", { class: "wev__time" }, e.id === "checkpoint" ? hm(e.start) : span(e)),
+                h("p", { class: "wev__title" }, e.title),
+                h("span", { class: "wev__tag" },
+                  e.kind === "must" ? "Kötelező" : e.kind === "own" ? "Saját időpont" : e.kind === "picked" ? "Választott ✓" : `${s.trainings.length}-ből ${s.pick}`),
+                e.desc && e.kind === "must" ? h("p", { class: "wev__desc" }, rich(e.desc)) : null,
+                e.url ? extLink(e.url, e.linkLabel || "Csatlakozás", "wev__link") : null)))
+            : h("p", { class: "week__none" }, "Nincs fix program"));
+      }));
+
+      /* A 6 fix időpont listája */
+      const picked = s.trainings.filter((t) => st.picks.includes(t.id));
+      const rows = [
+        ...s.fixed.map((f) => [`${DAYS[f.day - 1]} ${f.id === "checkpoint" ? hm(f.start) : span(f)}`, f.title, true]),
+        [szb ? `${DAYS[szb.day - 1]} ${span(szb)}` : "a vezetőddel egyeztetitek", s.szb.title, !!szb],
+        ...Array.from({ length: s.pick }, (_, i) => {
+          const t = picked[i];
+          return [t ? `${DAYS[t.day - 1]} ${span(t)}` : "válaszd ki lent", `${i + 1}. választott tréning`, !!t];
+        }),
+      ];
+      six.replaceChildren(...rows.map(([when, what, ok]) =>
+        h("li", { class: ok ? "" : "is-open" }, h("strong", null, what), h("span", null, " – " + when))));
+    };
+
+    /* Választó + letöltés */
+    const counter = h("span", { class: "wplan__count" });
+    const boxes = s.trainings.map((t) => {
+      const id = "wp-" + t.id;
+      const box = h("input", { type: "checkbox", id, class: "wplan__box", value: t.id });
+      box.checked = st.picks.includes(t.id);
+      return { t, box, row: h("label", { class: "wplan__opt", for: id }, box,
+        h("span", null, h("strong", null, `${DAYS[t.day - 1]} ${span(t)}`), ` · ${t.title.toLowerCase()}`)) };
+    });
+    const syncBoxes = () => {
+      const full = st.picks.length >= s.pick;
+      for (const b of boxes) b.box.disabled = full && !b.box.checked;
+      counter.textContent = `${st.picks.length} / ${s.pick} kiválasztva`;
+      counter.classList.toggle("is-ok", st.picks.length === s.pick);
+    };
+    for (const b of boxes) b.box.addEventListener("change", () => {
+      st.picks = boxes.filter((x) => x.box.checked).map((x) => x.t.id).slice(0, s.pick);
+      persist(); syncBoxes(); drawGrid(); dlMsg.textContent = "";
+    });
+
+    const daySel = h("select", { id: "wp-szb-day", class: "wplan__input" },
+      h("option", { value: "0" }, "Válassz napot"), DAYS.map((d, i) => h("option", { value: String(i + 1) }, d)));
+    daySel.value = String(st.szbDay);
+    const timeIn = h("input", { id: "wp-szb-time", class: "wplan__input", type: "time", step: 900 });
+    timeIn.value = st.szbTime;
+    const durSel = h("select", { id: "wp-szb-dur", class: "wplan__input" },
+      [30, 45, 60, 90, 120].map((m) => h("option", { value: String(m) }, `${m} perc`)));
+    durSel.value = String(st.szbDur);
+    const onSzb = () => {
+      st.szbDay = Number(daySel.value) || 0;
+      st.szbTime = /^\d{2}:\d{2}$/.test(timeIn.value) ? timeIn.value : "";
+      st.szbDur = Number(durSel.value) || 60;
+      persist(); drawGrid(); dlMsg.textContent = "";
+    };
+    daySel.addEventListener("change", onSzb);
+    timeIn.addEventListener("change", onSzb);
+    durSel.addEventListener("change", onSzb);
+
+    const dlMsg = h("p", { class: "wplan__msg", role: "status", "aria-live": "polite" });
+    const dl = h("button", { type: "button", class: "btn wplan__dl" }, h("span", { class: "btn__label" }, "Naptárfájl letöltése (.ics)"));
+    dl.addEventListener("click", () => {
+      const miss = [];
+      if (st.picks.length !== s.pick) miss.push(`jelölj be ${s.pick} tréninget`);
+      if (!szbSlot()) miss.push("add meg az SZB napját és idejét");
+      if (miss.length) { dlMsg.dataset.kind = "error"; dlMsg.textContent = "Még " + miss.join(", és ") + "."; return; }
+      const evs = [...s.fixed, ...s.trainings.filter((t) => st.picks.includes(t.id)), szbSlot()];
+      downloadIcs(buildIcs(evs), "heti-ritmus.ics");
+      dlMsg.dataset.kind = "";
+      dlMsg.textContent = "Kész: a heti-ritmus.ics letöltődött, 6 heti ismétlődő eseménnyel.";
+    });
+
+    const planner = h("div", { class: "wplan" },
+      h("h3", { class: "wplan__title" }, "Hozzáadás a naptárhoz"),
+      h("p", { class: "wplan__lead" }, "Jelöld be, melyik 2 tréningre jársz, add meg az SZB-t, és töltsd le a naptárfájlt. Mind a 6 időpont hetente ismétlődve kerül be, a csatlakozási linkekkel."),
+      h("div", { class: "wplan__cols" },
+        h("fieldset", { class: "wplan__set" },
+          h("legend", null, "Melyik 2 tréningre jársz?", counter),
+          boxes.map((b) => b.row)),
+        h("fieldset", { class: "wplan__set" },
+          h("legend", null, s.szb.title),
+          s.szb.desc ? h("p", { class: "wplan__hint" }, s.szb.desc) : null,
+          h("div", { class: "wplan__szb" },
+            h("label", { for: "wp-szb-day" }, "Nap", daySel),
+            h("label", { for: "wp-szb-time" }, "Kezdés", timeIn),
+            h("label", { for: "wp-szb-dur" }, "Hossz", durSel)))),
+      h("div", { class: "wplan__foot" }, dl, dlMsg),
+      h("details", { class: "more wplan__help" },
+        h("summary", null, "Hogyan teszem be a naptáramba?"),
+        h("ul", { class: "tl__list" },
+          h("li", null, h("strong", null, "Google Naptár (gépen): "), "Beállítások → Importálás és exportálás → Importálás → válaszd ki a letöltött heti-ritmus.ics fájlt."),
+          h("li", null, h("strong", null, "iPhone: "), "nyisd meg a letöltött fájlt (Letöltések / Fájlok), majd „Az összes hozzáadása”."),
+          h("li", null, h("strong", null, "Android: "), "a letöltött fájlt nyisd meg a Google Naptárral, vagy importáld gépről, ahogy fent."))));
+
+    const legend = h("ul", { class: "week__legend", "aria-label": "Jelmagyarázat" },
+      h("li", { class: "wev--must" }, "Kötelező"),
+      h("li", { class: "wev--pick" }, `Választható (${s.trainings.length}-ből ${s.pick})`),
+      h("li", { class: "wev--own" }, "Saját (SZB)"));
+
+    const sixBox = h("div", { class: "six-box" }, h("h3", { class: "six-box__title" }, "A 6 fix időpont"), six);
+    sec.el.append(legend, grid, sixBox, planner);
+    syncBoxes();
+    drawGrid();
+    register(sec, grid, [...s.fixed.flatMap((f) => [f.title, f.desc]), ...s.trainings.map((t) => t.title), "tréning naptár hétfő kedd szerda csütörtök telefonparti checkpoint"]);
+    register(sec, sixBox, ["6 fix időpont szb vezető telefonparti checkpoint tréning"]);
+    register(sec, planner, ["naptár ics google iphone letöltés tréning választás szb hozzáadás"]);
+  }
+
+  /* --- .ics (RFC 5545): heti ismétlődés, Europe/Budapest ----------------
+     Feloldás után, a böngészőben készül Blobként: a linkek nem kerülnek ki
+     statikus fájlként. */
+  function icsEscape(t) {
+    return String(t).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+  }
+  /* 75 bájtos sorhajtás: UTF-8-karaktert és \, \; \n escape-et nem vág ketté
+     (a szabvány engedné, de egyes naptárak rosszul olvassák). */
+  function icsFold(line) {
+    const enc = new TextEncoder();
+    const out = [];
+    let cur = "";
+    let bytes = 0;
+    for (const ch of line.match(/\\.|[\s\S]/gu) || []) {
+      const b = enc.encode(ch).length;
+      const limit = out.length ? 74 : 75;
+      if (bytes + b > limit) { out.push(cur); cur = ""; bytes = 0; }
+      cur += ch;
+      bytes += b;
+    }
+    out.push(cur);
+    return out.join("\r\n ");
+  }
+  const plainText = (t) => String(t || "").replace(/\*\*(.+?)\*\*/g, "$1");
+
+  function buildIcs(evs) {
+    const pad = (n) => String(n).padStart(2, "0");
+    const now = new Date();
+    const stamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}Z`;
+    /* Az első alkalom: a legközelebbi ilyen nap (ma is lehet), helyi dátum szerint. */
+    const firstDate = (day) => {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      d.setDate(d.getDate() + ((day % 7) - d.getDay() + 7) % 7);
+      return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+    };
+    const L = [
+      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Ertek Pont//Munkatarsi Portal//HU", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+      "X-WR-CALNAME:Heti ritmus", "X-WR-TIMEZONE:Europe/Budapest",
+      "BEGIN:VTIMEZONE", "TZID:Europe/Budapest",
+      "BEGIN:DAYLIGHT", "TZOFFSETFROM:+0100", "TZOFFSETTO:+0200", "TZNAME:CEST", "DTSTART:19700329T020000", "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU", "END:DAYLIGHT",
+      "BEGIN:STANDARD", "TZOFFSETFROM:+0200", "TZOFFSETTO:+0100", "TZNAME:CET", "DTSTART:19701025T030000", "RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU", "END:STANDARD",
+      "END:VTIMEZONE",
+    ];
+    for (const e of evs) {
+      const date = firstDate(e.day);
+      const t = (x) => x.replace(":", "") + "00";
+      const link = e.url && !isTodo(e.url) ? safeUrl(e.url) : null;
+      const desc = [plainText(e.desc)];
+      if (link) desc.push(`Csatlakozás: ${link}`);
+      else if (e.url) desc.push("Csatlakozási link: hamarosan – kérdezd a vezetődet.");
+      desc.push("Érték Pont · Munkatársi Portál – heti ritmus");
+      L.push(
+        "BEGIN:VEVENT",
+        `UID:ep-heti-${e.id}@ertekpontpenzugyek.hu`,
+        `DTSTAMP:${stamp}`,
+        `DTSTART;TZID=Europe/Budapest:${date}T${t(e.start)}`,
+        `DTEND;TZID=Europe/Budapest:${date}T${t(e.end)}`,
+        "RRULE:FREQ=WEEKLY",
+        `SUMMARY:${icsEscape(e.title)}`,
+        `DESCRIPTION:${icsEscape(desc.filter(Boolean).join("\n"))}`,
+        ...(link ? [`URL:${link}`] : []),
+        "TRANSP:OPAQUE",
+        "END:VEVENT"
+      );
+    }
+    L.push("END:VCALENDAR");
+    return L.map(icsFold).join("\r\n") + "\r\n";
+  }
+
+  function downloadIcs(text, name) {
+    const url = URL.createObjectURL(new Blob([text], { type: "text/calendar;charset=utf-8" }));
+    const a = h("a", { href: url, download: name, hidden: true });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
   }
 
   /* --- „Hol találom?” – portáltérkép GYIK ------------------------------- */
@@ -469,7 +779,7 @@
           "li",
           { class: "faq__row" },
           h("p", { class: "faq__q" }, f.q),
-          h("div", { class: "faq__meta" }, pcrumb(f.path), f.note ? h("span", { class: "faq__note" }, f.note) : null),
+          h("div", { class: "faq__meta" }, pcrumb(f.path), f.note ? h("span", { class: "faq__note" }, rich(f.note)) : null),
           links.length ? h("div", { class: "faq__links" }, links) : null
         );
         ul.append(li);

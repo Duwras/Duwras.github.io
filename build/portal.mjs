@@ -81,14 +81,20 @@ try {
 }
 
 const errors = [];
+const warnings = [];
 const urls = [];
 const secrets = new Set([PASSWORD]);
 const isStr = (v) => typeof v === "string" && v.trim() !== "";
 const strArr = (v) => Array.isArray(v) && v.every(isStr);
 
+/* A még hiányzó linkek helyén "TODO" áll. Ez nem hiba: a build figyelmeztet,
+   a felületen pedig „Link hamarosan” jelenik meg kattintható gomb nélkül. */
+const isTodo = (u) => u === "TODO";
+
 /* Szintaktikai linkellenőrzés: a bejelentkezős oldalakat nem lehet
    megnyitni, de az elgépelt, nem https-es vagy szóközös címet igen. */
 function checkUrl(u, where) {
+  if (isTodo(u)) return warnings.push(`${where}: a link még TODO`);
   if (!isStr(u)) return errors.push(`${where}: hiányzó url`);
   let parsed;
   try {
@@ -152,9 +158,72 @@ else {
     if (ids.has(s.id)) errors.push(`${w}: ismétlődő id: ${s.id}`);
     ids.add(s.id);
     if (!isStr(s?.title)) errors.push(`${w}: hiányzó title`);
-    if (!Array.isArray(s?.items) || !s.items.length) errors.push(`${w}: üres items`);
-    else s.items.forEach((it, j) => checkItem(it, `${w}.items[${j}]`));
+    const type = s.type || "cards";
+    if (!["cards", "timeline", "week", "plan"].includes(type)) errors.push(`${w}: ismeretlen type: ${type}`);
+    /* A típusos szekcióknál a kártyák (items) nem kötelezők, a sima kártyásnál igen. */
+    if (s.items != null || type === "cards") {
+      if (!Array.isArray(s?.items) || !s.items.length) errors.push(`${w}: üres items`);
+      else s.items.forEach((it, j) => checkItem(it, `${w}.items[${j}]`));
+    }
+    if (type === "timeline") checkTimeline(s, w);
+    if (type === "week") checkWeek(s, w);
+    if (type === "plan") checkPlan(s, w);
   });
+}
+
+/* --- Idővonal: lépések időponttal, kiemelt határidővel ------------------ */
+function checkTimeline(s, w) {
+  if (!Array.isArray(s.steps) || !s.steps.length) return errors.push(`${w}: üres steps`);
+  s.steps.forEach((st, i) => {
+    const ww = `${w}.steps[${i}]`;
+    if (!isStr(st?.when)) errors.push(`${ww}: hiányzó when`);
+    if (!isStr(st?.title)) errors.push(`${ww}: hiányzó title`);
+    if (st.text != null && typeof st.text !== "string") errors.push(`${ww}: a text szöveg legyen`);
+    if (st.warn != null && !strArr(st.warn)) errors.push(`${ww}: a warn szövegtömb legyen`);
+    if (st.url != null) checkUrl(st.url, ww);
+    if (st.details != null && (!isStr(st.details.summary) || !strArr(st.details.items)))
+      errors.push(`${ww}.details: summary + items (szövegtömb) kell`);
+  });
+}
+
+/* --- Heti ritmus: választható tréningek + fix időpontok ------------------
+   day: 1 = hétfő … 7 = vasárnap; start/end: ÓÓ:PP. Az SZB napját és idejét
+   a munkatárs adja meg a felületen (szb). */
+function checkSlot(e, ww) {
+  const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+  if (!/^[a-z0-9-]+$/.test(e?.id || "")) errors.push(`${ww}: az id kisbetű/szám/kötőjel`);
+  if (!isStr(e?.title)) errors.push(`${ww}: hiányzó title`);
+  if (!Number.isInteger(e?.day) || e.day < 1 || e.day > 7) errors.push(`${ww}: a day 1–7 legyen`);
+  if (!HHMM.test(e?.start || "") || !HHMM.test(e?.end || "")) errors.push(`${ww}: start/end ÓÓ:PP`);
+  else if (e.end <= e.start) errors.push(`${ww}: az end a start után legyen`);
+  if (e.url != null) checkUrl(e.url, ww);
+}
+function checkWeek(s, w) {
+  const ids = new Set();
+  const uniq = (id, ww) => { if (ids.has(id)) errors.push(`${ww}: ismétlődő id: ${id}`); ids.add(id); };
+  if (!Array.isArray(s.trainings) || s.trainings.length < 2) errors.push(`${w}: legalább 2 tréning kell`);
+  else s.trainings.forEach((t, i) => { checkSlot(t, `${w}.trainings[${i}]`); uniq(t.id, `${w}.trainings[${i}]`); });
+  if (!Number.isInteger(s.pick) || s.pick < 1 || s.pick > (s.trainings || []).length)
+    errors.push(`${w}: a pick 1 és a tréningek száma között legyen`);
+  if (!Array.isArray(s.fixed) || !s.fixed.length) errors.push(`${w}: üres fixed`);
+  else s.fixed.forEach((f, i) => { checkSlot(f, `${w}.fixed[${i}]`); uniq(f.id, `${w}.fixed[${i}]`); });
+  if (!isStr(s.szb?.title)) errors.push(`${w}.szb: hiányzó title`);
+  if (s.list != null && !strArr(s.list)) errors.push(`${w}: a list szövegtömb legyen`);
+}
+
+/* --- Bedolgozási terv: szakaszok és pontok (személyes adat nélkül) ------ */
+function checkPlan(s, w) {
+  if (!Array.isArray(s.phases) || !s.phases.length) return errors.push(`${w}: üres phases`);
+  s.phases.forEach((p, i) => {
+    if (!isStr(p?.title)) errors.push(`${w}.phases[${i}]: hiányzó title`);
+    if (!strArr(p?.points) || !p.points.length) errors.push(`${w}.phases[${i}]: üres points`);
+  });
+}
+
+/* --- Kiemelt kártyák a „Kezdd itt” tetején -------------------------------- */
+if (data.checklistFeature != null) {
+  if (!Array.isArray(data.checklistFeature)) errors.push("checklistFeature: tömb kell");
+  else data.checklistFeature.forEach((it, i) => checkItem(it, `checklistFeature[${i}]`));
 }
 
 if (!Array.isArray(data.faq)) errors.push("faq: tömb kell");
@@ -176,6 +245,11 @@ if (errors.length) {
   process.exit(1);
 }
 log(`adat rendben: ${urls.length} link szintaktikailag ellenőrizve.`);
+if (warnings.length)
+  console.warn(
+    `PORTÁL — FIGYELEM, ${warnings.length} link még hiányzik ("TODO"), a felületen „Link hamarosan” lesz:\n  ` +
+      warnings.join("\n  ")
+  );
 
 /* --- Titkosítás --------------------------------------------------------
    A Web Crypto AES-GCM visszafejtése a ciphertext VÉGÉN várja a 16 bájtos
@@ -183,6 +257,25 @@ log(`adat rendben: ${urls.length} link szintaktikailag ellenőrizve.`);
    mindkét oldalon NFC-re normalizáljuk (ékezetes jelszónál számít). */
 const plaintext = Buffer.from(JSON.stringify(data), "utf8");
 const pw = Buffer.from(PASSWORD.normalize("NFC"), "utf8");
+
+/* Elgépelés elleni védelem: ha már van vault.json, a megadott jelszónak azt
+   is ki kell nyitnia. Különben egy elírt jelszóval titkosítanánk, és senki
+   (a munkatársak sem) tudna belépni. Szándékos jelszócsere: PORTAL_NEW_PASSWORD=1 */
+if (fs.existsSync(VAULT_FILE) && process.env.PORTAL_NEW_PASSWORD !== "1") {
+  try {
+    const old = JSON.parse(fs.readFileSync(VAULT_FILE, "utf8"));
+    const oct = Buffer.from(old.ct, "base64");
+    const okey = crypto.pbkdf2Sync(pw, Buffer.from(old.salt, "base64"), old.iter, 32, "sha256");
+    const d = crypto.createDecipheriv("aes-256-gcm", okey, Buffer.from(old.iv, "base64"));
+    d.setAuthTag(oct.subarray(oct.length - 16));
+    Buffer.concat([d.update(oct.subarray(0, oct.length - 16)), d.final()]);
+    log("a jelszó egyezik a jelenlegi vault.json jelszavával.");
+  } catch {
+    console.error("PORTÁL — HIBA: ez a jelszó NEM nyitja a jelenlegi munkatarsi-portal/vault.json-t (elgépelés?). Semmi nem íródott ki.");
+    console.error("  Ha szándékosan cserélsz jelszót: $env:PORTAL_NEW_PASSWORD='1' a build előtt (és szólj a munkatársaknak).");
+    process.exit(1);
+  }
+}
 const salt = crypto.randomBytes(16);
 const iv = crypto.randomBytes(12);
 const key = crypto.pbkdf2Sync(pw, salt, ITERATIONS, 32, "sha256");
