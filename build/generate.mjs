@@ -2978,6 +2978,7 @@ exclude:
   - node_modules/
   - content/
   - package.json
+  - supabase/
 `
 );
 

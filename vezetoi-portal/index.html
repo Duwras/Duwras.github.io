@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Belső munkaeszköz vezetőknek. Személyes adatok: csak bejelentkezés után,
+     a Supabase adatbázisból (RLS). Nincs analitika, nincs külső szkript.
+     Beállítás: docs/vezetoi-portal-setup.md -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0a0b09">
+<title>Vezetői Portál</title>
+<link rel="icon" href="../favicon.ico" sizes="48x48">
+<link rel="icon" href="../assets/brand/logo-mark.svg" type="image/svg+xml">
+<link rel="preload" as="font" type="font/woff2" href="../assets/fonts/inter-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="../assets/fonts/inter-tight-latin.woff2" crossorigin>
+<link rel="stylesheet" href="../css/site.css">
+<link rel="stylesheet" href="../munkatarsi-portal/portal.css">
+<link rel="stylesheet" href="vp.css">
+<script src="vendor/supabase-2.118.0.js" defer></script>
+<script src="config.js" defer></script>
+<script type="module" src="js/app.js"></script>
+</head>
+<body class="portal vp">
+
+<!-- Belépés: ugyanaz a felület, mint a Munkatársi Portálé -->
+<main class="lock" id="lock">
+  <div class="lock__card">
+    <img class="lock__mark" src="../assets/brand/logo-mark.svg" alt="" width="56" height="56">
+    <p class="lock__eyebrow">Érték Pont · vezetőknek</p>
+    <h1 class="lock__title">Vezetői Portál</h1>
+
+    <!-- 1) E-mail + jelszó -->
+    <form id="f-login" novalidate>
+      <p class="lock__lead">Lépj be a saját vezetői fiókoddal. Fiókot az admin meghívóval ad.</p>
+      <label class="lock__label" for="l-email">E-mail-cím</label>
+      <input class="lock__input vp-lock-input" id="l-email" name="email" type="email" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+      <label class="lock__label" for="l-pw">Jelszó</label>
+      <div class="lock__field">
+        <input class="lock__input" id="l-pw" name="password" type="password" autocomplete="current-password" required>
+        <button class="lock__eye" id="l-eye" type="button" aria-label="Jelszó megjelenítése" aria-pressed="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <button class="btn btn--block lock__submit" type="submit"><span class="btn__label">Belépés</span></button>
+      <button class="vp-linkbtn" id="to-reset" type="button">Elfelejtetted a jelszavad?</button>
+    </form>
+
+    <!-- 2) Jelszó-visszaállítás kérése -->
+    <form id="f-reset" novalidate hidden>
+      <p class="lock__lead">Add meg az e-mail-címed: küldünk egy linket, amivel új jelszót állíthatsz be.</p>
+      <label class="lock__label" for="r-email">E-mail-cím</label>
+      <input class="lock__input vp-lock-input" id="r-email" type="email" autocomplete="username" required>
+      <button class="btn btn--block lock__submit" type="submit"><span class="btn__label">Link küldése</span></button>
+      <button class="vp-linkbtn" id="to-login" type="button">Vissza a belépéshez</button>
+    </form>
+
+    <!-- 3) Új jelszó (meghívó vagy visszaállító link után) -->
+    <form id="f-setpw" novalidate hidden>
+      <p class="lock__lead">Állítsd be a jelszavad (legalább 10 karakter). Ezzel lépsz be ezután.</p>
+      <label class="lock__label" for="s-pw">Új jelszó</label>
+      <input class="lock__input vp-lock-input" id="s-pw" type="password" autocomplete="new-password" minlength="10" required>
+      <label class="lock__label" for="s-pw2">Új jelszó még egyszer</label>
+      <input class="lock__input vp-lock-input" id="s-pw2" type="password" autocomplete="new-password" minlength="10" required>
+      <button class="btn btn--block lock__submit" type="submit"><span class="btn__label">Jelszó mentése</span></button>
+    </form>
+
+    <p class="lock__msg" id="lock-msg" role="status" aria-live="polite"></p>
+  </div>
+  <noscript><p class="lock__noscript">A portálhoz JavaScript kell.</p></noscript>
+</main>
+
+<!-- Bejelentkezés után -->
+<div class="app" id="app" hidden>
+  <a class="skip-link" href="#view">Ugrás a tartalomra</a>
+  <header class="ptop">
+    <div class="ptop__row vp-top">
+      <a class="ptop__brand" href="#/" aria-label="Vezetői Portál – áttekintő">
+        <img src="../assets/brand/logo-mark.svg" alt="" width="34" height="34">
+        <span class="ptop__name">Vezetői <span>Portál</span></span>
+      </a>
+      <nav class="vp-nav" id="vp-nav" aria-label="Fő menü"></nav>
+      <div class="vp-top__right">
+        <details class="vp-menu" id="vp-links">
+          <summary class="vp-menu__btn">Linkek</summary>
+          <ul class="vp-menu__list" id="vp-links-list"></ul>
+        </details>
+        <span class="vp-me" id="vp-me"></span>
+        <button class="ptop__logout" id="logout" type="button" aria-label="Kilépés">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17-5-5 5-5"/><path d="M5 12h12"/></svg>
+          <span>Kilépés</span>
+        </button>
+      </div>
+    </div>
+  </header>
+  <main class="vp-main" id="view" tabindex="-1"></main>
+</div>
+
+<!-- Nyomtatható export (PDF) ide kerül -->
+<div id="print" class="vp-print" hidden></div>
+
+</body>
+</html>

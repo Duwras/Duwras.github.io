@@ -24,6 +24,10 @@ desktop.ini
 .vscode/
 .idea/
 
+# Supabase CLI helyi munkafájljai (Vezetői Portál)
+supabase/.temp/
+supabase/.branches/
+
 # Node (ha később lesz csomagkezelés)
 node_modules/
 npm-debug.log*

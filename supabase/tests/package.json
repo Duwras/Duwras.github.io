@@ -1,0 +1,14 @@
+{
+  "name": "vezetoi-portal-tests",
+  "private": true,
+  "type": "module",
+  "description": "A Vezetői Portál tesztjei. Külön csomag, hogy a weboldal maga függőségmentes maradjon (lásd a gyökér package.json-t).",
+  "scripts": {
+    "test:local": "node local-test.mjs",
+    "test:live": "node rls-test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.14",
+    "@supabase/supabase-js": "2.118.0"
+  }
+}
