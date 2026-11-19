@@ -6,6 +6,6 @@
    Hol találod: Supabase → Project Settings → API (docs/vezetoi-portal-setup.md)
    ========================================================================== */
 window.VP_CONFIG = {
-  supabaseUrl: "",
-  supabaseAnonKey: "",
+  supabaseUrl: "https://qjgxgvkejdxjbdpcmxta.supabase.co",
+  supabaseAnonKey: "sb_publishable_TGcazVUh7JVdWtQ4gWQmtg_FYwB77Tp",
 };
