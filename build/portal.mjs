@@ -257,6 +257,25 @@ if (warnings.length)
    mindkét oldalon NFC-re normalizáljuk (ékezetes jelszónál számít). */
 const plaintext = Buffer.from(JSON.stringify(data), "utf8");
 const pw = Buffer.from(PASSWORD.normalize("NFC"), "utf8");
+
+/* Elgépelés elleni védelem: ha már van vault.json, a megadott jelszónak azt
+   is ki kell nyitnia. Különben egy elírt jelszóval titkosítanánk, és senki
+   (a munkatársak sem) tudna belépni. Szándékos jelszócsere: PORTAL_NEW_PASSWORD=1 */
+if (fs.existsSync(VAULT_FILE) && process.env.PORTAL_NEW_PASSWORD !== "1") {
+  try {
+    const old = JSON.parse(fs.readFileSync(VAULT_FILE, "utf8"));
+    const oct = Buffer.from(old.ct, "base64");
+    const okey = crypto.pbkdf2Sync(pw, Buffer.from(old.salt, "base64"), old.iter, 32, "sha256");
+    const d = crypto.createDecipheriv("aes-256-gcm", okey, Buffer.from(old.iv, "base64"));
+    d.setAuthTag(oct.subarray(oct.length - 16));
+    Buffer.concat([d.update(oct.subarray(0, oct.length - 16)), d.final()]);
+    log("a jelszó egyezik a jelenlegi vault.json jelszavával.");
+  } catch {
+    console.error("PORTÁL — HIBA: ez a jelszó NEM nyitja a jelenlegi munkatarsi-portal/vault.json-t (elgépelés?). Semmi nem íródott ki.");
+    console.error("  Ha szándékosan cserélsz jelszót: $env:PORTAL_NEW_PASSWORD='1' a build előtt (és szólj a munkatársaknak).");
+    process.exit(1);
+  }
+}
 const salt = crypto.randomBytes(16);
 const iv = crypto.randomBytes(12);
 const key = crypto.pbkdf2Sync(pw, salt, ITERATIONS, 32, "sha256");
