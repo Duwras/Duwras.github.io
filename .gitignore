@@ -4,6 +4,14 @@
 # fel a GitHubra, vagyis erről nincs online biztonsági mentés.
 _source/
 
+# Munkatársi Portál: a nyílt linkek és a jelszó SOHA nem kerülhet a repóba.
+# Csak a titkosított kimenet (munkatarsi-portal/vault.json) megy fel.
+# A kamu adatos példafájl kivétel, az nyilvános. Lásd build/portal.mjs.
+private/*
+!private/portal-data.example.json
+.env
+.env.*
+
 # Claude Code helyi beállításai
 .claude/
 

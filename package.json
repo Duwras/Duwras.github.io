@@ -8,6 +8,7 @@
     "check:seo": "node build/seo-check.mjs",
     "check:cro": "node build/cro-check.mjs",
     "check": "node build/blog-check.mjs && node build/seo-check.mjs && node build/cro-check.mjs",
+    "portal:build": "node build/portal.mjs",
     "preview": "python -m http.server 5173"
   }
 }

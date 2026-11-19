@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Belső munkaeszköz. A tartalom titkosítva van (vault.json), jelszó nélkül
+     ebből a fájlból semmi nem derül ki. Nincs analitika, nincs külső forrás.
+     Forrás és frissítés: build/portal.mjs, private/README.md. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; frame-src 'none'; upgrade-insecure-requests">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0a0b09">
+<title>Munkatársi Portál</title>
+<link rel="icon" href="../favicon.ico" sizes="48x48">
+<link rel="icon" href="../assets/brand/logo-mark.svg" type="image/svg+xml">
+<link rel="preload" as="font" type="font/woff2" href="../assets/fonts/inter-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="../assets/fonts/inter-tight-latin.woff2" crossorigin>
+<link rel="stylesheet" href="../css/site.css">
+<link rel="stylesheet" href="portal.css?v=1aa7dbfc81">
+<script src="portal.js?v=20a5ddac57" defer></script>
+</head>
+<body class="portal">
+
+<!-- Belépőképernyő: ez látszik, amíg nincs feloldva. -->
+<main class="lock" id="lock">
+  <form class="lock__card" id="lock-form" novalidate>
+    <img class="lock__mark" src="../assets/brand/logo-mark.svg" alt="" width="56" height="56">
+    <p class="lock__eyebrow">Érték Pont · belső felület</p>
+    <h1 class="lock__title">Munkatársi Portál</h1>
+    <p class="lock__lead">A jelszót a vezetődtől kapod.</p>
+
+    <label class="lock__label" for="lock-pw">Jelszó</label>
+    <div class="lock__field">
+      <input class="lock__input" id="lock-pw" name="password" type="password"
+             autocomplete="current-password" autocapitalize="off" spellcheck="false"
+             required aria-describedby="lock-msg">
+      <button class="lock__eye" id="lock-eye" type="button" aria-label="Jelszó megjelenítése" aria-pressed="false">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+
+    <button class="btn btn--block lock__submit" id="lock-submit" type="submit">
+      <span class="btn__label">Belépés</span>
+    </button>
+    <p class="lock__msg" id="lock-msg" role="status" aria-live="polite"></p>
+  </form>
+  <noscript><p class="lock__noscript">A portálhoz JavaScript kell. Kapcsold be, vagy nyisd meg egy másik böngészőben.</p></noscript>
+</main>
+
+<!-- Feloldás után a portal.js tölti fel. -->
+<div class="app" id="app" hidden>
+  <a class="skip-link" href="#main">Ugrás a tartalomra</a>
+  <header class="ptop">
+    <div class="ptop__row">
+      <a class="ptop__brand" href="#top" aria-label="Munkatársi Portál — vissza a tetejére">
+        <img src="../assets/brand/logo-mark.svg" alt="" width="34" height="34">
+        <span class="ptop__name">Munkatársi <span>Portál</span></span>
+      </a>
+      <div class="search" role="search">
+        <svg class="search__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <label class="sr-only" for="q">Keresés a portálon</label>
+        <input class="search__input" id="q" type="search" placeholder="Keresés: próbavizsga, excel, jutalék…"
+               autocomplete="off" spellcheck="false" enterkeyhint="search" aria-describedby="q-status">
+        <kbd class="search__kbd" aria-hidden="true">/</kbd>
+      </div>
+      <button class="ptop__logout" id="logout" type="button" aria-label="Kilépés a portálról">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17-5-5 5-5"/><path d="M5 12h12"/></svg>
+        <span>Kilépés</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="playout">
+    <nav class="pnav" id="pnav" aria-label="Szekciók"></nav>
+    <main class="pmain" id="main" tabindex="-1">
+      <p class="q-status" id="q-status" role="status" aria-live="polite"></p>
+      <div id="content"></div>
+    </main>
+  </div>
+
+  <footer class="pfoot" id="pfoot"></footer>
+</div>
+
+</body>
+</html>
