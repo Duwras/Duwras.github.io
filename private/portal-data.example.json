@@ -1,0 +1,58 @@
+{
+  "updated": "2026-01-01",
+  "quick": [
+    {
+      "title": "Példa felület",
+      "desc": "Rövid leírás: mire jó.",
+      "url": "https://example.com/",
+      "login": "Példa belépés kell",
+      "code": "pelda123",
+      "tags": ["példa", "kulcsszó"]
+    }
+  ],
+  "checklist": [
+    { "id": "elso-lepes", "text": "Lépj be a **példa felületre**.", "url": "https://example.com/", "linkLabel": "Megnyitás" },
+    { "id": "masodik-lepes", "text": "Link nélküli teendő is lehet." }
+  ],
+  "sections": [
+    {
+      "id": "pelda",
+      "nav": "Példa",
+      "title": "Példa szekció",
+      "intro": "Magyarázó blokk. A **dupla csillag** között félkövér lesz.",
+      "items": [
+        {
+          "title": "Kártya egy linkkel",
+          "important": true,
+          "desc": "1–2 mondat: mire jó.",
+          "url": "https://example.com/oldal",
+          "cta": "Megnyitás",
+          "path": ["Portál", "Menü", "Almenü"],
+          "login": "Példa belépés kell",
+          "note": "Figyelmeztetés (sárga) – nem kötelező.",
+          "tags": ["kulcsszó", "még egy kulcsszó"],
+          "code": null
+        },
+        {
+          "title": "Kártya több linkkel",
+          "desc": "Hatnál több link esetén lenyitható lista lesz belőle.",
+          "path": ["Portál", "Menü"],
+          "login": "Nyilvános",
+          "links": [
+            { "label": "Első lecke", "url": "https://example.com/1" },
+            { "label": "Második lecke", "url": "https://example.com/2" }
+          ]
+        }
+      ]
+    }
+  ],
+  "faqIntro": "A „Hol találom?” szekció bevezetője.",
+  "faqGroups": { "Példa portál": "Rövid megjegyzés a portálcsoport alá." },
+  "faqTip": "Tipp a lista alján.",
+  "faq": [
+    { "q": "Hol találom ezt?", "portal": "Példa portál", "path": ["Menü", "Almenü"], "url": "https://example.com/hol", "tags": ["kulcsszó"] },
+    { "q": "Két link egy kérdéshez?", "portal": "Példa portál", "path": ["Menü"], "links": [{ "label": "Egyik", "url": "https://example.com/a" }, { "label": "Másik", "url": "https://example.com/b" }] },
+    { "q": "Link nélküli válasz", "portal": "Példa portál", "path": ["Fejléc"], "note": "Szöveges útmutatás." }
+  ],
+  "contact": { "name": "Példa Péter", "phone": "+36 00 000 0000", "email": "pelda@example.com", "text": "Elakadtál? Írj vagy hívj:" }
+}
